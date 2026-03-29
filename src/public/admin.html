@@ -1,0 +1,946 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>관리자 설정 - 라스북 세미나</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet" />
+  <script src="https://cdn.jsdelivr.net/npm/qrcode@1.5.3/build/qrcode.min.js"></script>
+
+  <style>
+    :root {
+      --navy: #0A1628;
+      --navy-mid: #1B2B4B;
+      --navy-light: #243657;
+      --gold: #C9A84C;
+      --gold-light: #E8C97A;
+      --gold-dark: #A8872E;
+      --white: #FFFFFF;
+      --gray-50: #FAFBFD;
+      --gray-100: #F0F2F7;
+      --gray-200: #E2E5EF;
+      --gray-400: #9AA3B2;
+      --gray-600: #5A6478;
+      --gray-700: #3D4A5C;
+      --red: #E53E3E;
+      --green: #38A169;
+      --blue: #3182CE;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: 'Noto Sans KR', sans-serif;
+      background: var(--gray-100);
+      color: var(--navy);
+    }
+
+    /* ── Login Screen ── */
+    .login-screen {
+      min-height: 100vh;
+      background: linear-gradient(160deg, var(--navy) 0%, var(--navy-mid) 60%, #1a3a5c 100%);
+      display: flex; align-items: center; justify-content: center;
+      padding: 24px;
+    }
+    .login-card {
+      background: white;
+      border-radius: 24px;
+      padding: 40px 32px;
+      width: 100%; max-width: 400px;
+      box-shadow: 0 20px 60px rgba(0,0,0,0.4);
+    }
+    .login-logo {
+      text-align: center; margin-bottom: 32px;
+    }
+    .login-logo-text {
+      font-size: 24px; font-weight: 900; color: var(--navy);
+      letter-spacing: 2px;
+    }
+    .login-logo-text span { color: var(--gold-dark); }
+    .login-logo p { font-size: 13px; color: var(--gray-400); margin-top: 6px; }
+    .login-label {
+      display: block; font-size: 13px; font-weight: 700;
+      color: var(--gray-700); margin-bottom: 8px;
+    }
+    .login-input {
+      width: 100%; padding: 14px 18px;
+      border: 2px solid var(--gray-200); border-radius: 12px;
+      font-size: 16px; font-family: inherit; color: var(--navy);
+      background: var(--gray-50); outline: none;
+      transition: all 0.2s;
+    }
+    .login-input:focus { border-color: var(--navy-mid); background: white; }
+    .btn-login {
+      width: 100%; margin-top: 20px; padding: 16px;
+      background: linear-gradient(135deg, var(--navy), var(--navy-mid));
+      color: white; border: none; border-radius: 12px;
+      font-size: 16px; font-weight: 800; font-family: inherit;
+      cursor: pointer; transition: all 0.2s;
+    }
+    .btn-login:hover { transform: translateY(-1px); box-shadow: 0 6px 20px rgba(0,0,0,0.2); }
+    .login-error {
+      color: var(--red); font-size: 13px; margin-top: 10px; text-align: center; display: none;
+    }
+
+    /* ── Main App ── */
+    .app { display: none; }
+
+    /* Sidebar + Content layout */
+    .app-layout {
+      display: flex; min-height: 100vh;
+    }
+
+    .sidebar {
+      width: 240px; flex-shrink: 0;
+      background: linear-gradient(180deg, var(--navy) 0%, var(--navy-mid) 100%);
+      padding: 24px 0;
+      position: sticky; top: 0; height: 100vh; overflow-y: auto;
+    }
+    .sidebar-brand {
+      padding: 0 20px 24px;
+      border-bottom: 1px solid rgba(255,255,255,0.08);
+    }
+    .sidebar-brand h1 {
+      font-size: 16px; font-weight: 900; color: white; letter-spacing: 1px;
+    }
+    .sidebar-brand p { font-size: 11px; color: var(--gold); margin-top: 3px; }
+    .sidebar-nav {
+      padding: 16px 12px;
+    }
+    .nav-section-title {
+      font-size: 9px; font-weight: 700; letter-spacing: 2px;
+      color: rgba(255,255,255,0.3); padding: 0 8px; margin-bottom: 8px;
+      text-transform: uppercase;
+    }
+    .nav-item {
+      display: flex; align-items: center; gap: 10px;
+      padding: 10px 12px; border-radius: 10px; cursor: pointer;
+      color: rgba(255,255,255,0.6); font-size: 13px; font-weight: 500;
+      transition: all 0.15s; margin-bottom: 2px;
+      text-decoration: none;
+    }
+    .nav-item:hover { background: rgba(255,255,255,0.07); color: white; }
+    .nav-item.active {
+      background: rgba(201,168,76,0.15); color: var(--gold-light);
+      border: 1px solid rgba(201,168,76,0.2);
+    }
+    .nav-item .icon { font-size: 16px; width: 20px; text-align: center; }
+
+    /* Content Area */
+    .content {
+      flex: 1;
+      padding: 32px;
+      overflow-y: auto;
+      max-width: 900px;
+    }
+    .page-header {
+      margin-bottom: 32px;
+    }
+    .page-header h2 {
+      font-size: 26px; font-weight: 900; color: var(--navy);
+    }
+    .page-header p { font-size: 14px; color: var(--gray-600); margin-top: 4px; }
+
+    /* Section */
+    .section {
+      background: white; border-radius: 20px;
+      box-shadow: 0 2px 12px rgba(0,0,0,0.06);
+      margin-bottom: 24px; overflow: hidden;
+    }
+    .section-header {
+      padding: 20px 24px 16px;
+      border-bottom: 1px solid var(--gray-100);
+      display: flex; align-items: center; gap: 12px;
+    }
+    .section-icon {
+      width: 40px; height: 40px;
+      background: linear-gradient(135deg, var(--navy), var(--navy-mid));
+      border-radius: 10px;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 18px;
+    }
+    .section-header h3 { font-size: 17px; font-weight: 800; color: var(--navy); }
+    .section-header p { font-size: 12px; color: var(--gray-400); margin-top: 2px; }
+    .section-body { padding: 24px; }
+
+    /* Form Elements */
+    .form-row {
+      display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-bottom: 16px;
+    }
+    .form-row.full { grid-template-columns: 1fr; }
+    .field-label {
+      display: block; font-size: 12px; font-weight: 700;
+      color: var(--gray-700); margin-bottom: 6px; letter-spacing: 0.3px;
+    }
+    .field-input {
+      width: 100%; padding: 12px 16px;
+      border: 2px solid var(--gray-200); border-radius: 10px;
+      font-size: 14px; font-family: inherit; color: var(--navy);
+      background: var(--gray-50); outline: none; transition: all 0.2s;
+    }
+    .field-input:focus { border-color: var(--navy-mid); background: white; }
+    .field-hint { font-size: 11px; color: var(--gray-400); margin-top: 5px; }
+
+    /* Capacity special */
+    .capacity-display {
+      display: flex; align-items: center; gap: 12px; margin-bottom: 16px;
+    }
+    .capacity-big {
+      font-size: 48px; font-weight: 900; color: var(--navy-mid);
+      line-height: 1;
+    }
+    .capacity-info p { font-size: 13px; color: var(--gray-600); }
+    .capacity-info strong { color: var(--navy); }
+
+    /* Buttons */
+    .btn {
+      padding: 12px 24px; border: none; border-radius: 10px;
+      font-size: 14px; font-weight: 700; font-family: inherit;
+      cursor: pointer; transition: all 0.2s; display: inline-flex;
+      align-items: center; gap: 8px;
+    }
+    .btn-primary {
+      background: linear-gradient(135deg, var(--navy), var(--navy-mid));
+      color: white;
+    }
+    .btn-primary:hover { transform: translateY(-1px); box-shadow: 0 4px 12px rgba(0,0,0,0.2); }
+    .btn-gold {
+      background: linear-gradient(135deg, var(--gold-dark), var(--gold));
+      color: var(--navy);
+    }
+    .btn-gold:hover { transform: translateY(-1px); box-shadow: 0 4px 12px rgba(201,168,76,0.3); }
+    .btn-outline {
+      background: white; color: var(--navy);
+      border: 2px solid var(--gray-200);
+    }
+    .btn-outline:hover { border-color: var(--navy-mid); }
+    .btn-danger { background: var(--red); color: white; }
+    .btn-sm { padding: 8px 16px; font-size: 12px; border-radius: 8px; }
+
+    /* Save feedback */
+    .save-feedback {
+      display: none; align-items: center; gap: 8px;
+      padding: 10px 16px; background: #f0fff4;
+      border: 1px solid #68d391; border-radius: 10px;
+      font-size: 13px; font-weight: 700; color: #2f855a;
+      margin-top: 12px;
+    }
+    .save-feedback.show { display: flex; }
+    .error-feedback {
+      display: none; align-items: center; gap: 8px;
+      padding: 10px 16px; background: #fff5f5;
+      border: 1px solid #fc8181; border-radius: 10px;
+      font-size: 13px; font-weight: 700; color: #c53030;
+      margin-top: 12px;
+    }
+    .error-feedback.show { display: flex; }
+
+    /* ── POSTER MAKER ── */
+    .poster-maker {
+      display: flex; flex-direction: column; gap: 20px;
+    }
+
+    .upload-zone {
+      border: 2px dashed var(--gray-200);
+      border-radius: 16px; padding: 40px;
+      text-align: center; cursor: pointer;
+      transition: all 0.2s; background: var(--gray-50);
+    }
+    .upload-zone:hover { border-color: var(--navy-mid); background: white; }
+    .upload-zone.drag-over { border-color: var(--gold); background: rgba(201,168,76,0.05); }
+    .upload-zone-icon { font-size: 40px; margin-bottom: 12px; }
+    .upload-zone h4 { font-size: 15px; font-weight: 700; color: var(--navy); margin-bottom: 4px; }
+    .upload-zone p { font-size: 12px; color: var(--gray-400); }
+    #poster-file-input { display: none; }
+
+    .canvas-container {
+      display: none;
+      position: relative; background: #1a1a1a;
+      border-radius: 16px; overflow: hidden;
+      box-shadow: 0 8px 30px rgba(0,0,0,0.3);
+    }
+    #poster-canvas {
+      display: block; max-width: 100%;
+      cursor: crosshair;
+    }
+
+    /* QR overlay on canvas (for dragging UI) */
+    .qr-overlay {
+      position: absolute;
+      cursor: move;
+      border: 2px solid var(--gold);
+      border-radius: 4px;
+    }
+    .qr-overlay::after {
+      content: 'QR 위치 조정';
+      position: absolute;
+      bottom: -24px; left: 50%;
+      transform: translateX(-50%);
+      background: var(--gold);
+      color: var(--navy);
+      font-size: 10px; font-weight: 700;
+      padding: 3px 10px; border-radius: 10px;
+      white-space: nowrap;
+    }
+
+    .poster-controls {
+      display: none;
+      background: var(--gray-50);
+      border: 1px solid var(--gray-200);
+      border-radius: 16px;
+      padding: 20px;
+    }
+    .poster-controls h4 { font-size: 14px; font-weight: 700; color: var(--navy); margin-bottom: 14px; }
+
+    .control-row {
+      display: flex; align-items: center; gap: 12px; margin-bottom: 12px;
+    }
+    .control-label {
+      font-size: 12px; font-weight: 600; color: var(--gray-600);
+      width: 60px; flex-shrink: 0;
+    }
+    .range-input {
+      flex: 1; accent-color: var(--gold-dark);
+    }
+    .range-value {
+      font-size: 12px; font-weight: 700; color: var(--navy);
+      min-width: 40px; text-align: right;
+    }
+
+    /* Mobile Nav */
+    @media (max-width: 768px) {
+      .sidebar {
+        width: 60px; padding: 16px 0;
+      }
+      .sidebar-brand { display: none; }
+      .nav-section-title { display: none; }
+      .nav-item span:not(.icon) { display: none; }
+      .nav-item { justify-content: center; }
+      .content { padding: 20px 16px; }
+      .form-row { grid-template-columns: 1fr; }
+    }
+
+    /* Toast */
+    .toast {
+      position: fixed; bottom: 24px; right: 24px;
+      background: var(--navy); color: white;
+      padding: 12px 20px; border-radius: 10px;
+      font-size: 13px; font-weight: 600;
+      box-shadow: 0 4px 20px rgba(0,0,0,0.2);
+      transform: translateY(80px);
+      transition: transform 0.3s ease;
+      z-index: 9999;
+    }
+    .toast.show { transform: translateY(0); }
+    .toast.success { background: var(--green); }
+    .toast.error { background: var(--red); }
+  </style>
+</head>
+<body>
+
+<!-- LOGIN SCREEN -->
+<div class="login-screen" id="login-screen">
+  <div class="login-card">
+    <div class="login-logo">
+      <div class="login-logo-text">LAS<span>BOOK</span></div>
+      <p>관리자 페이지</p>
+    </div>
+    <label class="login-label" for="login-pw">관리자 비밀번호</label>
+    <input type="password" id="login-pw" class="login-input" placeholder="비밀번호 입력" />
+    <div class="login-error" id="login-error">비밀번호가 올바르지 않습니다.</div>
+    <button class="btn-login" id="login-btn" onclick="doLogin()">로그인</button>
+    <div style="text-align:center;margin-top:16px;">
+      <a href="/admin/dashboard" style="font-size:12px;color:#9AA3B2;text-decoration:none;">대시보드로 이동 →</a>
+    </div>
+  </div>
+</div>
+
+<!-- MAIN APP -->
+<div class="app" id="app">
+  <div class="app-layout">
+
+    <!-- Sidebar -->
+    <div class="sidebar">
+      <div class="sidebar-brand">
+        <h1>LASBOOK</h1>
+        <p>세미나 관리 시스템</p>
+      </div>
+      <div class="sidebar-nav">
+        <div class="nav-section-title">Menu</div>
+        <div class="nav-item active" onclick="showTab('settings')">
+          <span class="icon">⚙️</span>
+          <span>세미나 설정</span>
+        </div>
+        <div class="nav-item" onclick="showTab('poster')">
+          <span class="icon">🎨</span>
+          <span>포스터 제작</span>
+        </div>
+        <a class="nav-item" href="/admin/dashboard">
+          <span class="icon">📊</span>
+          <span>대시보드</span>
+        </a>
+        <a class="nav-item" href="/" target="_blank">
+          <span class="icon">📋</span>
+          <span>신청 페이지</span>
+        </a>
+      </div>
+    </div>
+
+    <!-- Content -->
+    <div class="content">
+
+      <!-- SETTINGS TAB -->
+      <div id="tab-settings">
+        <div class="page-header">
+          <h2>⚙️ 세미나 설정</h2>
+          <p>세미나 기본 정보 및 정원을 설정합니다</p>
+        </div>
+
+        <!-- Capacity Card -->
+        <div class="section">
+          <div class="section-header">
+            <div class="section-icon">👥</div>
+            <div>
+              <h3>정원 설정</h3>
+              <p>최대 신청 가능 인원을 설정합니다</p>
+            </div>
+          </div>
+          <div class="section-body">
+            <div class="capacity-display">
+              <div class="capacity-big" id="cap-display">120</div>
+              <div class="capacity-info">
+                <p>현재 정원</p>
+                <strong id="cap-current-count">-- 명 신청 중</strong>
+              </div>
+            </div>
+            <div class="form-row full">
+              <div>
+                <label class="field-label" for="max-capacity">최대 정원 (명)</label>
+                <input type="number" id="max-capacity" class="field-input" min="1" max="9999" placeholder="120" />
+                <p class="field-hint">현재 신청 인원보다 낮게 설정할 수 없습니다.</p>
+              </div>
+            </div>
+            <button class="btn btn-primary" onclick="saveCapacity()">💾 정원 저장</button>
+            <div class="save-feedback" id="cap-save-ok"><span>✅</span> 정원이 저장되었습니다.</div>
+            <div class="error-feedback" id="cap-save-err"><span>❌</span> <span id="cap-err-msg"></span></div>
+          </div>
+        </div>
+
+        <!-- Seminar Info Card -->
+        <div class="section">
+          <div class="section-header">
+            <div class="section-icon">📋</div>
+            <div>
+              <h3>세미나 정보</h3>
+              <p>신청 페이지에 표시될 세미나 정보를 설정합니다</p>
+            </div>
+          </div>
+          <div class="section-body">
+            <div class="form-row full">
+              <div>
+                <label class="field-label" for="seminar-title">세미나 제목</label>
+                <input type="text" id="seminar-title" class="field-input" placeholder="라스북 학부모 세미나" maxlength="50" />
+              </div>
+            </div>
+            <div class="form-row full">
+              <div>
+                <label class="field-label" for="seminar-date">일시</label>
+                <input type="text" id="seminar-date" class="field-input" placeholder="2025년 8월 23일 (토) 오전 10:00" maxlength="60" />
+              </div>
+            </div>
+            <div class="form-row full">
+              <div>
+                <label class="field-label" for="seminar-venue">장소</label>
+                <input type="text" id="seminar-venue" class="field-input" placeholder="라스북 교육문화센터 대강당" maxlength="80" />
+              </div>
+            </div>
+            <button class="btn btn-primary" onclick="saveSeminarInfo()">💾 정보 저장</button>
+            <div class="save-feedback" id="info-save-ok"><span>✅</span> 세미나 정보가 저장되었습니다.</div>
+            <div class="error-feedback" id="info-save-err"><span>❌</span> <span id="info-err-msg"></span></div>
+          </div>
+        </div>
+
+        <!-- QR Link -->
+        <div class="section">
+          <div class="section-header">
+            <div class="section-icon">🔗</div>
+            <div>
+              <h3>신청 페이지 QR코드</h3>
+              <p>포스터에 사용할 QR 코드를 미리 확인합니다</p>
+            </div>
+          </div>
+          <div class="section-body" style="text-align:center;">
+            <div id="qr-preview-area" style="display:inline-block;padding:20px;background:white;border:1px solid var(--gray-200);border-radius:16px;">
+              <canvas id="qr-preview-canvas"></canvas>
+            </div>
+            <p style="font-size:12px;color:var(--gray-400);margin-top:12px;" id="qr-preview-url">신청 URL을 불러오는 중...</p>
+            <div style="margin-top:16px;">
+              <button class="btn btn-outline btn-sm" onclick="downloadQR()">⬇️ QR 이미지 다운로드</button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- POSTER TAB -->
+      <div id="tab-poster" style="display:none;">
+        <div class="page-header">
+          <h2>🎨 스마트 포스터 제작기</h2>
+          <p>포스터 배경에 QR코드를 합성하여 배포용 이미지를 만듭니다</p>
+        </div>
+
+        <div class="section">
+          <div class="section-header">
+            <div class="section-icon">🖼️</div>
+            <div>
+              <h3>포스터 편집</h3>
+              <p>배경 이미지를 업로드하고 QR 위치와 크기를 조절하세요</p>
+            </div>
+          </div>
+          <div class="section-body">
+            <div class="poster-maker">
+
+              <!-- Upload Zone -->
+              <div class="upload-zone" id="upload-zone" onclick="document.getElementById('poster-file-input').click()">
+                <div class="upload-zone-icon">🖼️</div>
+                <h4>포스터 배경 이미지를 업로드하세요</h4>
+                <p>클릭하거나 이미지를 드래그하여 업로드<br>지원 형식: JPG, PNG, GIF, WEBP (최대 20MB)</p>
+                <input type="file" id="poster-file-input" accept="image/*" />
+              </div>
+
+              <!-- Canvas -->
+              <div class="canvas-container" id="canvas-container">
+                <canvas id="poster-canvas"></canvas>
+              </div>
+
+              <!-- Controls -->
+              <div class="poster-controls" id="poster-controls">
+                <h4>🔧 QR 코드 위치 및 크기 조절</h4>
+
+                <div class="control-row">
+                  <span class="control-label">X 위치</span>
+                  <input type="range" class="range-input" id="qr-x" min="0" max="100" value="75" oninput="updateQRPosition()" />
+                  <span class="range-value" id="qr-x-val">75%</span>
+                </div>
+                <div class="control-row">
+                  <span class="control-label">Y 위치</span>
+                  <input type="range" class="range-input" id="qr-y" min="0" max="100" value="75" oninput="updateQRPosition()" />
+                  <span class="range-value" id="qr-y-val">75%</span>
+                </div>
+                <div class="control-row">
+                  <span class="control-label">크기</span>
+                  <input type="range" class="range-input" id="qr-size" min="5" max="40" value="18" oninput="updateQRPosition()" />
+                  <span class="range-value" id="qr-size-val">18%</span>
+                </div>
+                <div class="control-row">
+                  <span class="control-label">여백</span>
+                  <input type="range" class="range-input" id="qr-bg-padding" min="0" max="40" value="12" oninput="updateQRPosition()" />
+                  <span class="range-value" id="qr-bg-padding-val">12px</span>
+                </div>
+
+                <div style="display:flex;gap:12px;flex-wrap:wrap;margin-top:16px;">
+                  <div>
+                    <label class="field-label" style="font-size:11px;">QR 배경색</label>
+                    <div style="display:flex;gap:8px;margin-top:4px;">
+                      <button class="btn btn-sm" style="background:white;color:#333;border:2px solid #ddd;" onclick="setQRBg('white')">흰색</button>
+                      <button class="btn btn-sm" style="background:transparent;color:#333;border:2px solid #ddd;" onclick="setQRBg('transparent')">투명</button>
+                      <button class="btn btn-sm" style="background:var(--gold);color:var(--navy);border:none;" onclick="setQRBg('gold')">골드</button>
+                    </div>
+                  </div>
+                </div>
+
+                <div style="margin-top:20px;padding-top:20px;border-top:1px solid var(--gray-200);display:flex;gap:12px;flex-wrap:wrap;">
+                  <button class="btn btn-gold" onclick="downloadPoster('png')">⬇️ PNG 고화질 저장</button>
+                  <button class="btn btn-primary" onclick="downloadPoster('jpg')">⬇️ JPG 저장</button>
+                  <button class="btn btn-outline" onclick="resetPoster()">↩️ 다시 업로드</button>
+                </div>
+              </div>
+
+            </div>
+          </div>
+        </div>
+
+        <!-- Tips -->
+        <div class="section">
+          <div class="section-header">
+            <div class="section-icon">💡</div>
+            <div><h3>사용 팁</h3></div>
+          </div>
+          <div class="section-body">
+            <ul style="list-style:none;padding:0;">
+              <li style="font-size:13px;color:var(--gray-600);line-height:2;padding-left:16px;position:relative;">
+                <span style="position:absolute;left:0;color:var(--gold-dark);">✓</span>
+                포스터 이미지는 고해상도(300DPI 이상) 원본을 업로드하면 더 선명하게 출력됩니다.
+              </li>
+              <li style="font-size:13px;color:var(--gray-600);line-height:2;padding-left:16px;position:relative;">
+                <span style="position:absolute;left:0;color:var(--gold-dark);">✓</span>
+                QR 코드는 흰색 배경과 함께 사용하면 스캔이 더 잘 됩니다.
+              </li>
+              <li style="font-size:13px;color:var(--gray-600);line-height:2;padding-left:16px;position:relative;">
+                <span style="position:absolute;left:0;color:var(--gold-dark);">✓</span>
+                PNG 형식으로 저장 시 투명 배경이 지원됩니다.
+              </li>
+              <li style="font-size:13px;color:var(--gray-600);line-height:2;padding-left:16px;position:relative;">
+                <span style="position:absolute;left:0;color:var(--gold-dark);">✓</span>
+                저장된 포스터는 SNS, 카카오톡 등에 바로 활용할 수 있습니다.
+              </li>
+            </ul>
+          </div>
+        </div>
+      </div>
+
+    </div><!-- /content -->
+  </div><!-- /app-layout -->
+</div><!-- /app -->
+
+<div class="toast" id="toast"></div>
+
+<script>
+  const API_BASE = '/api';
+  let adminToken = localStorage.getItem('admin_token') || '';
+  let bgImage = null;
+  let qrDataURL = null;
+  let qrBgMode = 'white';
+  let posterCanvas, posterCtx;
+
+  // ── Login ───────────────────────────────────────────────────────────────────
+  async function doLogin() {
+    const pw = document.getElementById('login-pw').value;
+    if (!pw) return;
+
+    const btn = document.getElementById('login-btn');
+    btn.textContent = '확인 중...';
+    btn.disabled = true;
+
+    try {
+      const res = await fetch(`${API_BASE}/admin/login`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ password: pw })
+      });
+      const data = await res.json();
+      if (data.success) {
+        adminToken = data.token;
+        localStorage.setItem('admin_token', adminToken);
+        document.getElementById('login-error').style.display = 'none';
+        initApp();
+      } else {
+        document.getElementById('login-error').style.display = 'block';
+        btn.textContent = '로그인';
+        btn.disabled = false;
+      }
+    } catch (e) {
+      document.getElementById('login-error').textContent = '서버 연결 오류';
+      document.getElementById('login-error').style.display = 'block';
+      btn.textContent = '로그인';
+      btn.disabled = false;
+    }
+  }
+
+  // Enter key login
+  document.getElementById('login-pw').addEventListener('keydown', e => {
+    if (e.key === 'Enter') doLogin();
+  });
+
+  // ── Init App ──────────────────────────────────────────────────────────────
+  async function initApp() {
+    // Check if already logged in
+    if (adminToken) {
+      try {
+        const res = await fetch(`${API_BASE}/admin/settings`, {
+          headers: { 'X-Admin-Token': adminToken }
+        });
+        if (res.ok) {
+          const data = await res.json();
+          populateSettings(data.data);
+          document.getElementById('login-screen').style.display = 'none';
+          document.getElementById('app').style.display = 'block';
+          generateQRPreview();
+          loadCurrentCount();
+          return;
+        }
+      } catch (e) {}
+    }
+
+    // Show login
+    document.getElementById('login-screen').style.display = 'flex';
+    document.getElementById('app').style.display = 'none';
+  }
+
+  function populateSettings(settings) {
+    document.getElementById('max-capacity').value = settings.max_capacity || '120';
+    document.getElementById('cap-display').textContent = settings.max_capacity || '120';
+    document.getElementById('seminar-title').value = settings.seminar_title || '';
+    document.getElementById('seminar-date').value = settings.seminar_date || '';
+    document.getElementById('seminar-venue').value = settings.seminar_venue || '';
+  }
+
+  async function loadCurrentCount() {
+    try {
+      const res = await fetch(`${API_BASE}/status`);
+      const data = await res.json();
+      if (data.success) {
+        document.getElementById('cap-current-count').textContent = `${data.data.currentCount}명 신청 중`;
+      }
+    } catch (e) {}
+  }
+
+  // ── Tab Navigation ────────────────────────────────────────────────────────
+  function showTab(name) {
+    document.getElementById('tab-settings').style.display = name === 'settings' ? 'block' : 'none';
+    document.getElementById('tab-poster').style.display = name === 'poster' ? 'block' : 'none';
+
+    document.querySelectorAll('.nav-item').forEach(el => el.classList.remove('active'));
+    event.currentTarget.classList.add('active');
+
+    if (name === 'poster') {
+      generateQRForPoster();
+    }
+  }
+
+  // ── Save Settings ─────────────────────────────────────────────────────────
+  async function saveCapacity() {
+    const cap = document.getElementById('max-capacity').value;
+    try {
+      const res = await fetch(`${API_BASE}/admin/settings`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json', 'X-Admin-Token': adminToken },
+        body: JSON.stringify({ max_capacity: cap })
+      });
+      const data = await res.json();
+      if (data.success) {
+        document.getElementById('cap-display').textContent = cap;
+        showFeedback('cap-save-ok', 'cap-save-err');
+      } else {
+        document.getElementById('cap-err-msg').textContent = data.message;
+        showFeedback('cap-save-err', 'cap-save-ok');
+      }
+    } catch (e) {
+      document.getElementById('cap-err-msg').textContent = '서버 오류';
+      showFeedback('cap-save-err', 'cap-save-ok');
+    }
+  }
+
+  async function saveSeminarInfo() {
+    const body = {
+      seminar_title: document.getElementById('seminar-title').value,
+      seminar_date: document.getElementById('seminar-date').value,
+      seminar_venue: document.getElementById('seminar-venue').value,
+    };
+    try {
+      const res = await fetch(`${API_BASE}/admin/settings`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json', 'X-Admin-Token': adminToken },
+        body: JSON.stringify(body)
+      });
+      const data = await res.json();
+      if (data.success) {
+        showFeedback('info-save-ok', 'info-save-err');
+        generateQRPreview(); // Refresh QR
+      } else {
+        document.getElementById('info-err-msg').textContent = data.message;
+        showFeedback('info-save-err', 'info-save-ok');
+      }
+    } catch (e) {
+      document.getElementById('info-err-msg').textContent = '서버 오류';
+      showFeedback('info-save-err', 'info-save-ok');
+    }
+  }
+
+  function showFeedback(okId, errId) {
+    document.getElementById(okId).classList.add('show');
+    document.getElementById(errId).classList.remove('show');
+    setTimeout(() => document.getElementById(okId).classList.remove('show'), 3000);
+  }
+
+  // ── QR Preview ────────────────────────────────────────────────────────────
+  function generateQRPreview() {
+    const url = window.location.origin + '/';
+    document.getElementById('qr-preview-url').textContent = url;
+    const canvas = document.getElementById('qr-preview-canvas');
+    QRCode.toCanvas(canvas, url, { width: 180, margin: 2, color: { dark: '#0A1628', light: '#FFFFFF' } });
+  }
+
+  function downloadQR() {
+    const canvas = document.getElementById('qr-preview-canvas');
+    const link = document.createElement('a');
+    link.download = 'lasbook_seminar_qr.png';
+    link.href = canvas.toDataURL();
+    link.click();
+  }
+
+  // ── Poster Maker ──────────────────────────────────────────────────────────
+  posterCanvas = document.getElementById('poster-canvas');
+  posterCtx = posterCanvas.getContext('2d');
+
+  // Upload
+  document.getElementById('poster-file-input').addEventListener('change', function(e) {
+    const file = e.target.files[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = function(ev) {
+      const img = new Image();
+      img.onload = function() {
+        bgImage = img;
+        const maxW = Math.min(800, window.innerWidth - 60);
+        const scale = maxW / img.width;
+        posterCanvas.width = img.width;
+        posterCanvas.height = img.height;
+        posterCanvas.style.maxWidth = maxW + 'px';
+
+        document.getElementById('canvas-container').style.display = 'block';
+        document.getElementById('upload-zone').style.display = 'none';
+        document.getElementById('poster-controls').style.display = 'block';
+        renderPoster();
+      };
+      img.src = ev.target.result;
+    };
+    reader.readAsDataURL(file);
+  });
+
+  // Drag & drop
+  const uploadZone = document.getElementById('upload-zone');
+  uploadZone.addEventListener('dragover', e => { e.preventDefault(); uploadZone.classList.add('drag-over'); });
+  uploadZone.addEventListener('dragleave', () => uploadZone.classList.remove('drag-over'));
+  uploadZone.addEventListener('drop', e => {
+    e.preventDefault();
+    uploadZone.classList.remove('drag-over');
+    const file = e.dataTransfer.files[0];
+    if (file && file.type.startsWith('image/')) {
+      const dt = new DataTransfer();
+      dt.items.add(file);
+      document.getElementById('poster-file-input').files = dt.files;
+      document.getElementById('poster-file-input').dispatchEvent(new Event('change'));
+    }
+  });
+
+  function generateQRForPoster() {
+    const url = window.location.origin + '/';
+    const offCanvas = document.createElement('canvas');
+    QRCode.toCanvas(offCanvas, url, {
+      width: 400, margin: 2,
+      color: { dark: '#0A1628', light: '#FFFFFF' }
+    }, () => { qrDataURL = offCanvas.toDataURL(); });
+  }
+
+  function setQRBg(mode) { qrBgMode = mode; renderPoster(); }
+
+  function updateQRPosition() {
+    const x = document.getElementById('qr-x').value;
+    const y = document.getElementById('qr-y').value;
+    const s = document.getElementById('qr-size').value;
+    const p = document.getElementById('qr-bg-padding').value;
+    document.getElementById('qr-x-val').textContent = x + '%';
+    document.getElementById('qr-y-val').textContent = y + '%';
+    document.getElementById('qr-size-val').textContent = s + '%';
+    document.getElementById('qr-bg-padding-val').textContent = p + 'px';
+    renderPoster();
+  }
+
+  function renderPoster() {
+    if (!bgImage) return;
+
+    const cw = posterCanvas.width;
+    const ch = posterCanvas.height;
+
+    // Draw background
+    posterCtx.clearRect(0, 0, cw, ch);
+    posterCtx.drawImage(bgImage, 0, 0, cw, ch);
+
+    if (!qrDataURL) {
+      generateQRForPoster();
+      setTimeout(renderPoster, 300);
+      return;
+    }
+
+    // QR size
+    const qrSize = (parseInt(document.getElementById('qr-size').value) / 100) * cw;
+    const bgPad = parseInt(document.getElementById('qr-bg-padding').value);
+    const qrX = (parseInt(document.getElementById('qr-x').value) / 100) * cw - qrSize / 2;
+    const qrY = (parseInt(document.getElementById('qr-y').value) / 100) * ch - qrSize / 2;
+
+    // Background
+    if (qrBgMode !== 'transparent') {
+      const bgColor = qrBgMode === 'gold' ? '#E8C97A' : 'white';
+      const radius = 16;
+      const bx = qrX - bgPad;
+      const by = qrY - bgPad;
+      const bw = qrSize + bgPad * 2;
+      const bh = qrSize + bgPad * 2;
+
+      posterCtx.beginPath();
+      posterCtx.moveTo(bx + radius, by);
+      posterCtx.lineTo(bx + bw - radius, by);
+      posterCtx.arcTo(bx + bw, by, bx + bw, by + radius, radius);
+      posterCtx.lineTo(bx + bw, by + bh - radius);
+      posterCtx.arcTo(bx + bw, by + bh, bx + bw - radius, by + bh, radius);
+      posterCtx.lineTo(bx + radius, by + bh);
+      posterCtx.arcTo(bx, by + bh, bx, by + bh - radius, radius);
+      posterCtx.lineTo(bx, by + radius);
+      posterCtx.arcTo(bx, by, bx + radius, by, radius);
+      posterCtx.closePath();
+      posterCtx.fillStyle = bgColor;
+      posterCtx.fill();
+
+      // Shadow effect
+      posterCtx.shadowColor = 'rgba(0,0,0,0.2)';
+      posterCtx.shadowBlur = 20;
+      posterCtx.fill();
+      posterCtx.shadowBlur = 0;
+    }
+
+    // Draw QR
+    const qrImg = new Image();
+    qrImg.onload = () => {
+      posterCtx.drawImage(qrImg, qrX, qrY, qrSize, qrSize);
+
+      // Label below QR
+      const labelY = qrY + qrSize + bgPad + 20;
+      const labelX = qrX + qrSize / 2;
+      posterCtx.font = `bold ${Math.max(14, qrSize * 0.07)}px 'Noto Sans KR', sans-serif`;
+      posterCtx.fillStyle = qrBgMode === 'transparent' ? 'white' : '#0A1628';
+      posterCtx.textAlign = 'center';
+      posterCtx.fillText('지금 신청하기 →', labelX, labelY);
+      posterCtx.textAlign = 'left';
+    };
+    qrImg.src = qrDataURL;
+  }
+
+  function downloadPoster(format) {
+    if (!bgImage) { showToast('포스터 이미지를 먼저 업로드해주세요.', 'error'); return; }
+    renderPoster();
+    setTimeout(() => {
+      const mimeType = format === 'png' ? 'image/png' : 'image/jpeg';
+      const quality = format === 'jpg' ? 0.95 : undefined;
+      const dataURL = posterCanvas.toDataURL(mimeType, quality);
+      const link = document.createElement('a');
+      link.download = `lasbook_seminar_poster_${Date.now()}.${format}`;
+      link.href = dataURL;
+      link.click();
+      showToast(`포스터가 ${format.toUpperCase()} 형식으로 저장되었습니다!`, 'success');
+    }, 200);
+  }
+
+  function resetPoster() {
+    bgImage = null;
+    document.getElementById('canvas-container').style.display = 'none';
+    document.getElementById('upload-zone').style.display = 'block';
+    document.getElementById('poster-controls').style.display = 'none';
+    document.getElementById('poster-file-input').value = '';
+  }
+
+  // ── Toast ─────────────────────────────────────────────────────────────────
+  function showToast(msg, type = '') {
+    const t = document.getElementById('toast');
+    t.textContent = msg;
+    t.className = 'toast ' + type;
+    t.classList.add('show');
+    setTimeout(() => t.classList.remove('show'), 3000);
+  }
+
+  // ── Init ──────────────────────────────────────────────────────────────────
+  initApp();
+  generateQRForPoster();
+</script>
+</body>
+</html>
