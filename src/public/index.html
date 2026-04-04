@@ -3,7 +3,14 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
-  <title>라스북 학부모 세미나 신청</title>
+  <title>라스북 세미나 신청</title>
+  <!-- Open Graph / KakaoTalk -->
+  <meta property="og:type" content="website" />
+  <meta property="og:site_name" content="라스북 세미나" />
+  <meta property="og:title" content="라스북 세미나 신청" />
+  <meta property="og:description" content="라스북 세미나에 신청하세요" />
+  <meta property="og:image" content="/images/1.jpg" />
+  <meta name="twitter:card" content="summary_large_image" />
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;500;600;700;900&display=swap" rel="stylesheet" />
   <style>
@@ -15,16 +22,15 @@
       --gold-light: #E8C97A;
       --gold-dark: #A8872E;
       --white: #FFFFFF;
-      --gray-100: #F8F9FC;
-      --gray-200: #EEF0F5;
+      --gray-50: #FAFBFD;
+      --gray-100: #F0F2F7;
+      --gray-200: #E2E5EF;
       --gray-400: #9AA3B2;
       --gray-600: #5A6478;
       --red: #E53E3E;
       --green: #38A169;
     }
-
     * { box-sizing: border-box; margin: 0; padding: 0; }
-
     body {
       font-family: 'Noto Sans KR', sans-serif;
       background: linear-gradient(160deg, var(--navy) 0%, var(--navy-mid) 40%, #1a3a5c 100%);
@@ -32,604 +38,851 @@
       color: var(--white);
     }
 
-    /* ── Hero Section ── */
-    .hero {
-      position: relative;
-      padding: 48px 24px 40px;
+    /* ── Loading ── */
+    .loading-screen {
+      min-height: 100vh;
+      display: flex; flex-direction: column; align-items: center; justify-content: center;
+      gap: 16px;
+    }
+    .spin { width: 48px; height: 48px; border: 4px solid rgba(201,168,76,.2); border-top-color: var(--gold); border-radius: 50%; animation: spin 1s linear infinite; }
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    /* ── Event List View ── */
+    .ev-list-view { min-height: 100vh; }
+
+    .ev-hero {
+      padding: 44px 24px 32px;
       text-align: center;
+      position: relative;
       overflow: hidden;
     }
-    .hero::before {
-      content: '';
-      position: absolute;
-      top: -60px; left: -60px;
-      width: 220px; height: 220px;
-      background: radial-gradient(circle, rgba(201,168,76,0.15) 0%, transparent 70%);
+    .ev-hero::before {
+      content: ''; position: absolute; top: -60px; left: -60px;
+      width: 200px; height: 200px;
+      background: radial-gradient(circle, rgba(201,168,76,.12) 0%, transparent 70%);
       border-radius: 50%;
     }
-    .hero::after {
-      content: '';
-      position: absolute;
-      bottom: -40px; right: -40px;
-      width: 180px; height: 180px;
-      background: radial-gradient(circle, rgba(201,168,76,0.1) 0%, transparent 70%);
+    .ev-hero::after {
+      content: ''; position: absolute; bottom: -40px; right: -40px;
+      width: 160px; height: 160px;
+      background: radial-gradient(circle, rgba(201,168,76,.08) 0%, transparent 70%);
       border-radius: 50%;
     }
+    .ev-hero-logo { font-size: 12px; font-weight: 700; letter-spacing: 3px; color: var(--gold); margin-bottom: 12px; }
+    .ev-hero-title { font-size: 26px; font-weight: 900; line-height: 1.3; margin-bottom: 8px; }
+    .ev-hero-title span { color: var(--gold-light); }
+    .ev-hero-sub { font-size: 13px; color: rgba(255,255,255,.65); line-height: 1.6; }
+
+    /* Category filter */
+    .cat-filter {
+      display: flex; gap: 8px; padding: 0 20px 16px;
+      overflow-x: auto; -webkit-overflow-scrolling: touch;
+    }
+    .cat-filter::-webkit-scrollbar { display: none; }
+    .cat-btn {
+      flex-shrink: 0; padding: 7px 16px; border-radius: 20px;
+      font-size: 12px; font-weight: 700; font-family: inherit;
+      cursor: pointer; border: 1.5px solid rgba(255,255,255,.2);
+      background: rgba(255,255,255,.07); color: rgba(255,255,255,.7);
+      transition: all .2s; white-space: nowrap;
+    }
+    .cat-btn.active {
+      background: linear-gradient(135deg, var(--gold-dark), var(--gold));
+      color: var(--navy); border-color: transparent;
+    }
+
+    /* Event cards */
+    .ev-cards { padding: 0 16px 32px; display: flex; flex-direction: column; gap: 12px; }
+
+    .ev-card {
+      background: rgba(255,255,255,.09);
+      border: 1px solid rgba(255,255,255,.12);
+      border-radius: 20px;
+      padding: 20px;
+      cursor: pointer;
+      transition: all .2s;
+      position: relative;
+      overflow: hidden;
+    }
+    .ev-card::before {
+      content: ''; position: absolute; left: 0; top: 0; bottom: 0; width: 4px;
+      background: var(--ev-color, #C9A84C);
+      border-radius: 4px 0 0 4px;
+    }
+    .ev-card:hover { background: rgba(255,255,255,.13); transform: translateY(-2px); box-shadow: 0 8px 24px rgba(0,0,0,.3); }
+    .ev-card-top { display: flex; align-items: flex-start; justify-content: space-between; gap: 10px; margin-bottom: 12px; }
+    .ev-card-badges { display: flex; gap: 6px; flex-wrap: wrap; }
+    .badge-cat  { font-size: 10px; font-weight: 700; padding: 3px 10px; border-radius: 10px; background: rgba(255,255,255,.15); color: rgba(255,255,255,.85); }
+    .badge-full { font-size: 10px; font-weight: 700; padding: 3px 10px; border-radius: 10px; background: rgba(229,62,62,.2); color: #FC8181; border: 1px solid rgba(229,62,62,.3); }
+    .badge-open { font-size: 10px; font-weight: 700; padding: 3px 10px; border-radius: 10px; background: rgba(56,161,105,.2); color: #68D391; border: 1px solid rgba(56,161,105,.3); }
+    .ev-card-arrow { color: rgba(255,255,255,.4); font-size: 18px; flex-shrink: 0; }
+    .ev-card-title { font-size: 17px; font-weight: 800; color: #fff; margin-bottom: 10px; line-height: 1.3; }
+    .ev-card-meta { display: flex; flex-direction: column; gap: 5px; }
+    .ev-meta-row { display: flex; align-items: center; gap: 8px; font-size: 12px; color: rgba(255,255,255,.65); }
+    .ev-meta-icon { width: 16px; text-align: center; font-size: 12px; }
+    .ev-capacity-bar { margin-top: 12px; }
+    .ev-cap-row { display: flex; justify-content: space-between; font-size: 11px; color: rgba(255,255,255,.5); margin-bottom: 5px; }
+    .ev-cap-row strong { color: rgba(255,255,255,.75); }
+    .ev-cap-bg { height: 5px; background: rgba(255,255,255,.1); border-radius: 3px; overflow: hidden; }
+    .ev-cap-fill { height: 100%; background: linear-gradient(90deg, var(--gold-dark), var(--gold-light)); border-radius: 3px; transition: width .6s ease; }
+
+    .ev-empty { text-align: center; padding: 60px 24px; color: rgba(255,255,255,.5); }
+    .ev-empty .ei { font-size: 48px; margin-bottom: 12px; }
+
+    /* ══════════════════════════════════════
+       REGISTRATION VIEW
+    ══════════════════════════════════════ */
+    .reg-view { display: none; min-height: 100vh; }
+
+    /* Back button */
+    .back-btn {
+      display: flex; align-items: center; gap: 8px;
+      padding: 16px 20px 0;
+      font-size: 13px; font-weight: 600; color: rgba(255,255,255,.7);
+      cursor: pointer; background: none; border: none; font-family: inherit;
+    }
+    .back-btn:hover { color: #fff; }
+
+    /* 포스터 이미지 섹션 */
+    .poster-section {
+      display: none;
+      width: 100%;
+      position: relative;
+    }
+    .poster-section img {
+      width: 100%;
+      display: block;
+      height: auto;
+    }
+    .poster-section::after {
+      content: '';
+      position: absolute;
+      left: 0; right: 0; bottom: 0;
+      height: 140px;
+      background: linear-gradient(to bottom, transparent, var(--navy));
+      pointer-events: none;
+    }
+
+    /* Hero */
+    .hero {
+      padding: 20px 24px 28px;
+      text-align: center;
+      position: relative;
+      overflow: hidden;
+    }
+    .hero.no-poster {
+      padding-top: 20px;
+    }
+    .hero::before { content: ''; position: absolute; top: -60px; left: -60px; width: 220px; height: 220px; background: radial-gradient(circle, rgba(201,168,76,.15) 0%, transparent 70%); border-radius: 50%; }
+    .hero::after  { content: ''; position: absolute; bottom: -40px; right: -40px; width: 180px; height: 180px; background: radial-gradient(circle, rgba(201,168,76,.1) 0%, transparent 70%); border-radius: 50%; }
+
     .hero-badge {
       display: inline-block;
       background: linear-gradient(135deg, var(--gold-dark), var(--gold));
-      color: var(--navy);
-      font-size: 11px;
-      font-weight: 700;
-      letter-spacing: 2px;
-      padding: 6px 16px;
-      border-radius: 20px;
-      margin-bottom: 20px;
-      text-transform: uppercase;
+      color: var(--navy); font-size: 11px; font-weight: 700;
+      letter-spacing: 2px; padding: 6px 16px; border-radius: 20px;
+      margin-bottom: 16px; text-transform: uppercase;
     }
-    .hero-logo {
-      font-size: 13px;
-      font-weight: 700;
-      letter-spacing: 3px;
-      color: var(--gold);
-      margin-bottom: 10px;
-      opacity: 0.9;
-    }
-    .hero-title {
-      font-size: 28px;
-      font-weight: 900;
-      line-height: 1.3;
-      margin-bottom: 8px;
-      text-shadow: 0 2px 10px rgba(0,0,0,0.3);
-    }
-    .hero-title span {
-      color: var(--gold-light);
-    }
-    .hero-subtitle {
-      font-size: 14px;
-      color: rgba(255,255,255,0.65);
-      margin-bottom: 30px;
-      line-height: 1.6;
-    }
+    .hero-logo { font-size: 12px; font-weight: 700; letter-spacing: 3px; color: var(--gold); margin-bottom: 8px; opacity: .9; }
+    .hero-title { font-size: 26px; font-weight: 900; line-height: 1.3; margin-bottom: 8px; text-shadow: 0 2px 10px rgba(0,0,0,.3); }
+    .hero-title span { color: var(--gold-light); }
+    .hero-subtitle { font-size: 13px; color: rgba(255,255,255,.65); margin-bottom: 24px; line-height: 1.6; white-space: pre-line; }
 
     /* Info Cards */
-    .info-cards {
-      display: flex;
-      flex-direction: column;
-      gap: 10px;
-      margin-bottom: 8px;
-    }
+    .info-cards { display: flex; flex-direction: column; gap: 8px; margin-bottom: 6px; }
     .info-card {
-      background: rgba(255,255,255,0.08);
-      border: 1px solid rgba(201,168,76,0.25);
-      border-radius: 14px;
-      padding: 14px 18px;
-      display: flex;
-      align-items: center;
-      gap: 14px;
-      text-align: left;
-      backdrop-filter: blur(10px);
+      background: rgba(255,255,255,.08);
+      border: 1px solid rgba(201,168,76,.25);
+      border-radius: 12px; padding: 12px 16px;
+      display: flex; align-items: center; gap: 12px; text-align: left;
     }
     .info-card-icon {
-      width: 40px; height: 40px;
-      background: linear-gradient(135deg, rgba(201,168,76,0.2), rgba(201,168,76,0.05));
-      border: 1px solid rgba(201,168,76,0.3);
-      border-radius: 10px;
+      width: 36px; height: 36px;
+      background: linear-gradient(135deg, rgba(201,168,76,.2), rgba(201,168,76,.05));
+      border: 1px solid rgba(201,168,76,.3);
+      border-radius: 9px;
       display: flex; align-items: center; justify-content: center;
-      font-size: 18px;
-      flex-shrink: 0;
+      font-size: 16px; flex-shrink: 0;
     }
-    .info-card-label {
-      font-size: 11px;
-      color: var(--gold);
-      font-weight: 600;
-      letter-spacing: 1px;
-      margin-bottom: 2px;
-    }
-    .info-card-value {
-      font-size: 14px;
-      font-weight: 600;
-      color: var(--white);
-      line-height: 1.4;
-    }
+    .info-card-label { font-size: 10px; color: var(--gold); font-weight: 600; letter-spacing: 1px; margin-bottom: 2px; }
+    .info-card-value { font-size: 13px; font-weight: 600; color: var(--white); line-height: 1.4; }
 
-    /* Capacity Bar */
-    .capacity-section {
-      margin: 20px 0 0;
-    }
-    .capacity-header {
+    /* Capacity */
+    .capacity-section { margin: 16px 0 0; }
+    .capacity-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px; }
+    .capacity-label { font-size: 12px; color: rgba(255,255,255,.65); }
+    .capacity-count { font-size: 14px; font-weight: 700; color: var(--gold-light); }
+    .capacity-bar-bg { height: 8px; background: rgba(255,255,255,.12); border-radius: 4px; overflow: hidden; }
+    .capacity-bar-fill { height: 100%; background: linear-gradient(90deg, var(--gold-dark), var(--gold-light)); border-radius: 4px; transition: width .8s ease; }
+    .capacity-remaining { font-size: 12px; color: rgba(255,255,255,.5); margin-top: 5px; text-align: right; }
+
+    /* Share Section */
+    .share-section {
+      padding: 20px 24px 0;
       display: flex;
-      justify-content: space-between;
-      align-items: center;
-      margin-bottom: 8px;
+      gap: 10px;
     }
-    .capacity-label {
-      font-size: 12px;
-      color: rgba(255,255,255,0.65);
+    .share-btn {
+      flex: 1;
+      display: flex; align-items: center; justify-content: center;
+      gap: 10px;
+      padding: 13px 12px;
+      border-radius: 14px;
+      border: none;
+      cursor: pointer;
+      font-family: 'Noto Sans KR', sans-serif;
+      font-size: 13px; font-weight: 700;
+      transition: all .2s;
     }
-    .capacity-count {
-      font-size: 15px;
-      font-weight: 700;
-      color: var(--gold-light);
+    .share-btn:active { transform: scale(0.97); }
+    .share-btn-image {
+      background: linear-gradient(135deg, var(--gold-dark), var(--gold));
+      color: var(--navy);
+      box-shadow: 0 4px 16px rgba(201,168,76,.3);
     }
-    .capacity-bar-bg {
-      height: 8px;
-      background: rgba(255,255,255,0.12);
-      border-radius: 4px;
-      overflow: hidden;
+    .share-btn-image:hover { transform: translateY(-1px); box-shadow: 0 6px 20px rgba(201,168,76,.4); }
+    .share-btn-image .btn-icon-wrap {
+      width: 28px; height: 28px;
+      background: rgba(10,22,40,.15);
+      border-radius: 8px;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 14px; flex-shrink: 0;
     }
-    .capacity-bar-fill {
-      height: 100%;
-      background: linear-gradient(90deg, var(--gold-dark), var(--gold-light));
-      border-radius: 4px;
-      transition: width 0.8s ease;
+    .share-btn-image .btn-label { font-size: 12px; font-weight: 800; }
+    .share-btn-image .btn-sub   { font-size: 10px; opacity: .7; }
+    .share-btn-link {
+      background: rgba(255,255,255,.1);
+      border: 1px solid rgba(255,255,255,.2);
+      color: rgba(255,255,255,.9);
     }
-    .capacity-remaining {
-      font-size: 12px;
-      color: rgba(255,255,255,0.5);
-      margin-top: 6px;
-      text-align: right;
+    .share-btn-link:hover { background: rgba(255,255,255,.16); }
+    .share-btn-link .btn-icon-wrap {
+      width: 28px; height: 28px;
+      background: linear-gradient(135deg, rgba(201,168,76,.3), rgba(201,168,76,.15));
+      border-radius: 8px;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 14px; flex-shrink: 0;
     }
+    .share-btn-link .btn-label { font-size: 12px; font-weight: 800; }
+    .share-btn-link .btn-sub   { font-size: 10px; opacity: .6; }
+    .share-btn-link.copied .btn-icon-wrap { background: linear-gradient(135deg, #276749, #2f855a); }
+    .share-btn-link.copied .btn-label { color: #9AE6B4; }
+    .share-btn-link.copied .btn-sub { color: rgba(154,230,180,0.7); }
 
-    /* ── Form Section ── */
+    /* QR Modal */
+    .qr-modal {
+      display: none; position: fixed; inset: 0; z-index: 9998;
+      background: rgba(0,0,0,.8); align-items: center; justify-content: center;
+      padding: 24px; backdrop-filter: blur(8px);
+    }
+    .qr-modal.show { display: flex; }
+    .qr-modal-card {
+      background: #fff; border-radius: 24px; padding: 30px 24px 24px;
+      max-width: 320px; width: 100%; text-align: center;
+      animation: popUp .3s cubic-bezier(0.34,1.56,0.64,1); position: relative;
+    }
+    @keyframes popUp {
+      from { transform: scale(.8) translateY(20px); opacity: 0; }
+      to   { transform: scale(1) translateY(0);     opacity: 1; }
+    }
+    .qr-modal-close {
+      position: absolute; top: 12px; right: 14px;
+      background: var(--gray-100); border: none; width: 30px; height: 30px;
+      border-radius: 50%; font-size: 15px; cursor: pointer; color: var(--gray-600);
+      display: flex; align-items: center; justify-content: center;
+    }
+    .qr-modal-title { font-size: 16px; font-weight: 900; color: var(--navy); margin-bottom: 4px; }
+    .qr-modal-sub   { font-size: 12px; color: var(--gray-400); margin-bottom: 18px; }
+    #qr-modal-canvas { display: block; margin: 0 auto 16px; border-radius: 10px; border: 1px solid var(--gray-200); }
+    .qr-url { font-size: 10px; color: var(--gray-400); background: var(--gray-100); border-radius: 6px; padding: 7px 10px; word-break: break-all; margin-bottom: 14px; font-family: monospace; }
+    .qr-dl {
+      width: 100%; padding: 13px;
+      background: linear-gradient(135deg, var(--gold-dark), var(--gold));
+      color: var(--navy); border: none; border-radius: 12px;
+      font-size: 14px; font-weight: 800; font-family: inherit;
+      cursor: pointer; margin-bottom: 8px; transition: all .2s;
+    }
+    .qr-dl:hover { transform: translateY(-1px); }
+    .qr-cancel { width: 100%; padding: 10px; background: none; border: none; font-size: 12px; color: var(--gray-400); cursor: pointer; font-family: inherit; }
+
+    /* Form */
     .form-section {
       background: var(--white);
       border-radius: 28px 28px 0 0;
-      padding: 32px 24px 40px;
-      margin-top: 24px;
-    }
-    .form-title {
-      font-size: 20px;
-      font-weight: 800;
+      padding: 32px 24px 48px;
+      margin-top: 20px;
       color: var(--navy);
-      margin-bottom: 6px;
     }
-    .form-subtitle {
-      font-size: 13px;
-      color: var(--gray-600);
-      margin-bottom: 28px;
-      line-height: 1.5;
-    }
-    .form-group {
-      margin-bottom: 20px;
-    }
-    .form-label {
-      display: block;
-      font-size: 13px;
-      font-weight: 700;
-      color: var(--navy);
-      margin-bottom: 8px;
-      letter-spacing: 0.3px;
-    }
-    .form-label .required {
-      color: var(--gold-dark);
-      margin-left: 3px;
-    }
+    .form-title { font-size: 20px; font-weight: 800; color: var(--navy); margin-bottom: 6px; }
+    .form-subtitle { font-size: 13px; color: var(--gray-600); margin-bottom: 28px; line-height: 1.5; }
+    .form-group { margin-bottom: 20px; }
+    .form-label { display: block; font-size: 13px; font-weight: 700; color: var(--navy); margin-bottom: 8px; }
+    .form-label .required { color: var(--gold-dark); margin-left: 3px; }
     .form-input {
-      width: 100%;
-      padding: 15px 18px;
-      border: 2px solid var(--gray-200);
-      border-radius: 14px;
-      font-size: 16px;
-      font-family: 'Noto Sans KR', sans-serif;
-      color: var(--navy);
-      background: var(--gray-100);
-      transition: all 0.2s ease;
-      outline: none;
-      -webkit-appearance: none;
+      width: 100%; padding: 15px 18px;
+      border: 2px solid var(--gray-200); border-radius: 14px;
+      font-size: 16px; font-family: 'Noto Sans KR', sans-serif;
+      color: var(--navy); background: var(--gray-100);
+      outline: none; transition: all .2s; -webkit-appearance: none;
     }
-    .form-input:focus {
-      border-color: var(--navy-mid);
-      background: var(--white);
-      box-shadow: 0 0 0 4px rgba(27,43,75,0.08);
-    }
-    .form-input::placeholder {
-      color: var(--gray-400);
-      font-size: 14px;
-    }
-    .form-input.error {
-      border-color: var(--red);
-      background: #fff8f8;
-    }
-    .form-error {
-      font-size: 12px;
-      color: var(--red);
-      margin-top: 6px;
-      display: none;
-    }
-    .form-hint {
-      font-size: 12px;
-      color: var(--gray-400);
-      margin-top: 5px;
-    }
+    .form-input:focus { border-color: var(--navy-mid); background: var(--white); box-shadow: 0 0 0 4px rgba(27,43,75,.08); }
+    .form-input::placeholder { color: var(--gray-400); font-size: 14px; }
+    .form-input.error { border-color: var(--red); background: #fff8f8; }
+    .form-error { font-size: 12px; color: var(--red); margin-top: 6px; display: none; }
+    .form-hint  { font-size: 12px; color: var(--gray-400); margin-top: 5px; }
+    .optional-badge { display: inline-block; background: var(--gray-200); color: var(--gray-600); font-size: 10px; font-weight: 600; padding: 2px 8px; border-radius: 10px; margin-left: 6px; vertical-align: middle; }
 
-    /* Optional badge */
-    .optional-badge {
-      display: inline-block;
-      background: var(--gray-200);
-      color: var(--gray-600);
-      font-size: 10px;
-      font-weight: 600;
-      padding: 2px 8px;
-      border-radius: 10px;
-      margin-left: 6px;
-      vertical-align: middle;
-    }
+    /* Privacy */
+    .privacy-box { background: var(--gray-100); border-radius: 14px; padding: 16px; margin: 20px 0; }
+    .privacy-title { font-size: 12px; font-weight: 700; color: var(--navy); margin-bottom: 8px; display: flex; align-items: center; gap: 6px; }
+    .privacy-text { font-size: 11px; color: var(--gray-600); line-height: 1.7; white-space: pre-line; }
 
-    /* Submit Button */
+    /* Submit */
     .btn-submit {
-      width: 100%;
-      padding: 18px;
+      width: 100%; padding: 18px;
       background: linear-gradient(135deg, var(--navy), var(--navy-mid));
-      color: var(--white);
-      border: none;
-      border-radius: 16px;
-      font-size: 17px;
-      font-weight: 800;
+      color: var(--white); border: none; border-radius: 16px;
+      font-size: 17px; font-weight: 800;
       font-family: 'Noto Sans KR', sans-serif;
-      cursor: pointer;
-      position: relative;
-      overflow: hidden;
-      transition: all 0.2s ease;
-      margin-top: 10px;
-      letter-spacing: 0.5px;
+      cursor: pointer; position: relative; overflow: hidden;
+      transition: all .2s; margin-top: 10px;
     }
-    .btn-submit::before {
-      content: '';
-      position: absolute;
-      top: 0; left: 0; right: 0;
-      height: 1px;
-      background: linear-gradient(90deg, transparent, rgba(201,168,76,0.5), transparent);
-    }
-    .btn-submit:hover:not(:disabled) {
-      transform: translateY(-1px);
-      box-shadow: 0 8px 25px rgba(10,22,40,0.4);
-    }
-    .btn-submit:active:not(:disabled) {
-      transform: translateY(0);
-    }
-    .btn-submit:disabled {
-      background: linear-gradient(135deg, #a0a0a0, #c0c0c0);
-      cursor: not-allowed;
-      opacity: 0.7;
-    }
-    .btn-submit .btn-icon {
-      margin-right: 8px;
-    }
+    .btn-submit::before { content: ''; position: absolute; top: 0; left: 0; right: 0; height: 1px; background: linear-gradient(90deg, transparent, rgba(201,168,76,.5), transparent); }
+    .btn-submit:hover:not(:disabled) { transform: translateY(-1px); box-shadow: 0 8px 25px rgba(10,22,40,.4); }
+    .btn-submit:disabled { background: linear-gradient(135deg, #a0a0a0, #c0c0c0); cursor: not-allowed; opacity: .7; }
+    .full-badge { display: inline-block; background: rgba(229,62,62,.12); color: var(--red); border: 1px solid rgba(229,62,62,.3); border-radius: 12px; padding: 12px 20px; text-align: center; font-size: 14px; font-weight: 700; margin-top: 14px; width: 100%; }
 
-    /* Full message */
-    .full-message {
-      display: none;
-      text-align: center;
-      padding: 24px;
-      background: linear-gradient(135deg, #fff8ee, #fff3e0);
-      border: 2px solid #f6ad55;
-      border-radius: 16px;
-      margin-top: 10px;
-    }
-    .full-message .full-icon { font-size: 40px; margin-bottom: 10px; }
-    .full-message h3 { color: #c05621; font-size: 18px; margin-bottom: 6px; }
-    .full-message p { color: #744210; font-size: 14px; line-height: 1.6; }
+    .btn-spinner { display: none; }
+    .btn-spinner.show { display: inline-block; width: 16px; height: 16px; border: 2px solid rgba(255,255,255,.4); border-top-color: #fff; border-radius: 50%; animation: spin 1s linear infinite; vertical-align: middle; margin-right: 8px; }
 
-    /* Loading spinner */
-    .spinner {
-      display: none;
-      width: 20px; height: 20px;
-      border: 3px solid rgba(255,255,255,0.3);
-      border-top-color: white;
-      border-radius: 50%;
-      animation: spin 0.8s linear infinite;
-      margin: 0 auto;
-    }
-    @keyframes spin { to { transform: rotate(360deg); } }
-
-    /* Notice Box */
-    .notice-box {
-      background: linear-gradient(135deg, rgba(201,168,76,0.08), rgba(201,168,76,0.03));
-      border: 1px solid rgba(201,168,76,0.3);
-      border-radius: 14px;
-      padding: 16px;
-      margin-bottom: 24px;
-    }
-    .notice-box p {
-      font-size: 12.5px;
-      color: var(--gray-600);
-      line-height: 1.7;
-    }
-    .notice-box p:first-child {
-      font-weight: 700;
-      color: var(--navy);
-      margin-bottom: 4px;
-    }
-    .notice-box p::before { content: '• '; color: var(--gold-dark); }
-
-    /* Closed Banner */
-    #closed-banner {
-      display: none;
-      background: linear-gradient(135deg, #1a0000, #3d0000);
-      color: white;
-      text-align: center;
-      padding: 20px;
-      border-radius: 16px;
-      margin-bottom: 20px;
-    }
-    #closed-banner h3 { font-size: 20px; margin-bottom: 8px; }
-    #closed-banner p { font-size: 14px; opacity: 0.8; line-height: 1.6; }
+    /* Notice */
+    .notice-box { background: var(--gray-100); border-radius: 14px; padding: 16px; margin: 20px 0; }
+    .notice-title { font-size: 12px; font-weight: 700; color: var(--navy); margin-bottom: 8px; display: flex; align-items: center; gap: 6px; }
+    .notice-text-el { font-size: 11px; color: var(--gray-600); line-height: 1.7; white-space: pre-line; }
 
     /* Toast */
     .toast {
-      position: fixed;
-      bottom: 24px; left: 50%;
+      position: fixed; bottom: 24px; left: 50%;
       transform: translateX(-50%) translateY(100px);
-      background: var(--navy);
-      color: white;
-      padding: 14px 24px;
-      border-radius: 12px;
-      font-size: 14px;
-      font-weight: 600;
-      z-index: 9999;
-      transition: transform 0.3s ease;
-      max-width: 320px;
-      text-align: center;
-      box-shadow: 0 8px 30px rgba(0,0,0,0.3);
+      background: var(--navy); color: #fff;
+      padding: 14px 24px; border-radius: 12px;
+      font-size: 14px; font-weight: 600; z-index: 9000;
+      transition: transform .3s; max-width: 320px; text-align: center;
+      box-shadow: 0 8px 30px rgba(0,0,0,.3);
     }
     .toast.show { transform: translateX(-50%) translateY(0); }
-    .toast.error { background: var(--red); }
+    .toast.ok  { background: var(--green); }
+    .toast.err { background: var(--red); }
 
-    /* Divider */
-    .divider {
-      height: 1px;
-      background: var(--gray-200);
-      margin: 20px 0;
+    /* Responsive */
+    @media (min-width: 600px) {
+      .share-section { padding: 20px 40px 0; }
+      .hero { padding: 24px 40px 32px; }
+      .form-section { padding: 36px 40px 60px; }
+    }
+    @media (min-width: 1024px) {
+      .reg-view { max-width: 640px; margin: 0 auto; }
+      .poster-section { border-radius: 0; }
     }
   </style>
 </head>
 <body>
 
-  <!-- HERO SECTION -->
-  <div class="hero">
-    <div class="hero-badge">📚 선착순 무료 신청</div>
-    <div class="hero-logo">LASBOOK</div>
-    <h1 class="hero-title">라스북 <span>학부모 세미나</span></h1>
-    <p class="hero-subtitle">아이의 미래를 위한 교육 인사이트<br>학부모님을 초대합니다</p>
+<!-- LOADING -->
+<div id="loading-screen" class="loading-screen">
+  <div class="spin"></div>
+  <p style="color:rgba(255,255,255,.7);font-size:14px;">불러오는 중...</p>
+</div>
 
-    <div class="info-cards">
-      <div class="info-card">
-        <div class="info-card-icon">📅</div>
-        <div>
-          <div class="info-card-label">DATE</div>
-          <div class="info-card-value" id="info-date">로딩 중...</div>
-        </div>
-      </div>
-      <div class="info-card">
-        <div class="info-card-icon">📍</div>
-        <div>
-          <div class="info-card-label">VENUE</div>
-          <div class="info-card-value" id="info-venue">로딩 중...</div>
-        </div>
-      </div>
-    </div>
+<!-- EVENT LIST VIEW -->
+<div id="ev-list-view" class="ev-list-view" style="display:none;">
+  <div class="ev-hero">
+    <div class="ev-hero-logo">LASBOOK</div>
+    <h1 class="ev-hero-title">교육 프로그램 <span>신청</span></h1>
+    <p class="ev-hero-sub" id="ev-hero-sub">신청하실 프로그램을 선택해주세요</p>
+  </div>
+
+  <div class="cat-filter" id="cat-filter">
+    <button class="cat-btn active" onclick="filterCat('',this)">전체</button>
+    <button class="cat-btn" onclick="filterCat('세미나',this)">세미나</button>
+    <button class="cat-btn" onclick="filterCat('직무연수',this)">직무연수</button>
+    <button class="cat-btn" onclick="filterCat('교육',this)">교육</button>
+    <button class="cat-btn" onclick="filterCat('기타',this)">기타</button>
+  </div>
+
+  <div class="ev-cards" id="ev-cards">
+    <div class="ev-empty"><div class="ei">📋</div><p>등록된 프로그램이 없습니다</p></div>
+  </div>
+</div>
+
+<!-- REGISTRATION VIEW -->
+<div id="reg-view" class="reg-view">
+
+  <button class="back-btn" onclick="goBack()">
+    <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path d="M15 18l-6-6 6-6"/></svg>
+    목록으로
+  </button>
+
+  <!-- 포스터 이미지 (있을 때만 표시) -->
+  <div class="poster-section" id="poster-section">
+    <img id="poster-img" src="" alt="이벤트 포스터" />
+  </div>
+
+  <!-- Hero -->
+  <div class="hero" id="reg-hero">
+    <div class="hero-badge" id="hero-badge">선착순 무료 신청</div>
+    <div class="hero-logo" id="hero-logo">LASBOOK</div>
+    <h1 class="hero-title" id="hero-title">라스북 세미나</h1>
+    <p class="hero-subtitle" id="hero-subtitle" style="display:none;"></p>
+
+    <div class="info-cards" id="info-cards"></div>
 
     <div class="capacity-section">
       <div class="capacity-header">
         <span class="capacity-label">신청 현황</span>
-        <span class="capacity-count" id="capacity-count">-- / --</span>
+        <span class="capacity-count" id="cap-count">0/0</span>
       </div>
       <div class="capacity-bar-bg">
-        <div class="capacity-bar-fill" id="capacity-bar" style="width:0%"></div>
+        <div class="capacity-bar-fill" id="cap-bar" style="width:0%"></div>
       </div>
-      <div class="capacity-remaining" id="capacity-remaining">잔여 -- 석</div>
+      <p class="capacity-remaining" id="cap-remaining">남은 자리: --명</p>
     </div>
   </div>
 
-  <!-- FORM SECTION -->
+  <!-- Share Section -->
+  <div class="share-section">
+    <button class="share-btn share-btn-link" id="copy-link-btn" onclick="copyLink()" style="flex:1;">
+      <div class="btn-icon-wrap">🔗</div>
+      <div>
+        <div class="btn-label">링크 복사</div>
+        <div class="btn-sub">신청 링크 공유</div>
+      </div>
+    </button>
+  </div>
+
+  <!-- Form Section -->
   <div class="form-section">
-    <!-- Closed banner (shown when full) -->
-    <div id="closed-banner">
-      <h3>🚫 신청이 마감되었습니다</h3>
-      <p>많은 관심에 감사드립니다.<br>정원이 모두 마감되었습니다.</p>
+    <div class="form-title">신청서 작성</div>
+    <div class="form-subtitle" id="form-subtitle">아래 정보를 입력하고 신청 버튼을 눌러주세요</div>
+
+    <div id="dynamic-form"></div>
+
+    <div id="notice-box" class="notice-box" style="display:none;">
+      <div class="notice-title">📋 안내사항</div>
+      <div class="notice-text-el" id="notice-text"></div>
     </div>
 
-    <h2 class="form-title">참가 신청서</h2>
-    <p class="form-subtitle">아래 정보를 정확히 입력해주세요.<br>신청 완료 후 모바일 티켓이 발급됩니다.</p>
+    <div class="privacy-box">
+      <div class="privacy-title">🔒 개인정보 수집 동의</div>
+      <div class="privacy-text">수집 항목: 이름, 연락처, 소속 등 신청 정보
+수집 목적: 행사 운영 및 출결 관리
+보유 기간: 행사 종료 후 1년
+※ 신청 완료 시 개인정보 수집에 동의한 것으로 간주합니다.</div>
+    </div>
 
-    <form id="registration-form" novalidate>
-      <div class="form-group">
-        <label class="form-label" for="name">
-          이름 <span class="required">*</span>
-        </label>
-        <input type="text" id="name" class="form-input" placeholder="홍길동" maxlength="20" autocomplete="name" />
-        <div class="form-error" id="name-error">이름을 입력해주세요.</div>
-      </div>
-
-      <div class="form-group">
-        <label class="form-label" for="phone">
-          연락처 <span class="required">*</span>
-        </label>
-        <input type="tel" id="phone" class="form-input" placeholder="010-1234-5678" maxlength="13" autocomplete="tel" />
-        <div class="form-error" id="phone-error">올바른 연락처를 입력해주세요.</div>
-        <p class="form-hint">중복 신청 방지를 위해 본인 연락처를 입력해주세요.</p>
-      </div>
-
-      <div class="form-group">
-        <label class="form-label" for="organization">
-          소속 <span class="required">*</span>
-        </label>
-        <input type="text" id="organization" class="form-input" placeholder="예) ○○초등학교, ○○유치원" maxlength="50" />
-        <div class="form-error" id="organization-error">소속을 입력해주세요.</div>
-      </div>
-
-      <div class="form-group">
-        <label class="form-label" for="referrer">
-          추천인 <span class="optional-badge">선택</span>
-        </label>
-        <input type="text" id="referrer" class="form-input" placeholder="추천해주신 분의 성함을 입력해주세요" maxlength="30" />
-      </div>
-
-      <div class="divider"></div>
-
-      <div class="notice-box">
-        <p>개인정보 수집 안내</p>
-        <p>수집 항목: 이름, 연락처, 소속</p>
-        <p>수집 목적: 세미나 참가 확인 및 출석 관리</p>
-        <p>보유 기간: 행사 종료 후 30일</p>
-      </div>
-
-      <button type="submit" class="btn-submit" id="submit-btn">
-        <span id="btn-text"><span class="btn-icon">✅</span>신청 완료하기</span>
-        <div class="spinner" id="btn-spinner"></div>
+    <div id="submit-area">
+      <button class="btn-submit" id="btn-submit" onclick="submitForm()">
+        <span class="btn-spinner" id="btn-spinner"></span>
+        <span id="btn-text">🎫 신청하기</span>
       </button>
-    </form>
+    </div>
+    <div id="full-msg" class="full-badge" style="display:none;">⚠️ 정원이 마감되었습니다</div>
   </div>
+</div>
 
-  <div class="toast" id="toast"></div>
+<!-- QR Modal (hidden, kept for admin poster editor compatibility) -->
+<div id="qr-modal-canvas" style="display:none;"></div>
+
+<div class="toast" id="toast"></div>
 
 <script>
-  const API_BASE = '/api';
-  let seminarStatus = null;
+const API = '/api';
+let allEvents   = [];
+let currentEvent = null;
+let currentCat  = '';
+let urlReferrer = '';
+let shareUrl    = location.origin + '/';
 
-  // ── 전화번호 자동 포맷 ─────────────────────────────────────────────────────
-  document.getElementById('phone').addEventListener('input', function(e) {
-    let val = this.value.replace(/[^0-9]/g, '');
-    if (val.length <= 3) this.value = val;
-    else if (val.length <= 7) this.value = val.slice(0,3) + '-' + val.slice(3);
-    else this.value = val.slice(0,3) + '-' + val.slice(3,7) + '-' + val.slice(7,11);
+// ── Init ──────────────────────────────────────────────────────────────────────
+async function init() {
+  const params = new URLSearchParams(location.search);
+  urlReferrer = params.get('ref') || '';
+  await loadEvents();
+
+  const urlEventId = params.get('event');
+  if (urlEventId) {
+    const ev = allEvents.find(e => String(e.id) === String(urlEventId));
+    if (ev) { openEvent(ev); return; }
+  }
+  const activeEvs = allEvents.filter(e => e.is_active);
+  if (activeEvs.length === 1) { openEvent(activeEvs[0]); return; }
+  showEventList();
+}
+
+async function loadEvents() {
+  try {
+    const r = await fetch(`${API}/events`);
+    const d = await r.json();
+    allEvents = (d.data || []).filter(e => e.is_active);
+  } catch(e) { allEvents = []; }
+}
+
+// ── Event List ────────────────────────────────────────────────────────────────
+function showEventList() {
+  document.getElementById('loading-screen').style.display = 'none';
+  document.getElementById('ev-list-view').style.display   = 'block';
+  document.getElementById('reg-view').style.display       = 'none';
+
+  const subEl = document.getElementById('ev-hero-sub');
+  subEl.textContent = allEvents.length > 0
+    ? `현재 ${allEvents.length}개의 프로그램이 신청 가능합니다`
+    : '현재 신청 가능한 프로그램이 없습니다';
+
+  renderEventCards(allEvents);
+}
+
+function filterCat(cat, el) {
+  currentCat = cat;
+  document.querySelectorAll('.cat-btn').forEach(b => b.classList.remove('active'));
+  el.classList.add('active');
+  renderEventCards(cat ? allEvents.filter(e => e.category === cat) : allEvents);
+}
+
+function renderEventCards(evs) {
+  const el = document.getElementById('ev-cards');
+  if (!evs.length) {
+    el.innerHTML = `<div class="ev-empty"><div class="ei">📋</div><p>해당 카테고리의 프로그램이 없습니다</p></div>`;
+    return;
+  }
+  const today = new Date().toISOString().slice(0,10);
+  el.innerHTML = evs.map(ev => {
+    const pct    = ev.max_capacity > 0 ? Math.round((ev.current_count / ev.max_capacity) * 100) : 0;
+    const isFull = ev.current_count >= ev.max_capacity;
+    const isPast = ev.event_date < today;
+    return `
+      <div class="ev-card" style="--ev-color:${ev.color||'#C9A84C'}" onclick="openEventById(${ev.id})">
+        <div class="ev-card-top">
+          <div class="ev-card-badges">
+            <span class="badge-cat">${ev.category}</span>
+            ${isFull ? '<span class="badge-full">마감</span>' : '<span class="badge-open">신청중</span>'}
+            ${isPast ? '<span class="badge-cat" style="background:rgba(100,100,100,.3);">종료</span>' : ''}
+          </div>
+          <span class="ev-card-arrow">›</span>
+        </div>
+        <div class="ev-card-title">${esc(ev.title)}</div>
+        <div class="ev-card-meta">
+          <div class="ev-meta-row"><span class="ev-meta-icon">📅</span>${formatDate(ev.event_date)}</div>
+          ${ev.venue ? `<div class="ev-meta-row"><span class="ev-meta-icon">📍</span>${esc(ev.venue)}</div>` : ''}
+        </div>
+        <div class="ev-capacity-bar">
+          <div class="ev-cap-row">
+            <span>신청 현황</span>
+            <strong>${ev.current_count}/${ev.max_capacity}명</strong>
+          </div>
+          <div class="ev-cap-bg"><div class="ev-cap-fill" style="width:${Math.min(100,pct)}%"></div></div>
+        </div>
+      </div>`;
+  }).join('');
+}
+
+async function openEventById(id) {
+  const ev = allEvents.find(e => e.id === id);
+  if (ev) openEvent(ev);
+}
+
+async function openEvent(ev) {
+  try {
+    const r = await fetch(`${API}/events/${ev.id}`);
+    const d = await r.json();
+    if (d.success) ev = d.data;
+  } catch(e) {}
+
+  currentEvent = ev;
+  document.getElementById('loading-screen').style.display = 'none';
+  document.getElementById('ev-list-view').style.display   = 'none';
+  document.getElementById('reg-view').style.display       = 'block';
+  window.scrollTo(0, 0);
+
+  renderRegView(ev);
+  history.pushState({ eventId: ev.id }, '', `/?event=${ev.id}`);
+}
+
+function goBack() {
+  currentEvent = null;
+  history.pushState({}, '', '/');
+  loadEvents().then(() => {
+    showEventList();
+    if (currentCat) {
+      const btn = document.querySelector(`.cat-btn[onclick*="'${currentCat}'"]`);
+      if (btn) filterCat(currentCat, btn);
+    }
   });
+}
+window.onpopstate = function(e) {
+  if (!e.state?.eventId) { currentEvent = null; loadEvents().then(showEventList); }
+};
 
-  // ── 현황 로드 ─────────────────────────────────────────────────────────────
-  async function loadStatus() {
-    try {
-      const res = await fetch(`${API_BASE}/status`);
-      const data = await res.json();
-      if (!data.success) return;
+// ── Render Registration View ──────────────────────────────────────────────────
+function renderRegView(ev) {
+  // 포스터 이미지
+  const posterSec = document.getElementById('poster-section');
+  const posterImg = document.getElementById('poster-img');
+  if (ev.poster_image && ev.poster_image.trim()) {
+    posterImg.src = ev.poster_image;
+    posterSec.style.display = 'block';
+    document.getElementById('reg-hero').classList.remove('no-poster');
+  } else {
+    posterSec.style.display = 'none';
+    document.getElementById('reg-hero').classList.add('no-poster');
+  }
 
-      seminarStatus = data.data;
+  // Hero
+  document.getElementById('hero-badge').textContent = ev.hero_badge || '선착순 무료 신청';
+  document.getElementById('hero-logo').textContent  = 'LASBOOK';
+  document.getElementById('hero-title').innerHTML   = esc(ev.hero_title || ev.title);
+  const subEl = document.getElementById('hero-subtitle');
+  const sub = ev.hero_subtitle || '';
+  subEl.textContent = sub;
+  subEl.style.display = sub ? 'block' : 'none';
 
-      document.getElementById('info-date').textContent = data.data.date;
-      document.getElementById('info-venue').textContent = data.data.venue;
+  // Info cards
+  const cards = document.getElementById('info-cards');
+  const rows = [];
+  if (ev.event_date) rows.push(`<div class="info-card"><div class="info-card-icon">📅</div><div><div class="info-card-label">DATE</div><div class="info-card-value">${formatDate(ev.event_date)}</div></div></div>`);
+  if (ev.venue)      rows.push(`<div class="info-card"><div class="info-card-icon">📍</div><div><div class="info-card-label">VENUE</div><div class="info-card-value">${esc(ev.venue)}</div></div></div>`);
+  cards.innerHTML = rows.join('');
 
-      const pct = Math.min(100, (data.data.currentCount / data.data.maxCapacity) * 100);
-      document.getElementById('capacity-count').textContent = `${data.data.currentCount} / ${data.data.maxCapacity}명`;
-      document.getElementById('capacity-bar').style.width = pct + '%';
-      document.getElementById('capacity-remaining').textContent = data.data.isFull
-        ? '마감'
-        : `잔여 ${data.data.remaining}석`;
+  // Capacity
+  const pct = ev.max_capacity > 0 ? Math.round((ev.current_count / ev.max_capacity) * 100) : 0;
+  document.getElementById('cap-count').textContent     = `${ev.current_count}/${ev.max_capacity}`;
+  document.getElementById('cap-bar').style.width       = Math.min(100, pct) + '%';
+  document.getElementById('cap-remaining').textContent = `남은 자리: ${Math.max(0, ev.max_capacity - ev.current_count)}명`;
 
-      if (data.data.isFull) {
-        document.getElementById('closed-banner').style.display = 'block';
-        document.getElementById('submit-btn').disabled = true;
-        document.getElementById('submit-btn').textContent = '🚫 신청이 마감되었습니다';
+  // Share URL (ref 파라미터가 있으면 포함하여 추천인 고정 링크 유지)
+  shareUrl = location.origin + '/?event=' + ev.id + (urlReferrer ? '&ref=' + encodeURIComponent(urlReferrer) : '');
+
+  // Form
+  buildForm(ev);
+
+  // Notice
+  const noticeBox = document.getElementById('notice-box');
+  if (ev.notice_text?.trim()) {
+    document.getElementById('notice-text').textContent = ev.notice_text;
+    noticeBox.style.display = 'block';
+  } else { noticeBox.style.display = 'none'; }
+
+  // Full state
+  const isFull = ev.current_count >= ev.max_capacity;
+  document.getElementById('btn-submit').style.display = isFull ? 'none' : 'block';
+  document.getElementById('full-msg').style.display   = isFull ? 'block' : 'none';
+
+  document.title = (ev.hero_title || ev.title) + ' - 라스북';
+}
+
+// ── Dynamic Form Builder ──────────────────────────────────────────────────────
+const FIELD_DEFAULTS = {
+  name:         { label: '이름',   placeholder: '홍길동',              type: 'text', inputmode: 'text' },
+  phone:        { label: '연락처', placeholder: '010-1234-5678',        type: 'tel',  inputmode: 'tel'  },
+  organization: { label: '소속',   placeholder: '○○초등학교 / ○○회사', type: 'text', inputmode: 'text' },
+  referrer:     { label: '추천인', placeholder: '추천인 성함 (선택)',    type: 'text', inputmode: 'text' },
+};
+
+function buildForm(ev) {
+  const fields       = JSON.parse(ev.form_fields       || '["name","phone","organization","referrer"]');
+  const labels       = JSON.parse(ev.form_labels       || '{}');
+  const required     = JSON.parse(ev.form_required     || '["name","phone","organization"]');
+  const placeholders = JSON.parse(ev.form_placeholders || '{}');
+
+  const container = document.getElementById('dynamic-form');
+  container.innerHTML = '';
+
+  fields.forEach(key => {
+    const def    = FIELD_DEFAULTS[key] || { label: key, placeholder: '', type: 'text', inputmode: 'text' };
+    const lbl    = labels[key]       || def.label;
+    const ph     = placeholders[key] || def.placeholder;
+    const isReq  = required.includes(key);
+    const refLocked = key === 'referrer' && urlReferrer;
+
+    const group = document.createElement('div');
+    group.className = 'form-group';
+    group.id = `fg-${key}`;
+    group.innerHTML = `
+      <label class="form-label" for="f-${key}">${esc(lbl)}${isReq ? '<span class="required">*</span>' : `<span class="optional-badge">선택</span>`}</label>
+      ${refLocked
+        ? `<div style="padding:12px 16px;background:linear-gradient(135deg,rgba(56,161,105,.08),rgba(56,161,105,.04));border:1.5px solid rgba(56,161,105,.3);border-radius:12px;display:flex;align-items:center;gap:8px;">
+             <span style="font-size:16px;">👤</span>
+             <span style="font-size:14px;font-weight:700;color:var(--navy);">${esc(urlReferrer)}</span>
+             <span style="font-size:11px;color:var(--green);margin-left:auto;">자동 입력됨</span>
+           </div>
+           <input type="hidden" id="f-${key}" value="${esc(urlReferrer)}">`
+        : `<input type="${def.type}" id="f-${key}" class="form-input" placeholder="${esc(ph)}" inputmode="${def.inputmode}" autocomplete="${key==='name'?'name':key==='phone'?'tel':'off'}"/>`
       }
-    } catch (e) {
-      console.error('Status load error:', e);
-    }
-  }
+      ${key==='phone' ? `<p class="form-hint">숫자만 입력하셔도 됩니다 (예: 01012345678)</p>` : ''}
+      <p class="form-error" id="fe-${key}"></p>`;
+    container.appendChild(group);
 
-  // ── 폼 검증 ───────────────────────────────────────────────────────────────
-  function validateForm() {
-    let valid = true;
-    const name = document.getElementById('name').value.trim();
-    const phone = document.getElementById('phone').value.trim();
-    const org = document.getElementById('organization').value.trim();
-
-    // Name
-    const nameErr = document.getElementById('name-error');
-    if (!name || name.length < 2) {
-      document.getElementById('name').classList.add('error');
-      nameErr.style.display = 'block';
-      valid = false;
-    } else {
-      document.getElementById('name').classList.remove('error');
-      nameErr.style.display = 'none';
-    }
-
-    // Phone
-    const phoneClean = phone.replace(/[^0-9]/g, '');
-    const phoneErr = document.getElementById('phone-error');
-    if (!phoneClean || phoneClean.length < 10 || phoneClean.length > 11) {
-      document.getElementById('phone').classList.add('error');
-      phoneErr.style.display = 'block';
-      valid = false;
-    } else {
-      document.getElementById('phone').classList.remove('error');
-      phoneErr.style.display = 'none';
-    }
-
-    // Organization
-    const orgErr = document.getElementById('organization-error');
-    if (!org) {
-      document.getElementById('organization').classList.add('error');
-      orgErr.style.display = 'block';
-      valid = false;
-    } else {
-      document.getElementById('organization').classList.remove('error');
-      orgErr.style.display = 'none';
-    }
-
-    return valid;
-  }
-
-  // ── 폼 제출 ───────────────────────────────────────────────────────────────
-  document.getElementById('registration-form').addEventListener('submit', async function(e) {
-    e.preventDefault();
-    if (!validateForm()) return;
-
-    const btn = document.getElementById('submit-btn');
-    const btnText = document.getElementById('btn-text');
-    const spinner = document.getElementById('btn-spinner');
-
-    btn.disabled = true;
-    btnText.style.display = 'none';
-    spinner.style.display = 'block';
-
-    const body = {
-      name: document.getElementById('name').value.trim(),
-      phone: document.getElementById('phone').value.trim(),
-      organization: document.getElementById('organization').value.trim(),
-      referrer: document.getElementById('referrer').value.trim(),
-    };
-
-    try {
-      const res = await fetch(`${API_BASE}/register`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(body)
-      });
-      const data = await res.json();
-
-      if (data.success) {
-        // 티켓 페이지로 이동
-        window.location.href = `/ticket?code=${data.data.ticketCode}`;
-      } else {
-        showToast(data.message, true);
-        btn.disabled = false;
-        btnText.style.display = 'block';
-        spinner.style.display = 'none';
-
-        if (res.status === 400 && data.message.includes('정원')) {
-          loadStatus(); // 현황 갱신
+    if (key === 'phone') {
+      document.getElementById('f-phone').addEventListener('input', e => {
+        const raw = e.target.value.replace(/[^0-9]/g,'');
+        if (raw.length <= 11) {
+          let fmt = raw;
+          if (raw.length >= 4 && raw.length <= 7)           fmt = raw.slice(0,3) + '-' + raw.slice(3);
+          else if (raw.length >= 8 && raw.startsWith('02')) fmt = raw.slice(0,2) + '-' + raw.slice(2,6) + '-' + raw.slice(6);
+          else if (raw.length >= 8)                          fmt = raw.slice(0,3) + '-' + raw.slice(3,7) + '-' + raw.slice(7);
+          e.target.value = fmt;
         }
-      }
-    } catch (err) {
-      showToast('네트워크 오류가 발생했습니다. 다시 시도해주세요.', true);
-      btn.disabled = false;
-      btnText.style.display = 'block';
-      spinner.style.display = 'none';
+      });
     }
   });
+}
 
-  function showToast(msg, isError = false) {
-    const toast = document.getElementById('toast');
-    toast.textContent = msg;
-    toast.className = 'toast' + (isError ? ' error' : '');
-    toast.classList.add('show');
-    setTimeout(() => toast.classList.remove('show'), 4000);
+// ── Submit ────────────────────────────────────────────────────────────────────
+async function submitForm() {
+  const ev = currentEvent; if (!ev) return;
+  clearErrors();
+
+  const fields   = JSON.parse(ev.form_fields   || '["name","phone","organization","referrer"]');
+  const labels   = JSON.parse(ev.form_labels   || '{}');
+  const required = JSON.parse(ev.form_required || '["name","phone","organization"]');
+
+  const body = {}; let valid = true;
+
+  for (const key of fields) {
+    const inp = document.getElementById(`f-${key}`); if (!inp) continue;
+    let val = inp.value.trim();
+    if (key === 'phone') val = val.replace(/[^0-9]/g,'');
+
+    if (required.includes(key) && !val) {
+      const lbl = labels[key] || FIELD_DEFAULTS[key]?.label || key;
+      showError(key, `${lbl}을(를) 입력해주세요.`);
+      if (valid) inp.focus(); valid = false;
+    } else if (key === 'phone' && required.includes('phone') && val && (val.length < 10 || val.length > 11)) {
+      showError(key, '올바른 연락처를 입력해주세요. (10-11자리)');
+      if (valid) inp.focus(); valid = false;
+    }
+
+    const std = ['name','phone','organization','referrer'];
+    if (std.includes(key)) body[key] = val;
+    else { if (!body.extra_data) body.extra_data = {}; body.extra_data[key] = val; }
   }
+  if (!valid) return;
 
-  // Init
-  loadStatus();
-  // Poll every 30 seconds
-  setInterval(loadStatus, 30000);
+  const btn = document.getElementById('btn-submit');
+  const sp  = document.getElementById('btn-spinner');
+  const bt  = document.getElementById('btn-text');
+  btn.disabled = true; sp.classList.add('show'); bt.textContent = '신청 중...';
+
+  try {
+    const r = await fetch(`${API}/events/${ev.id}/register`, {
+      method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body)
+    });
+    const d = await r.json();
+    if (d.success) { window.location.href = `/ticket?code=${d.data.ticketCode}`; return; }
+    showToast(d.message || '신청 중 오류가 발생했습니다.', 'err');
+    if (r.status === 400 && (d.message||'').includes('정원')) {
+      btn.style.display = 'none';
+      document.getElementById('full-msg').style.display = 'block';
+    }
+  } catch(e) {
+    showToast('네트워크 오류가 발생했습니다. 다시 시도해주세요.', 'err');
+  } finally {
+    btn.disabled = false; sp.classList.remove('show'); bt.textContent = '🎫 신청하기';
+  }
+}
+
+// ── QR & Share ────────────────────────────────────────────────────────────────
+function openQRModal() {
+  document.getElementById('qr-url-text').textContent = shareUrl;
+  document.getElementById('qr-modal').classList.add('show');
+  if (typeof QRCode !== 'undefined') renderQR();
+  else loadQRLib(renderQR);
+}
+function renderQR() {
+  QRCode.toCanvas(document.getElementById('qr-modal-canvas'), shareUrl, {
+    width: 200, margin: 2, color: { dark: '#0A1628', light: '#FFFFFF' }
+  });
+}
+function closeQRModal(e) {
+  if (e && e.target !== document.getElementById('qr-modal')) return;
+  document.getElementById('qr-modal').classList.remove('show');
+}
+function downloadQRImage() {
+  const canvas = document.getElementById('qr-modal-canvas');
+  const title  = currentEvent ? (currentEvent.hero_title || currentEvent.title) : '라스북 세미나';
+  const off = document.createElement('canvas');
+  off.width = 480; off.height = 560;
+  const ctx = off.getContext('2d');
+  ctx.fillStyle = '#0A1628'; ctx.fillRect(0,0,480,560);
+  const g = ctx.createLinearGradient(0,0,480,0);
+  g.addColorStop(0,'transparent'); g.addColorStop(.3,'#C9A84C'); g.addColorStop(.7,'#E8C97A'); g.addColorStop(1,'transparent');
+  ctx.fillStyle = g; ctx.fillRect(0,0,480,3);
+  ctx.fillStyle = '#C9A84C'; ctx.font = 'bold 14px sans-serif'; ctx.textAlign = 'center'; ctx.fillText('LASBOOK', 240, 38);
+  ctx.fillStyle = '#fff';    ctx.font = 'bold 20px sans-serif'; ctx.fillText(title, 240, 68);
+  const qs = 260, qx = (480-qs)/2, qy = 90;
+  ctx.fillStyle = '#fff'; ctx.beginPath(); ctx.roundRect(qx-14, qy-14, qs+28, qs+28, 16); ctx.fill();
+  ctx.drawImage(canvas, qx, qy, qs, qs);
+  ctx.fillStyle = 'rgba(255,255,255,.5)'; ctx.font = '12px sans-serif'; ctx.fillText('QR을 스캔하여 신청하세요', 240, qy+qs+28);
+  ctx.fillStyle = 'rgba(201,168,76,.7)';  ctx.font = '10px monospace'; ctx.fillText(shareUrl, 240, qy+qs+48);
+  ctx.fillStyle = g; ctx.fillRect(0,557,480,3);
+  const a = document.createElement('a'); a.download = 'lasbook_qr.png'; a.href = off.toDataURL('image/png'); a.click();
+  showToast('✅ QR 이미지가 저장되었습니다!', 'ok');
+}
+async function copyLink() {
+  const btn = document.getElementById('copy-link-btn');
+  try { await navigator.clipboard.writeText(shareUrl); }
+  catch(e) {
+    const t = document.createElement('textarea'); t.value = shareUrl;
+    t.style.cssText = 'position:fixed;opacity:0;'; document.body.appendChild(t);
+    t.select(); document.execCommand('copy'); document.body.removeChild(t);
+  }
+  btn.classList.add('copied');
+  btn.querySelector('.btn-label').textContent = '복사됨!';
+  btn.querySelector('.btn-sub').textContent = '링크가 복사되었습니다';
+  showToast('✅ 링크가 복사되었습니다!', 'ok');
+  setTimeout(() => {
+    btn.classList.remove('copied');
+    btn.querySelector('.btn-label').textContent = '링크 복사';
+    btn.querySelector('.btn-sub').textContent = '신청 링크 공유';
+  }, 2500);
+}
+function loadQRLib(cb) {
+  if (typeof QRCode !== 'undefined') { cb && cb(); return; }
+  const s = document.createElement('script'); s.src = '/js/qrcode.min.js';
+  s.onload = () => { cb && cb(); };
+  s.onerror = () => {
+    const s2 = document.createElement('script');
+    s2.src = 'https://cdn.jsdelivr.net/npm/qrcode@1.5.3/build/qrcode.min.js';
+    s2.onload = () => { cb && cb(); };
+    document.head.appendChild(s2);
+  };
+  document.head.appendChild(s);
+}
+
+// ── Utils ─────────────────────────────────────────────────────────────────────
+function clearErrors() {
+  document.querySelectorAll('.form-error').forEach(e => { e.style.display='none'; e.textContent=''; });
+  document.querySelectorAll('.form-input.error').forEach(e => e.classList.remove('error'));
+}
+function showError(key, msg) {
+  const errEl = document.getElementById(`fe-${key}`);
+  const inp   = document.getElementById(`f-${key}`);
+  if (errEl) { errEl.textContent = msg; errEl.style.display = 'block'; }
+  if (inp)   inp.classList.add('error');
+}
+function formatDate(d) {
+  if (!d) return '--';
+  const [y, m, day] = d.split('-');
+  return `${y}년 ${parseInt(m)}월 ${parseInt(day)}일 (${['일','월','화','수','목','금','토'][new Date(d).getDay()]})`;
+}
+function esc(s) { return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
+function showToast(msg, type='') {
+  const t = document.getElementById('toast');
+  t.textContent = msg; t.className = 'toast ' + type;
+  t.classList.add('show');
+  setTimeout(() => t.classList.remove('show'), 4000);
+}
+
+init();
 </script>
 </body>
 </html>

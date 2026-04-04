@@ -1,0 +1,511 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width,initial-scale=1.0"/>
+  <title>신청 현황 - 라스북</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com"/>
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;600;700;800;900&display=swap" rel="stylesheet"/>
+  <style>
+    :root {
+      --navy:     #0A1628;
+      --navy-mid: #1B2B4B;
+      --gold:     #C9A84C;
+      --gold-d:   #A8872E;
+      --green:    #38A169;
+      --red:      #E53E3E;
+      --g50:      #F8F9FC;
+      --g100:     #F0F2F7;
+      --g200:     #E2E6EF;
+      --g300:     #C8CEDE;
+      --g400:     #8A95A8;
+      --g500:     #6B7688;
+      --g600:     #4A5568;
+      --g700:     #2D3748;
+    }
+    *{box-sizing:border-box;margin:0;padding:0;}
+    body{font-family:'Noto Sans KR',sans-serif;background:var(--g100);color:var(--g700);min-height:100vh;}
+
+    /* ── TOP BAR ── */
+    .topbar{background:linear-gradient(135deg,var(--navy),var(--navy-mid));padding:16px 20px;display:flex;align-items:center;gap:12px;}
+    .topbar-logo{font-size:18px;font-weight:900;color:#fff;letter-spacing:-0.5px;}
+    .topbar-logo span{color:var(--gold);}
+    .topbar-sub{font-size:12px;color:rgba(255,255,255,.55);margin-top:2px;}
+
+    /* ── LAYOUT ── */
+    .page{max-width:900px;margin:0 auto;padding:20px 16px 48px;}
+
+    /* ── CARD ── */
+    .card{background:#fff;border-radius:16px;box-shadow:0 2px 12px rgba(0,0,0,.06);margin-bottom:16px;overflow:hidden;}
+    .card-head{padding:16px 20px 12px;border-bottom:1px solid var(--g100);}
+    .card-title{font-size:15px;font-weight:800;color:var(--navy);display:flex;align-items:center;gap:8px;}
+    .card-body{padding:16px 20px;}
+
+    /* ── CALENDAR ── */
+    .cal-nav-row{display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;}
+    .cal-month-label{font-size:17px;font-weight:800;color:var(--navy);}
+    .cal-nav-btns{display:flex;gap:6px;}
+    .cal-nav-btn{width:34px;height:34px;border:1.5px solid var(--g200);border-radius:9px;background:#fff;cursor:pointer;font-size:16px;display:flex;align-items:center;justify-content:center;color:var(--g600);transition:all .15s;}
+    .cal-nav-btn:hover{background:var(--g100);border-color:var(--navy-mid);}
+    .cal-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:4px;}
+    .cal-dow{text-align:center;font-size:11px;font-weight:700;color:var(--g400);padding:6px 0;}
+    .cal-dow:first-child{color:var(--red);}
+    .cal-dow:last-child{color:#3182CE;}
+    .cal-day{min-height:62px;border-radius:10px;border:1.5px solid var(--g100);padding:6px 5px;cursor:pointer;background:#fff;transition:all .15s;position:relative;}
+    .cal-day:hover{border-color:var(--gold);background:#fffbf0;}
+    .cal-day.other{opacity:.3;cursor:default;pointer-events:none;}
+    .cal-day.today{border-color:var(--navy-mid);background:#f0f4ff;}
+    .cal-day.has-event{border-color:rgba(201,168,76,.4);background:#fffdf5;}
+    .cal-day.selected{border-color:var(--gold-d)!important;background:#fffbf0!important;box-shadow:0 0 0 3px rgba(201,168,76,.3)!important;}
+    .cal-day-num{font-size:12px;font-weight:700;color:var(--g600);margin-bottom:3px;}
+    .cal-day.sun .cal-day-num{color:var(--red);}
+    .cal-day.sat .cal-day-num{color:#3182CE;}
+    .cal-day.today .cal-day-num{color:var(--navy);}
+    .cal-dot{width:7px;height:7px;border-radius:50%;display:inline-block;margin:1px 1px 0;}
+
+    /* ── EVENT PICKER ── */
+    .ev-list{display:flex;flex-direction:column;gap:8px;}
+    .ev-item{display:flex;align-items:center;gap:12px;padding:12px 14px;border:1.5px solid var(--g200);border-radius:12px;cursor:pointer;background:#fff;transition:all .15s;}
+    .ev-item:hover{border-color:var(--gold);background:#fffbf0;}
+    .ev-item.selected{border-color:var(--gold-d);background:#fffbf0;box-shadow:0 0 0 3px rgba(201,168,76,.2);}
+    .ev-dot{width:12px;height:12px;border-radius:50%;flex-shrink:0;}
+    .ev-info{flex:1;}
+    .ev-name{font-size:14px;font-weight:700;color:var(--navy);}
+    .ev-meta{font-size:11px;color:var(--g400);margin-top:2px;}
+    .ev-cnt-badge{font-size:12px;font-weight:700;padding:3px 10px;border-radius:20px;background:var(--navy);color:#fff;flex-shrink:0;}
+
+    /* ── STATS SUMMARY ── */
+    .stats-row{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:16px;}
+    .stat-box{background:var(--g50);border:1.5px solid var(--g200);border-radius:12px;padding:14px 12px;text-align:center;}
+    .stat-box.blue{border-color:#bee3f8;background:#ebf8ff;}
+    .stat-box.gold{border-color:rgba(201,168,76,.3);background:#fffdf5;}
+    .stat-box.green{border-color:#c6f6d5;background:#f0fff4;}
+    .stat-num{font-size:26px;font-weight:900;color:var(--navy);line-height:1;}
+    .stat-box.blue .stat-num{color:#2b6cb0;}
+    .stat-box.gold .stat-num{color:var(--gold-d);}
+    .stat-box.green .stat-num{color:var(--green);}
+    .stat-label{font-size:11px;color:var(--g400);margin-top:4px;font-weight:600;}
+
+    /* ── REFERRER CARDS ── */
+    .ref-grid{display:flex;flex-direction:column;gap:12px;}
+    .ref-card{border:1.5px solid var(--g200);border-radius:14px;overflow:hidden;background:#fff;transition:box-shadow .15s;}
+    .ref-card:hover{box-shadow:0 4px 16px rgba(0,0,0,.08);}
+    .ref-card-head{display:flex;align-items:center;gap:12px;padding:13px 16px;background:var(--g50);cursor:pointer;user-select:none;}
+    .ref-rank{width:28px;height:28px;border-radius:50%;background:linear-gradient(135deg,var(--navy),var(--navy-mid));color:#fff;font-size:11px;font-weight:800;display:flex;align-items:center;justify-content:center;flex-shrink:0;}
+    .ref-rank.r1{background:linear-gradient(135deg,#C9A84C,#E8C56A);}
+    .ref-rank.r2{background:linear-gradient(135deg,#718096,#A0AEC0);}
+    .ref-rank.r3{background:linear-gradient(135deg,#C05621,#ED8936);}
+    .ref-name{font-size:14px;font-weight:800;color:var(--navy);flex:1;}
+    .ref-count-badge{font-size:13px;font-weight:800;padding:4px 12px;border-radius:20px;background:var(--navy);color:#fff;}
+    .ref-bar-wrap{flex:0 0 80px;height:8px;background:var(--g200);border-radius:4px;overflow:hidden;}
+    .ref-bar{height:100%;background:linear-gradient(90deg,var(--gold-d),var(--gold));border-radius:4px;transition:width .6s ease;}
+    .ref-toggle-icon{font-size:12px;color:var(--g400);margin-left:6px;transition:transform .2s;}
+    .ref-toggle-icon.open{transform:rotate(180deg);}
+    .ref-members{display:none;padding:10px 16px 12px;border-top:1px solid var(--g100);}
+    .ref-members.show{display:block;}
+    .ref-member-row{display:flex;align-items:center;gap:10px;padding:7px 0;border-bottom:1px solid var(--g100);}
+    .ref-member-row:last-child{border-bottom:none;}
+    .ref-member-idx{width:22px;height:22px;border-radius:50%;background:var(--g100);font-size:10px;font-weight:700;color:var(--g500);display:flex;align-items:center;justify-content:center;flex-shrink:0;}
+    .ref-member-name{flex:1;font-size:13px;font-weight:700;color:var(--navy);}
+    .ref-member-org{font-size:11px;color:var(--g400);}
+    .ref-member-time{font-size:10px;color:var(--g300);}
+
+    /* ── NO REF ── */
+    .no-ref-row{display:flex;align-items:center;gap:12px;padding:13px 16px;background:var(--g50);border-radius:12px;border:1.5px dashed var(--g300);}
+    .no-ref-label{font-size:13px;color:var(--g500);flex:1;}
+    .no-ref-cnt{font-size:13px;font-weight:800;color:var(--g500);}
+
+    /* ── EMPTY / LOADING ── */
+    .empty{text-align:center;padding:40px 20px;color:var(--g400);}
+    .empty-icon{font-size:36px;margin-bottom:10px;}
+    .empty-msg{font-size:14px;}
+    .loading{text-align:center;padding:32px;color:var(--g400);font-size:13px;}
+    .spinner{display:inline-block;width:20px;height:20px;border:2px solid var(--g200);border-top-color:var(--navy-mid);border-radius:50%;animation:spin .7s linear infinite;margin-right:8px;vertical-align:middle;}
+    @keyframes spin{to{transform:rotate(360deg);}}
+
+    /* ── SEARCH ── */
+    .search-wrap{position:relative;margin-bottom:14px;}
+    .search-inp{width:100%;padding:10px 14px 10px 38px;border:1.5px solid var(--g200);border-radius:10px;font-size:13px;font-family:inherit;color:var(--navy);background:var(--g50);outline:none;transition:all .2s;}
+    .search-inp:focus{border-color:var(--navy-mid);background:#fff;}
+    .search-icon{position:absolute;left:12px;top:50%;transform:translateY(-50%);font-size:15px;color:var(--g400);}
+
+    /* ── LAST UPDATE ── */
+    .last-update{text-align:right;font-size:11px;color:var(--g300);margin-bottom:8px;}
+    .refresh-btn{background:none;border:none;cursor:pointer;font-size:12px;color:var(--g400);padding:4px 8px;border-radius:6px;transition:all .15s;}
+    .refresh-btn:hover{background:var(--g100);color:var(--navy);}
+
+    @media(max-width:480px){
+      .stats-row{grid-template-columns:1fr 1fr 1fr;}
+      .stat-num{font-size:20px;}
+    }
+  </style>
+</head>
+<body>
+
+<div class="topbar">
+  <div>
+    <div class="topbar-logo">LAS<span>BOOK</span></div>
+    <div class="topbar-sub">신청 현황 조회</div>
+  </div>
+</div>
+
+<div class="page">
+
+  <!-- ① 달력 카드 -->
+  <div class="card">
+    <div class="card-head">
+      <div class="card-title">📅 날짜 선택</div>
+    </div>
+    <div class="card-body">
+      <div class="cal-nav-row">
+        <div class="cal-month-label" id="cal-label">2026년 4월</div>
+        <div class="cal-nav-btns">
+          <button class="cal-nav-btn" onclick="changeMonth(-1)">‹</button>
+          <button class="cal-nav-btn" onclick="goToday()">오늘</button>
+          <button class="cal-nav-btn" onclick="changeMonth(1)">›</button>
+        </div>
+      </div>
+      <div class="cal-grid" id="cal-grid">
+        <div class="cal-dow">일</div>
+        <div class="cal-dow">월</div>
+        <div class="cal-dow">화</div>
+        <div class="cal-dow">수</div>
+        <div class="cal-dow">목</div>
+        <div class="cal-dow">금</div>
+        <div class="cal-dow">토</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ② 이벤트 선택 카드 -->
+  <div class="card" id="ev-picker-card" style="display:none;">
+    <div class="card-head">
+      <div class="card-title">🎪 이벤트 선택 <span id="ev-picker-date" style="font-size:12px;font-weight:600;color:var(--g400);margin-left:6px;"></span></div>
+    </div>
+    <div class="card-body">
+      <div class="ev-list" id="ev-list"></div>
+    </div>
+  </div>
+
+  <!-- ③ 결과 카드 -->
+  <div id="result-section" style="display:none;">
+    <div class="card">
+      <div class="card-head" style="display:flex;align-items:center;justify-content:space-between;">
+        <div class="card-title">📊 신청 현황 <span id="result-ev-name" style="font-size:13px;font-weight:600;color:var(--g400);margin-left:6px;"></span></div>
+        <button class="refresh-btn" onclick="refreshStats()">🔄 새로고침</button>
+      </div>
+      <div class="card-body">
+        <div class="last-update" id="last-update"></div>
+        <div class="stats-row">
+          <div class="stat-box blue">
+            <div class="stat-num" id="stat-total">-</div>
+            <div class="stat-label">총 신청자</div>
+          </div>
+          <div class="stat-box gold">
+            <div class="stat-num" id="stat-ref-count">-</div>
+            <div class="stat-label">추천인 수</div>
+          </div>
+          <div class="stat-box green">
+            <div class="stat-num" id="stat-capacity">-</div>
+            <div class="stat-label">잔여 정원</div>
+          </div>
+        </div>
+
+        <!-- 검색 -->
+        <div class="search-wrap">
+          <span class="search-icon">🔍</span>
+          <input class="search-inp" id="search-inp" type="text" placeholder="추천인 이름으로 검색..." oninput="filterReferrers()"/>
+        </div>
+
+        <div id="ref-grid" class="ref-grid"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 날짜 미선택 안내 -->
+  <div class="card" id="guide-card">
+    <div class="card-body">
+      <div class="empty">
+        <div class="empty-icon">👆</div>
+        <div class="empty-msg">달력에서 날짜를 선택하면<br>해당 날짜의 이벤트가 표시됩니다</div>
+      </div>
+    </div>
+  </div>
+
+</div><!-- /page -->
+
+<script>
+const API = '/api';
+
+// ── 상태 ──────────────────────────────────────────────────────────────────
+let calYear, calMonth, calSelectedDate = null;
+let allEvents = [];
+let currentEventId = null;
+let currentStats = null;
+
+// ── 초기화 ────────────────────────────────────────────────────────────────
+(async function init() {
+  const today = new Date();
+  calYear  = today.getFullYear();
+  calMonth = today.getMonth();
+  await loadEvents();
+  renderCalendar();
+})();
+
+// ── 이벤트 로드 ───────────────────────────────────────────────────────────
+async function loadEvents() {
+  try {
+    const r = await fetch(`${API}/public/events`);
+    const j = await r.json();
+    if (j.success) allEvents = j.data;
+  } catch(e) { console.error(e); }
+}
+
+// ── 달력 렌더 ─────────────────────────────────────────────────────────────
+function renderCalendar() {
+  const MONTHS = ['1월','2월','3월','4월','5월','6월','7월','8월','9월','10월','11월','12월'];
+  document.getElementById('cal-label').textContent = `${calYear}년 ${MONTHS[calMonth]}`;
+
+  const grid = document.getElementById('cal-grid');
+  // 요일 헤더 유지 후 날짜 셀만 교체
+  while (grid.children.length > 7) grid.removeChild(grid.lastChild);
+
+  const today = new Date();
+  const firstDay = new Date(calYear, calMonth, 1).getDay();
+  const lastDate = new Date(calYear, calMonth + 1, 0).getDate();
+  const prevLast = new Date(calYear, calMonth, 0).getDate();
+
+  const frag = document.createDocumentFragment();
+
+  // 이전 달 빈칸
+  for (let i = 0; i < firstDay; i++) {
+    const d = document.createElement('div');
+    d.className = 'cal-day other';
+    d.innerHTML = `<div class="cal-day-num">${prevLast - firstDay + 1 + i}</div>`;
+    frag.appendChild(d);
+  }
+
+  // 이번 달
+  for (let date = 1; date <= lastDate; date++) {
+    const iso = `${calYear}-${String(calMonth+1).padStart(2,'0')}-${String(date).padStart(2,'0')}`;
+    const dow = new Date(calYear, calMonth, date).getDay();
+    const evOnDay = allEvents.filter(e => e.event_date === iso);
+    const isToday = (today.getFullYear()===calYear && today.getMonth()===calMonth && today.getDate()===date);
+    const isSel   = (calSelectedDate === iso);
+
+    let cls = 'cal-day';
+    if (dow === 0) cls += ' sun';
+    if (dow === 6) cls += ' sat';
+    if (isToday)  cls += ' today';
+    if (evOnDay.length) cls += ' has-event';
+    if (isSel)    cls += ' selected';
+
+    const d = document.createElement('div');
+    d.className = cls;
+    d.dataset.iso = iso;
+    d.innerHTML = `<div class="cal-day-num">${date}</div>` +
+      evOnDay.slice(0,2).map(e => `<div class="cal-dot" style="background:${e.color||'#1B2B4B'};"></div>`).join('');
+    d.addEventListener('click', () => onDayClick(iso));
+    frag.appendChild(d);
+  }
+
+  // 다음 달 빈칸 (6줄 고정)
+  const total = firstDay + lastDate;
+  const remain = (Math.ceil(total/7)*7) - total;
+  for (let i = 1; i <= remain; i++) {
+    const d = document.createElement('div');
+    d.className = 'cal-day other';
+    d.innerHTML = `<div class="cal-day-num">${i}</div>`;
+    frag.appendChild(d);
+  }
+
+  grid.appendChild(frag);
+}
+
+function changeMonth(dir) {
+  calMonth += dir;
+  if (calMonth < 0) { calMonth = 11; calYear--; }
+  if (calMonth > 11) { calMonth = 0; calYear++; }
+  renderCalendar();
+}
+
+function goToday() {
+  const t = new Date();
+  calYear = t.getFullYear();
+  calMonth = t.getMonth();
+  renderCalendar();
+}
+
+// ── 날짜 클릭 ─────────────────────────────────────────────────────────────
+function onDayClick(iso) {
+  calSelectedDate = iso;
+  renderCalendar();
+
+  const evs = allEvents.filter(e => e.event_date === iso);
+  const guideCard  = document.getElementById('guide-card');
+  const evCard     = document.getElementById('ev-picker-card');
+  const resultSec  = document.getElementById('result-section');
+
+  guideCard.style.display = 'none';
+
+  if (evs.length === 0) {
+    evCard.style.display = 'none';
+    resultSec.style.display = 'none';
+    guideCard.style.display = '';
+    guideCard.querySelector('.empty-icon').textContent = '📭';
+    guideCard.querySelector('.empty-msg').textContent = '선택한 날짜에 등록된 이벤트가 없습니다';
+    return;
+  }
+
+  // 날짜 표시
+  const [y,m,d] = iso.split('-');
+  const DOW = ['일','월','화','수','목','금','토'];
+  const dowStr = DOW[new Date(+y,+m-1,+d).getDay()];
+  document.getElementById('ev-picker-date').textContent = `${+m}월 ${+d}일 (${dowStr})`;
+
+  // 이벤트 목록 렌더
+  const listEl = document.getElementById('ev-list');
+  listEl.innerHTML = evs.map(e => `
+    <div class="ev-item" id="evitem-${e.id}" onclick="selectEvent(${e.id})">
+      <div class="ev-dot" style="background:${e.color||'#1B2B4B'};"></div>
+      <div class="ev-info">
+        <div class="ev-name">${e.title}</div>
+        <div class="ev-meta">📍 ${e.venue||'-'}</div>
+      </div>
+      <div class="ev-cnt-badge">${e.current_count}명</div>
+    </div>
+  `).join('');
+
+  evCard.style.display = '';
+
+  // 이벤트가 1개면 자동 선택
+  if (evs.length === 1) selectEvent(evs[0].id);
+}
+
+// ── 이벤트 선택 ───────────────────────────────────────────────────────────
+async function selectEvent(id) {
+  currentEventId = id;
+  // 선택 표시
+  document.querySelectorAll('.ev-item').forEach(el => el.classList.remove('selected'));
+  const el = document.getElementById(`evitem-${id}`);
+  if (el) el.classList.add('selected');
+
+  document.getElementById('result-section').style.display = '';
+  await loadStats(id);
+}
+
+async function refreshStats() {
+  if (!currentEventId) return;
+  await loadStats(currentEventId);
+}
+
+// ── 통계 로드 ─────────────────────────────────────────────────────────────
+async function loadStats(id) {
+  const grid = document.getElementById('ref-grid');
+  grid.innerHTML = '<div class="loading"><span class="spinner"></span>불러오는 중...</div>';
+
+  try {
+    const r = await fetch(`${API}/public/referrer-stats/${id}`);
+    const j = await r.json();
+    if (!j.success) { grid.innerHTML = '<div class="empty"><div class="empty-msg">데이터를 불러올 수 없습니다.</div></div>'; return; }
+
+    currentStats = j.data;
+    renderStats(j.data);
+  } catch(e) {
+    grid.innerHTML = '<div class="empty"><div class="empty-msg">오류가 발생했습니다.</div></div>';
+  }
+}
+
+// ── 통계 렌더 ─────────────────────────────────────────────────────────────
+function renderStats(data) {
+  const ev = data.event;
+  document.getElementById('result-ev-name').textContent = ev.title;
+  document.getElementById('stat-total').textContent = data.totalCount;
+  document.getElementById('stat-ref-count').textContent = data.referrers.length;
+  document.getElementById('stat-capacity').textContent = Math.max(0, ev.max_capacity - data.totalCount);
+
+  const now = new Date();
+  document.getElementById('last-update').textContent =
+    `마지막 업데이트: ${now.getHours().toString().padStart(2,'0')}:${now.getMinutes().toString().padStart(2,'0')}:${now.getSeconds().toString().padStart(2,'0')}`;
+
+  renderReferrers(data.referrers, data.noReferrerCount);
+}
+
+function renderReferrers(referrers, noRefCount) {
+  const grid = document.getElementById('ref-grid');
+  const keyword = (document.getElementById('search-inp').value || '').trim().toLowerCase();
+
+  const filtered = keyword
+    ? referrers.filter(r => r.referrer.toLowerCase().includes(keyword))
+    : referrers;
+
+  const maxCnt = filtered.length ? filtered[0].count : 1;
+
+  let html = '';
+
+  filtered.forEach((r, i) => {
+    const rankClass = i === 0 ? 'r1' : i === 1 ? 'r2' : i === 2 ? 'r3' : '';
+    const barWidth  = Math.round((r.count / maxCnt) * 100);
+
+    const membersHtml = r.members.map((m, mi) => {
+      const timeStr = m.registered_at ? m.registered_at.slice(5,16).replace('-','/') : '';
+      return `
+        <div class="ref-member-row">
+          <div class="ref-member-idx">${mi+1}</div>
+          <div class="ref-member-name">${escHtml(m.name)}</div>
+          <div class="ref-member-org">${escHtml(m.organization||'')}</div>
+          <div class="ref-member-time">${timeStr}</div>
+        </div>`;
+    }).join('');
+
+    html += `
+      <div class="ref-card">
+        <div class="ref-card-head" onclick="toggleRef(this)">
+          <div class="ref-rank ${rankClass}">${i+1}</div>
+          <div class="ref-name">${escHtml(r.referrer)}</div>
+          <div class="ref-bar-wrap"><div class="ref-bar" style="width:${barWidth}%;"></div></div>
+          <div class="ref-count-badge">${r.count}명</div>
+          <div class="ref-toggle-icon">▾</div>
+        </div>
+        <div class="ref-members">
+          ${membersHtml || '<div style="color:var(--g400);font-size:12px;padding:4px 0;">신청자 없음</div>'}
+        </div>
+      </div>`;
+  });
+
+  // 추천인 없음 행
+  if (!keyword && noRefCount > 0) {
+    html += `
+      <div class="no-ref-row">
+        <span class="no-ref-label">추천인 없이 직접 신청</span>
+        <span class="no-ref-cnt">${noRefCount}명</span>
+      </div>`;
+  }
+
+  if (!filtered.length && keyword) {
+    html = `<div class="empty"><div class="empty-icon">🔍</div><div class="empty-msg">"${escHtml(keyword)}" 검색 결과가 없습니다.</div></div>`;
+  } else if (!filtered.length && !noRefCount) {
+    html = `<div class="empty"><div class="empty-icon">📭</div><div class="empty-msg">아직 추천인이 없습니다.</div></div>`;
+  }
+
+  grid.innerHTML = html;
+}
+
+function filterReferrers() {
+  if (!currentStats) return;
+  renderReferrers(currentStats.referrers, currentStats.noReferrerCount);
+}
+
+function toggleRef(headEl) {
+  const membersEl = headEl.nextElementSibling;
+  const iconEl    = headEl.querySelector('.ref-toggle-icon');
+  membersEl.classList.toggle('show');
+  iconEl.classList.toggle('open');
+}
+
+function escHtml(s) {
+  return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+</script>
+</body>
+</html>

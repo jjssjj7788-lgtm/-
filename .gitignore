@@ -1,6 +1,8 @@
 node_modules/
 seminar.db
 *.db
+*.db-shm
+*.db-wal
 src/public/images/poster_bg_*
 .env
 npm-debug.log

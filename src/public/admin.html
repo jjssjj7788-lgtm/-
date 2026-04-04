@@ -1,590 +1,474 @@
 <!DOCTYPE html>
 <html lang="ko">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>관리자 설정 - 라스북 세미나</title>
-  <link rel="preconnect" href="https://fonts.googleapis.com" />
-  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet" />
-  <script src="https://cdn.jsdelivr.net/npm/qrcode@1.5.3/build/qrcode.min.js"></script>
-
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width,initial-scale=1.0"/>
+  <title>관리자 - 라스북</title>
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet"/>
   <style>
-    :root {
-      --navy: #0A1628;
-      --navy-mid: #1B2B4B;
-      --navy-light: #243657;
-      --gold: #C9A84C;
-      --gold-light: #E8C97A;
-      --gold-dark: #A8872E;
-      --white: #FFFFFF;
-      --gray-50: #FAFBFD;
-      --gray-100: #F0F2F7;
-      --gray-200: #E2E5EF;
-      --gray-400: #9AA3B2;
-      --gray-600: #5A6478;
-      --gray-700: #3D4A5C;
-      --red: #E53E3E;
-      --green: #38A169;
-      --blue: #3182CE;
-    }
+    :root{--navy:#0A1628;--navy-mid:#1B2B4B;--gold:#C9A84C;--gold-l:#E8C97A;--gold-d:#A8872E;--white:#fff;--g50:#FAFBFD;--g100:#F0F2F7;--g200:#E2E5EF;--g400:#9AA3B2;--g600:#5A6478;--g700:#3D4A5C;--red:#E53E3E;--green:#38A169;--blue:#3182CE;}
+    *{box-sizing:border-box;margin:0;padding:0;}
+    body{font-family:'Noto Sans KR',sans-serif;background:var(--g100);color:var(--navy);}
 
-    * { box-sizing: border-box; margin: 0; padding: 0; }
+    /* ── LOGIN ── */
+    .login-screen{min-height:100vh;background:linear-gradient(160deg,var(--navy) 0%,var(--navy-mid) 60%,#1a3a5c 100%);display:flex;align-items:center;justify-content:center;padding:24px;}
+    .login-card{background:#fff;border-radius:24px;padding:40px 32px;width:100%;max-width:400px;box-shadow:0 20px 60px rgba(0,0,0,.4);}
+    .login-logo{text-align:center;margin-bottom:32px;}
+    .login-logo-t{font-size:24px;font-weight:900;color:var(--navy);letter-spacing:2px;}
+    .login-logo-t span{color:var(--gold-d);}
+    .login-logo p{font-size:13px;color:var(--g400);margin-top:6px;}
+    .login-inp{width:100%;padding:14px 18px;border:2px solid var(--g200);border-radius:12px;font-size:16px;font-family:inherit;color:var(--navy);background:var(--g50);outline:none;transition:all .2s;}
+    .login-inp:focus{border-color:var(--navy-mid);background:#fff;}
+    .btn-login{width:100%;margin-top:20px;padding:16px;background:linear-gradient(135deg,var(--navy),var(--navy-mid));color:#fff;border:none;border-radius:12px;font-size:16px;font-weight:800;font-family:inherit;cursor:pointer;}
+    .login-err{color:var(--red);font-size:13px;margin-top:10px;text-align:center;display:none;}
 
-    body {
-      font-family: 'Noto Sans KR', sans-serif;
-      background: var(--gray-100);
-      color: var(--navy);
-    }
+    /* ── APP LAYOUT ── */
+    .app{display:none;}
+    .app-layout{display:flex;min-height:100vh;}
 
-    /* ── Login Screen ── */
-    .login-screen {
-      min-height: 100vh;
-      background: linear-gradient(160deg, var(--navy) 0%, var(--navy-mid) 60%, #1a3a5c 100%);
-      display: flex; align-items: center; justify-content: center;
-      padding: 24px;
-    }
-    .login-card {
-      background: white;
-      border-radius: 24px;
-      padding: 40px 32px;
-      width: 100%; max-width: 400px;
-      box-shadow: 0 20px 60px rgba(0,0,0,0.4);
-    }
-    .login-logo {
-      text-align: center; margin-bottom: 32px;
-    }
-    .login-logo-text {
-      font-size: 24px; font-weight: 900; color: var(--navy);
-      letter-spacing: 2px;
-    }
-    .login-logo-text span { color: var(--gold-dark); }
-    .login-logo p { font-size: 13px; color: var(--gray-400); margin-top: 6px; }
-    .login-label {
-      display: block; font-size: 13px; font-weight: 700;
-      color: var(--gray-700); margin-bottom: 8px;
-    }
-    .login-input {
-      width: 100%; padding: 14px 18px;
-      border: 2px solid var(--gray-200); border-radius: 12px;
-      font-size: 16px; font-family: inherit; color: var(--navy);
-      background: var(--gray-50); outline: none;
-      transition: all 0.2s;
-    }
-    .login-input:focus { border-color: var(--navy-mid); background: white; }
-    .btn-login {
-      width: 100%; margin-top: 20px; padding: 16px;
-      background: linear-gradient(135deg, var(--navy), var(--navy-mid));
-      color: white; border: none; border-radius: 12px;
-      font-size: 16px; font-weight: 800; font-family: inherit;
-      cursor: pointer; transition: all 0.2s;
-    }
-    .btn-login:hover { transform: translateY(-1px); box-shadow: 0 6px 20px rgba(0,0,0,0.2); }
-    .login-error {
-      color: var(--red); font-size: 13px; margin-top: 10px; text-align: center; display: none;
-    }
+    /* Sidebar */
+    .sidebar{width:220px;flex-shrink:0;background:linear-gradient(180deg,var(--navy) 0%,var(--navy-mid) 100%);padding:20px 0;position:sticky;top:0;height:100vh;overflow-y:auto;}
+    .sb-brand{padding:0 16px 20px;border-bottom:1px solid rgba(255,255,255,.08);}
+    .sb-brand h1{font-size:15px;font-weight:900;color:#fff;letter-spacing:1px;}
+    .sb-brand p{font-size:11px;color:var(--gold);margin-top:2px;}
+    .sb-nav{padding:14px 10px;}
+    .sb-sect{font-size:9px;font-weight:700;letter-spacing:2px;color:rgba(255,255,255,.3);padding:0 6px;margin:12px 0 6px;text-transform:uppercase;}
+    .nav-item{display:flex;align-items:center;gap:9px;padding:9px 10px;border-radius:9px;cursor:pointer;color:rgba(255,255,255,.6);font-size:13px;font-weight:500;transition:all .15s;margin-bottom:2px;text-decoration:none;border:none;background:none;width:100%;font-family:inherit;}
+    .nav-item:hover{background:rgba(255,255,255,.07);color:#fff;}
+    .nav-item.active{background:rgba(201,168,76,.15);color:var(--gold-l);border:1px solid rgba(201,168,76,.2);}
+    .nav-item .ni{font-size:15px;width:18px;text-align:center;}
 
-    /* ── Main App ── */
-    .app { display: none; }
+    /* Content */
+    .content{flex:1;padding:28px;overflow-y:auto;max-width:1100px;}
+    .pg-header{margin-bottom:24px;}
+    .pg-header h2{font-size:24px;font-weight:900;color:var(--navy);}
+    .pg-header p{font-size:13px;color:var(--g600);margin-top:4px;}
 
-    /* Sidebar + Content layout */
-    .app-layout {
-      display: flex; min-height: 100vh;
-    }
-
-    .sidebar {
-      width: 240px; flex-shrink: 0;
-      background: linear-gradient(180deg, var(--navy) 0%, var(--navy-mid) 100%);
-      padding: 24px 0;
-      position: sticky; top: 0; height: 100vh; overflow-y: auto;
-    }
-    .sidebar-brand {
-      padding: 0 20px 24px;
-      border-bottom: 1px solid rgba(255,255,255,0.08);
-    }
-    .sidebar-brand h1 {
-      font-size: 16px; font-weight: 900; color: white; letter-spacing: 1px;
-    }
-    .sidebar-brand p { font-size: 11px; color: var(--gold); margin-top: 3px; }
-    .sidebar-nav {
-      padding: 16px 12px;
-    }
-    .nav-section-title {
-      font-size: 9px; font-weight: 700; letter-spacing: 2px;
-      color: rgba(255,255,255,0.3); padding: 0 8px; margin-bottom: 8px;
-      text-transform: uppercase;
-    }
-    .nav-item {
-      display: flex; align-items: center; gap: 10px;
-      padding: 10px 12px; border-radius: 10px; cursor: pointer;
-      color: rgba(255,255,255,0.6); font-size: 13px; font-weight: 500;
-      transition: all 0.15s; margin-bottom: 2px;
-      text-decoration: none;
-    }
-    .nav-item:hover { background: rgba(255,255,255,0.07); color: white; }
-    .nav-item.active {
-      background: rgba(201,168,76,0.15); color: var(--gold-light);
-      border: 1px solid rgba(201,168,76,0.2);
-    }
-    .nav-item .icon { font-size: 16px; width: 20px; text-align: center; }
-
-    /* Content Area */
-    .content {
-      flex: 1;
-      padding: 32px;
-      overflow-y: auto;
-      max-width: 900px;
-    }
-    .page-header {
-      margin-bottom: 32px;
-    }
-    .page-header h2 {
-      font-size: 26px; font-weight: 900; color: var(--navy);
-    }
-    .page-header p { font-size: 14px; color: var(--gray-600); margin-top: 4px; }
-
-    /* Section */
-    .section {
-      background: white; border-radius: 20px;
-      box-shadow: 0 2px 12px rgba(0,0,0,0.06);
-      margin-bottom: 24px; overflow: hidden;
-    }
-    .section-header {
-      padding: 20px 24px 16px;
-      border-bottom: 1px solid var(--gray-100);
-      display: flex; align-items: center; gap: 12px;
-    }
-    .section-icon {
-      width: 40px; height: 40px;
-      background: linear-gradient(135deg, var(--navy), var(--navy-mid));
-      border-radius: 10px;
-      display: flex; align-items: center; justify-content: center;
-      font-size: 18px;
-    }
-    .section-header h3 { font-size: 17px; font-weight: 800; color: var(--navy); }
-    .section-header p { font-size: 12px; color: var(--gray-400); margin-top: 2px; }
-    .section-body { padding: 24px; }
-
-    /* Form Elements */
-    .form-row {
-      display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-bottom: 16px;
-    }
-    .form-row.full { grid-template-columns: 1fr; }
-    .field-label {
-      display: block; font-size: 12px; font-weight: 700;
-      color: var(--gray-700); margin-bottom: 6px; letter-spacing: 0.3px;
-    }
-    .field-input {
-      width: 100%; padding: 12px 16px;
-      border: 2px solid var(--gray-200); border-radius: 10px;
-      font-size: 14px; font-family: inherit; color: var(--navy);
-      background: var(--gray-50); outline: none; transition: all 0.2s;
-    }
-    .field-input:focus { border-color: var(--navy-mid); background: white; }
-    .field-hint { font-size: 11px; color: var(--gray-400); margin-top: 5px; }
-
-    /* Capacity special */
-    .capacity-display {
-      display: flex; align-items: center; gap: 12px; margin-bottom: 16px;
-    }
-    .capacity-big {
-      font-size: 48px; font-weight: 900; color: var(--navy-mid);
-      line-height: 1;
-    }
-    .capacity-info p { font-size: 13px; color: var(--gray-600); }
-    .capacity-info strong { color: var(--navy); }
+    /* Card */
+    .card{background:#fff;border-radius:18px;box-shadow:0 2px 10px rgba(0,0,0,.06);margin-bottom:20px;overflow:hidden;}
+    .card-head{padding:18px 22px 14px;border-bottom:1px solid var(--g100);display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:10px;}
+    .card-head-left{display:flex;align-items:center;gap:10px;}
+    .card-icon{width:36px;height:36px;background:linear-gradient(135deg,var(--navy),var(--navy-mid));border-radius:9px;display:flex;align-items:center;justify-content:center;font-size:16px;}
+    .card-head h3{font-size:16px;font-weight:800;color:var(--navy);}
+    .card-head p{font-size:12px;color:var(--g400);margin-top:2px;}
+    .card-body{padding:22px;}
 
     /* Buttons */
-    .btn {
-      padding: 12px 24px; border: none; border-radius: 10px;
-      font-size: 14px; font-weight: 700; font-family: inherit;
-      cursor: pointer; transition: all 0.2s; display: inline-flex;
-      align-items: center; gap: 8px;
-    }
-    .btn-primary {
-      background: linear-gradient(135deg, var(--navy), var(--navy-mid));
-      color: white;
-    }
-    .btn-primary:hover { transform: translateY(-1px); box-shadow: 0 4px 12px rgba(0,0,0,0.2); }
-    .btn-gold {
-      background: linear-gradient(135deg, var(--gold-dark), var(--gold));
-      color: var(--navy);
-    }
-    .btn-gold:hover { transform: translateY(-1px); box-shadow: 0 4px 12px rgba(201,168,76,0.3); }
-    .btn-outline {
-      background: white; color: var(--navy);
-      border: 2px solid var(--gray-200);
-    }
-    .btn-outline:hover { border-color: var(--navy-mid); }
-    .btn-danger { background: var(--red); color: white; }
-    .btn-sm { padding: 8px 16px; font-size: 12px; border-radius: 8px; }
+    .btn{padding:9px 18px;border:none;border-radius:9px;font-size:13px;font-weight:700;font-family:inherit;cursor:pointer;display:inline-flex;align-items:center;gap:6px;transition:all .15s;white-space:nowrap;}
+    .btn:hover:not(:disabled){transform:translateY(-1px);box-shadow:0 4px 10px rgba(0,0,0,.15);}
+    .btn:disabled{opacity:.5;cursor:not-allowed;}
+    .btn-primary{background:linear-gradient(135deg,var(--navy),var(--navy-mid));color:#fff;}
+    .btn-gold{background:linear-gradient(135deg,var(--gold-d),var(--gold));color:var(--navy);}
+    .btn-green{background:var(--green);color:#fff;}
+    .btn-red{background:var(--red);color:#fff;}
+    .btn-outline{background:#fff;color:var(--navy);border:2px solid var(--g200);}
+    .btn-sm{padding:6px 12px;font-size:11px;border-radius:7px;}
+    .btn-xs{padding:4px 9px;font-size:10px;border-radius:6px;}
 
-    /* Save feedback */
-    .save-feedback {
-      display: none; align-items: center; gap: 8px;
-      padding: 10px 16px; background: #f0fff4;
-      border: 1px solid #68d391; border-radius: 10px;
-      font-size: 13px; font-weight: 700; color: #2f855a;
-      margin-top: 12px;
-    }
-    .save-feedback.show { display: flex; }
-    .error-feedback {
-      display: none; align-items: center; gap: 8px;
-      padding: 10px 16px; background: #fff5f5;
-      border: 1px solid #fc8181; border-radius: 10px;
-      font-size: 13px; font-weight: 700; color: #c53030;
-      margin-top: 12px;
-    }
-    .error-feedback.show { display: flex; }
+    /* Form */
+    .form-row{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:14px;}
+    .form-row.tri{grid-template-columns:1fr 1fr 1fr;}
+    .form-row.full{grid-template-columns:1fr;}
+    .fl{display:block;font-size:12px;font-weight:700;color:var(--g700);margin-bottom:5px;}
+    .fi{width:100%;padding:10px 14px;border:2px solid var(--g200);border-radius:9px;font-size:14px;font-family:inherit;color:var(--navy);background:var(--g50);outline:none;transition:all .2s;}
+    .fi:focus{border-color:var(--navy-mid);background:#fff;}
+    .fi-hint{font-size:11px;color:var(--g400);margin-top:4px;}
+    textarea.fi{resize:vertical;min-height:80px;}
 
-    /* ── POSTER MAKER ── */
-    .poster-maker {
-      display: flex; flex-direction: column; gap: 20px;
-    }
+    /* ─── CALENDAR ─── */
+    .cal-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;}
+    .cal-month{font-size:18px;font-weight:800;color:var(--navy);}
+    .cal-nav{display:flex;gap:6px;}
+    .cal-nav-btn{width:34px;height:34px;border:1px solid var(--g200);border-radius:8px;background:#fff;cursor:pointer;font-size:16px;display:flex;align-items:center;justify-content:center;transition:all .15s;}
+    .cal-nav-btn:hover{background:var(--g100);border-color:var(--navy-mid);}
+    .cal-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:4px;}
+    .cal-dow{text-align:center;font-size:11px;font-weight:700;color:var(--g400);padding:6px 0;letter-spacing:.5px;}
+    .cal-dow:first-child{color:#E53E3E;}
+    .cal-dow:last-child{color:#3182CE;}
+    .cal-day{min-height:72px;border-radius:10px;border:1px solid var(--g100);padding:6px;cursor:pointer;background:#fff;transition:all .15s;position:relative;overflow:hidden;}
+    .cal-day:hover{border-color:var(--gold);background:#fffbf0;}
+    .cal-day.other-month{opacity:.35;}
+    .cal-day.today{border-color:var(--navy-mid);background:#f0f4ff;}
+    .cal-day.selected{border-color:var(--gold-d)!important;background:#fffbf0!important;box-shadow:0 0 0 3px rgba(201,168,76,.35)!important;}
 
-    .upload-zone {
-      border: 2px dashed var(--gray-200);
-      border-radius: 16px; padding: 40px;
-      text-align: center; cursor: pointer;
-      transition: all 0.2s; background: var(--gray-50);
-    }
-    .upload-zone:hover { border-color: var(--navy-mid); background: white; }
-    .upload-zone.drag-over { border-color: var(--gold); background: rgba(201,168,76,0.05); }
-    .upload-zone-icon { font-size: 40px; margin-bottom: 12px; }
-    .upload-zone h4 { font-size: 15px; font-weight: 700; color: var(--navy); margin-bottom: 4px; }
-    .upload-zone p { font-size: 12px; color: var(--gray-400); }
-    #poster-file-input { display: none; }
+    /* Day Event Panel */
+    .day-ev-panel{display:none;background:var(--g50);border:1.5px solid var(--gold-d);border-radius:14px;padding:14px 16px;margin-bottom:16px;}
+    .day-ev-panel.show{display:block;}
+    .day-ev-panel-hd{display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;}
+    .day-ev-panel-title{font-size:13px;font-weight:800;color:var(--navy);}
+    .day-ev-panel-close{background:none;border:none;cursor:pointer;font-size:14px;color:var(--g400);padding:2px 6px;border-radius:5px;}
+    .day-ev-panel-close:hover{background:var(--g200);color:var(--navy);}
+    .day-ev-panel-list{display:flex;flex-direction:column;gap:7px;}
+    .day-ev-btn{display:flex;align-items:center;gap:10px;padding:10px 12px;background:#fff;border:1.5px solid var(--g200);border-radius:10px;cursor:default;transition:all .15s;width:100%;text-align:left;flex-wrap:wrap;}
+    .day-ev-btn:hover{border-color:var(--navy-mid);background:#f5f8ff;box-shadow:0 2px 6px rgba(0,0,0,.06);}
+    .day-ev-btn-dot{width:10px;height:10px;border-radius:50%;flex-shrink:0;}
+    .day-ev-btn-title{flex:1;font-size:13px;font-weight:700;color:var(--navy);}
+    .day-ev-btn-cat{font-size:10px;font-weight:700;padding:2px 8px;border-radius:10px;background:var(--g100);color:var(--g600);}
+    .day-ev-btn-cnt{font-size:11px;color:var(--g400);}
+    .day-ev-empty{font-size:13px;color:var(--g400);text-align:center;padding:16px 0;}
+    .ev-card.highlight{border-color:var(--gold-d)!important;background:#fffbf0!important;box-shadow:0 0 0 2px rgba(201,168,76,.25)!important;}
+    .cal-day-num{font-size:12px;font-weight:700;color:var(--g700);margin-bottom:4px;}
+    .cal-day.sun .cal-day-num{color:#E53E3E;}
+    .cal-day.sat .cal-day-num{color:#3182CE;}
+    .cal-day.today .cal-day-num{color:var(--navy);}
+    .cal-event-dot{font-size:10px;font-weight:700;padding:2px 5px;border-radius:4px;margin-bottom:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;color:#fff;}
 
-    .canvas-container {
-      display: none;
-      position: relative; background: #1a1a1a;
-      border-radius: 16px; overflow: hidden;
-      box-shadow: 0 8px 30px rgba(0,0,0,0.3);
-    }
-    #poster-canvas {
-      display: block; max-width: 100%;
-      cursor: crosshair;
-    }
+    /* Event list panel */
+    .ev-list{display:flex;flex-direction:column;gap:10px;}
+    .ev-card{background:var(--g50);border:1px solid var(--g200);border-radius:12px;padding:14px 16px;display:flex;align-items:center;gap:12px;transition:all .15s;}
+    .ev-card:hover{border-color:var(--navy-mid);background:#fff;box-shadow:0 2px 8px rgba(0,0,0,.06);}
+    .ev-color-dot{width:12px;height:12px;border-radius:50%;flex-shrink:0;}
+    .ev-card-body{flex:1;min-width:0;}
+    .ev-card-title{font-size:14px;font-weight:700;color:var(--navy);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+    .ev-card-meta{font-size:11px;color:var(--g400);margin-top:2px;}
+    .ev-cat-badge{display:inline-block;font-size:10px;font-weight:700;padding:2px 8px;border-radius:10px;background:var(--g100);color:var(--g600);margin-left:6px;}
+    .ev-card-actions{display:flex;gap:5px;flex-shrink:0;}
 
-    /* QR overlay on canvas (for dragging UI) */
-    .qr-overlay {
-      position: absolute;
-      cursor: move;
-      border: 2px solid var(--gold);
-      border-radius: 4px;
-    }
-    .qr-overlay::after {
-      content: 'QR 위치 조정';
-      position: absolute;
-      bottom: -24px; left: 50%;
-      transform: translateX(-50%);
-      background: var(--gold);
-      color: var(--navy);
-      font-size: 10px; font-weight: 700;
-      padding: 3px 10px; border-radius: 10px;
-      white-space: nowrap;
-    }
+    /* Tag chips for form fields */
+    .field-chips{display:flex;flex-wrap:wrap;gap:6px;margin-top:8px;}
+    .chip{display:inline-flex;align-items:center;gap:5px;padding:5px 10px;background:var(--g100);border:1px solid var(--g200);border-radius:20px;font-size:12px;font-weight:600;color:var(--g700);cursor:pointer;transition:all .15s;}
+    .chip.active{background:linear-gradient(135deg,rgba(10,22,40,.08),rgba(27,43,75,.04));border-color:var(--navy-mid);color:var(--navy);}
+    .chip.required-chip.active{background:linear-gradient(135deg,rgba(168,135,46,.12),rgba(201,168,76,.06));border-color:var(--gold-d);color:var(--gold-d);}
+    .chip:hover{transform:translateY(-1px);}
 
-    .poster-controls {
-      display: none;
-      background: var(--gray-50);
-      border: 1px solid var(--gray-200);
-      border-radius: 16px;
-      padding: 20px;
-    }
-    .poster-controls h4 { font-size: 14px; font-weight: 700; color: var(--navy); margin-bottom: 14px; }
+    /* Field builder rows */
+    .field-row{background:var(--g50);border:1px solid var(--g200);border-radius:12px;padding:12px 14px;margin-bottom:8px;transition:all .15s;}
+    .field-row:hover{border-color:var(--navy-mid);}
+    .field-row-header{display:flex;align-items:center;gap:10px;margin-bottom:0;}
+    .field-row-header.expanded{margin-bottom:10px;}
+    .field-toggle{width:18px;height:18px;cursor:pointer;accent-color:var(--navy-mid);flex-shrink:0;}
+    .field-row-title{flex:1;font-size:13px;font-weight:700;color:var(--navy);}
+    .field-row-toggle-btn{background:none;border:none;cursor:pointer;font-size:12px;color:var(--g400);padding:2px 6px;border-radius:4px;transition:all .15s;}
+    .field-row-toggle-btn:hover{background:var(--g200);color:var(--navy);}
+    .field-row-body{display:none;padding-top:10px;border-top:1px solid var(--g200);margin-top:10px;}
+    .field-row-body.show{display:block;}
+    .field-sub-row{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:8px;}
+    .field-sub-label{font-size:11px;font-weight:700;color:var(--g600);margin-bottom:4px;display:block;}
+    .field-sub-inp{width:100%;padding:7px 10px;border:1.5px solid var(--g200);border-radius:7px;font-size:12px;font-family:inherit;color:var(--navy);background:#fff;outline:none;transition:all .15s;}
+    .field-sub-inp:focus{border-color:var(--navy-mid);}
+    .field-drag-handle{color:var(--g400);cursor:grab;font-size:14px;padding:0 4px;}
 
-    .control-row {
-      display: flex; align-items: center; gap: 12px; margin-bottom: 12px;
-    }
-    .control-label {
-      font-size: 12px; font-weight: 600; color: var(--gray-600);
-      width: 60px; flex-shrink: 0;
-    }
-    .range-input {
-      flex: 1; accent-color: var(--gold-dark);
-    }
-    .range-value {
-      font-size: 12px; font-weight: 700; color: var(--navy);
-      min-width: 40px; text-align: right;
-    }
+    /* Poster Editor */
+    .pe-layer{background:var(--g50);border:1.5px solid var(--g200);border-radius:10px;padding:10px 12px;transition:all .15s;cursor:pointer;}
+    .pe-layer:hover{border-color:var(--navy-mid);}
+    .pe-layer.active{border-color:var(--gold-d);background:rgba(168,135,46,.04);}
+    .pe-layer-header{display:flex;align-items:center;gap:8px;margin-bottom:6px;}
+    .pe-layer-handle{color:var(--g400);font-size:13px;}
+    .pe-layer-preview{flex:1;font-size:12px;font-weight:600;color:var(--navy);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+    .pe-layer-del{background:none;border:none;cursor:pointer;color:var(--g400);font-size:13px;padding:2px 5px;border-radius:4px;}
+    .pe-layer-del:hover{background:var(--red);color:#fff;}
+    .pe-layer-body{display:none;}
+    .pe-layer-body.show{display:block;}
+    .pe-inp-row{display:grid;grid-template-columns:1fr 1fr;gap:7px;margin-bottom:7px;}
+    .pe-inp{width:100%;padding:6px 9px;border:1.5px solid var(--g200);border-radius:7px;font-size:12px;font-family:inherit;color:var(--navy);outline:none;}
+    .pe-inp:focus{border-color:var(--navy-mid);}
+    .pe-text-inp{width:100%;padding:7px 10px;border:1.5px solid var(--g200);border-radius:7px;font-size:13px;font-family:inherit;color:var(--navy);outline:none;resize:vertical;min-height:52px;margin-bottom:7px;}
+    .pe-text-inp:focus{border-color:var(--navy-mid);}
+    .pe-label{font-size:10px;font-weight:700;color:var(--g600);margin-bottom:3px;display:block;}
+    .text-handle{position:absolute;background:rgba(168,135,46,.85);border:2px solid #fff;border-radius:4px;padding:3px 8px;font-size:11px;font-weight:700;color:#fff;cursor:move;white-space:pre-line;text-align:center;box-shadow:0 2px 8px rgba(0,0,0,.3);user-select:none;min-width:40px;line-height:1.4;}
+    .text-handle.selected{border-color:var(--gold);box-shadow:0 0 0 3px rgba(201,168,76,.4),0 2px 8px rgba(0,0,0,.3);}
 
-    /* Mobile Nav */
-    @media (max-width: 768px) {
-      .sidebar {
-        width: 60px; padding: 16px 0;
-      }
-      .sidebar-brand { display: none; }
-      .nav-section-title { display: none; }
-      .nav-item span:not(.icon) { display: none; }
-      .nav-item { justify-content: center; }
-      .content { padding: 20px 16px; }
-      .form-row { grid-template-columns: 1fr; }
-    }
+    /* Share link box */
+    .share-box{background:linear-gradient(135deg,rgba(27,43,75,.05),rgba(201,168,76,.05));border:1.5px solid rgba(201,168,76,.3);border-radius:12px;padding:14px;}
+    .share-box-title{font-size:12px;font-weight:700;color:var(--navy);margin-bottom:10px;display:flex;align-items:center;gap:6px;}
+    .share-link-row{display:flex;gap:8px;align-items:center;margin-bottom:8px;}
+    .share-link-inp{flex:1;padding:9px 12px;border:1.5px solid var(--g200);border-radius:8px;font-size:12px;font-family:inherit;color:var(--navy);background:#fff;outline:none;}
+    .share-ref-inp{width:100%;padding:8px 12px;border:1.5px solid var(--g200);border-radius:8px;font-size:12px;font-family:inherit;color:var(--navy);background:#fff;outline:none;margin-bottom:8px;}
+    .share-ref-inp:focus,.share-link-inp:focus{border-color:var(--navy-mid);}
+
+    /* Referrer hint in event list */
+    .ref-link-wrap{margin-top:8px;padding-top:8px;border-top:1px solid var(--g200);}
+    .ref-link-label{font-size:10px;font-weight:700;color:var(--g600);margin-bottom:4px;}
+
+    /* Session list */
+    .ses-item-row{display:flex;align-items:center;gap:8px;padding:10px 12px;background:var(--g50);border:1px solid var(--g200);border-radius:9px;margin-bottom:7px;}
+    .ses-item-row .si-num{width:22px;height:22px;background:var(--navy-mid);color:#fff;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:700;flex-shrink:0;}
+    .ses-item-row .si-name{flex:1;font-size:13px;font-weight:600;color:var(--navy);}
+    .ses-item-row .si-cnt{font-size:11px;color:var(--g400);}
+
+    /* Modal */
+    .modal-bg{display:none;position:fixed;inset:0;z-index:200;background:rgba(0,0,0,.6);backdrop-filter:blur(4px);align-items:flex-start;justify-content:center;padding:20px;overflow-y:auto;}
+    .modal-bg.show{display:flex;}
+    .modal{background:#fff;border-radius:22px;padding:0;width:100%;max-width:660px;margin:auto;box-shadow:0 20px 60px rgba(0,0,0,.3);overflow:hidden;}
+    .modal-header{background:linear-gradient(135deg,var(--navy),var(--navy-mid));padding:22px 28px 18px;position:relative;}
+    .modal-header h3{font-size:18px;font-weight:900;color:#fff;margin:0 0 3px;}
+    .modal-header p.modal-sub{font-size:13px;color:rgba(255,255,255,.65);margin:0;}
+    .modal-body{padding:0;max-height:calc(100vh - 160px);overflow-y:auto;}
+    .modal-section{padding:20px 24px;border-bottom:1px solid var(--g100);}
+    .modal-section:last-child{border-bottom:none;}
+    .modal-section-title{display:flex;align-items:center;gap:8px;font-size:11px;font-weight:800;letter-spacing:1.2px;color:var(--g500);text-transform:uppercase;margin-bottom:14px;}
+    .modal-section-title::before{content:'';display:inline-block;width:3px;height:14px;background:var(--gold-d);border-radius:2px;}
+    .modal-footer{display:flex;justify-content:flex-end;gap:10px;padding:16px 24px;border-top:2px solid var(--g100);background:var(--g50);}
+    .modal-close-x{position:absolute;top:14px;right:16px;background:rgba(255,255,255,.15);border:none;border-radius:50%;width:32px;height:32px;cursor:pointer;font-size:14px;color:#fff;display:flex;align-items:center;justify-content:center;transition:background .15s;}
+    .modal-close-x:hover{background:rgba(255,255,255,.3);}
+
+    /* Feedback */
+    .fb-ok{display:none;align-items:center;gap:8px;padding:10px 14px;background:#f0fff4;border:1px solid #68d391;border-radius:9px;font-size:12px;font-weight:700;color:#276749;margin-top:10px;}
+    .fb-ok.show{display:flex;}
+    .fb-err{display:none;align-items:center;gap:8px;padding:10px 14px;background:#fff5f5;border:1px solid #fc8181;border-radius:9px;font-size:12px;font-weight:700;color:#c53030;margin-top:10px;}
+    .fb-err.show{display:flex;}
+
+    /* Color picker row */
+    .color-row{display:flex;gap:8px;flex-wrap:wrap;margin-top:6px;}
+    .color-swatch{width:28px;height:28px;border-radius:50%;cursor:pointer;border:3px solid transparent;transition:all .15s;}
+    .color-swatch.sel{border-color:var(--navy);transform:scale(1.15);}
 
     /* Toast */
-    .toast {
-      position: fixed; bottom: 24px; right: 24px;
-      background: var(--navy); color: white;
-      padding: 12px 20px; border-radius: 10px;
-      font-size: 13px; font-weight: 600;
-      box-shadow: 0 4px 20px rgba(0,0,0,0.2);
-      transform: translateY(80px);
-      transition: transform 0.3s ease;
-      z-index: 9999;
+    .toast{position:fixed;bottom:24px;right:24px;background:var(--navy);color:#fff;padding:12px 18px;border-radius:10px;font-size:13px;font-weight:600;box-shadow:0 4px 20px rgba(0,0,0,.2);transform:translateY(80px);transition:transform .3s;z-index:9999;max-width:320px;}
+    .toast.show{transform:translateY(0);}
+    .toast.ok{background:var(--green);}
+    .toast.err{background:var(--red);}
+
+    @media(max-width:768px){
+      .sidebar{width:52px;}
+      .sb-brand,.sb-sect{display:none;}
+      .nav-item span:not(.ni){display:none;}
+      .nav-item{justify-content:center;}
+      .content{padding:16px;}
+      .form-row{grid-template-columns:1fr;}
+      .form-row.tri{grid-template-columns:1fr;}
+      .cal-day{min-height:52px;}
     }
-    .toast.show { transform: translateY(0); }
-    .toast.success { background: var(--green); }
-    .toast.error { background: var(--red); }
   </style>
 </head>
 <body>
 
-<!-- LOGIN SCREEN -->
+<!-- LOGIN -->
 <div class="login-screen" id="login-screen">
   <div class="login-card">
     <div class="login-logo">
-      <div class="login-logo-text">LAS<span>BOOK</span></div>
+      <div class="login-logo-t">LAS<span>BOOK</span></div>
       <p>관리자 페이지</p>
     </div>
-    <label class="login-label" for="login-pw">관리자 비밀번호</label>
-    <input type="password" id="login-pw" class="login-input" placeholder="비밀번호 입력" />
-    <div class="login-error" id="login-error">비밀번호가 올바르지 않습니다.</div>
-    <button class="btn-login" id="login-btn" onclick="doLogin()">로그인</button>
-    <div style="text-align:center;margin-top:16px;">
-      <a href="/admin/dashboard" style="font-size:12px;color:#9AA3B2;text-decoration:none;">대시보드로 이동 →</a>
+    <label class="fl" style="margin-bottom:6px;">관리자 비밀번호</label>
+    <input type="password" id="login-pw" class="login-inp" placeholder="비밀번호 입력"/>
+    <div class="login-err" id="login-err">비밀번호가 올바르지 않습니다.</div>
+    <button class="btn-login" onclick="doLogin()">로그인</button>
+    <div style="text-align:center;margin-top:14px;display:flex;gap:16px;justify-content:center;">
+      <a href="/admin/dashboard" style="font-size:12px;color:var(--g400);text-decoration:none;">대시보드 →</a>
+      <a href="/" style="font-size:12px;color:var(--g400);text-decoration:none;">신청 페이지 →</a>
     </div>
   </div>
 </div>
 
-<!-- MAIN APP -->
+<!-- APP -->
 <div class="app" id="app">
   <div class="app-layout">
 
-    <!-- Sidebar -->
+    <!-- SIDEBAR -->
     <div class="sidebar">
-      <div class="sidebar-brand">
-        <h1>LASBOOK</h1>
-        <p>세미나 관리 시스템</p>
-      </div>
-      <div class="sidebar-nav">
-        <div class="nav-section-title">Menu</div>
-        <div class="nav-item active" onclick="showTab('settings')">
-          <span class="icon">⚙️</span>
-          <span>세미나 설정</span>
-        </div>
-        <div class="nav-item" onclick="showTab('poster')">
-          <span class="icon">🎨</span>
-          <span>포스터 제작</span>
-        </div>
-        <a class="nav-item" href="/admin/dashboard">
-          <span class="icon">📊</span>
-          <span>대시보드</span>
-        </a>
-        <a class="nav-item" href="/" target="_blank">
-          <span class="icon">📋</span>
-          <span>신청 페이지</span>
-        </a>
+      <div class="sb-brand"><h1>LASBOOK</h1><p>운영 관리 시스템</p></div>
+      <div class="sb-nav">
+        <div class="sb-sect">Main</div>
+        <button class="nav-item active" onclick="showTab('calendar',this)"><span class="ni">📅</span><span>이벤트 달력</span></button>
+        <button class="nav-item" onclick="showTab('poster',this)"><span class="ni">🎨</span><span>포스터 제작</span></button>
+        <div class="sb-sect">Settings</div>
+        <button class="nav-item" onclick="showTab('settings',this)"><span class="ni">⚙️</span><span>기본 설정</span></button>
+        <div class="sb-sect">Go</div>
+        <a class="nav-item" href="/admin/dashboard"><span class="ni">📊</span><span>대시보드</span></a>
+        <a class="nav-item" href="/" target="_blank"><span class="ni">📋</span><span>신청 페이지</span></a>
       </div>
     </div>
 
-    <!-- Content -->
+    <!-- CONTENT -->
     <div class="content">
 
-      <!-- SETTINGS TAB -->
-      <div id="tab-settings">
-        <div class="page-header">
-          <h2>⚙️ 세미나 설정</h2>
-          <p>세미나 기본 정보 및 정원을 설정합니다</p>
-        </div>
+      <!-- ═══════════════ CALENDAR TAB ═══════════════ -->
+      <div id="tab-calendar">
+        <div class="pg-header"><h2>📅 이벤트 달력</h2><p>세미나·교육·직무연수 일정을 등록하고 관리합니다</p></div>
 
-        <!-- Capacity Card -->
-        <div class="section">
-          <div class="section-header">
-            <div class="section-icon">👥</div>
-            <div>
-              <h3>정원 설정</h3>
-              <p>최대 신청 가능 인원을 설정합니다</p>
+        <div class="card">
+          <div class="card-head">
+            <div class="card-head-left">
+              <div class="card-icon">📅</div>
+              <div><h3 id="cal-month-label">2025년 1월</h3><p>클릭하여 이벤트 등록 또는 확인</p></div>
+            </div>
+            <div style="display:flex;gap:8px;align-items:center;">
+              <div class="cal-nav">
+                <button class="cal-nav-btn" onclick="changeMonth(-1)">‹</button>
+                <button class="cal-nav-btn" onclick="goToday()">오늘</button>
+                <button class="cal-nav-btn" onclick="changeMonth(1)">›</button>
+              </div>
+              <button class="btn btn-gold" onclick="openNewEventModal()">+ 이벤트 추가</button>
             </div>
           </div>
-          <div class="section-body">
-            <div class="capacity-display">
-              <div class="capacity-big" id="cap-display">120</div>
-              <div class="capacity-info">
-                <p>현재 정원</p>
-                <strong id="cap-current-count">-- 명 신청 중</strong>
-              </div>
+          <div class="card-body" style="padding:16px;">
+            <div class="cal-grid" id="cal-grid">
+              <div class="cal-dow">일</div><div class="cal-dow">월</div><div class="cal-dow">화</div>
+              <div class="cal-dow">수</div><div class="cal-dow">목</div><div class="cal-dow">금</div><div class="cal-dow">토</div>
             </div>
-            <div class="form-row full">
-              <div>
-                <label class="field-label" for="max-capacity">최대 정원 (명)</label>
-                <input type="number" id="max-capacity" class="field-input" min="1" max="9999" placeholder="120" />
-                <p class="field-hint">현재 신청 인원보다 낮게 설정할 수 없습니다.</p>
-              </div>
-            </div>
-            <button class="btn btn-primary" onclick="saveCapacity()">💾 정원 저장</button>
-            <div class="save-feedback" id="cap-save-ok"><span>✅</span> 정원이 저장되었습니다.</div>
-            <div class="error-feedback" id="cap-save-err"><span>❌</span> <span id="cap-err-msg"></span></div>
           </div>
         </div>
 
-        <!-- Seminar Info Card -->
-        <div class="section">
-          <div class="section-header">
-            <div class="section-icon">📋</div>
-            <div>
-              <h3>세미나 정보</h3>
-              <p>신청 페이지에 표시될 세미나 정보를 설정합니다</p>
+        <!-- Selected Day Event Panel -->
+        <div class="day-ev-panel" id="day-ev-panel">
+          <div class="day-ev-panel-hd">
+            <div class="day-ev-panel-title" id="day-ev-panel-title">📅 선택한 날짜의 이벤트</div>
+            <button class="day-ev-panel-close" onclick="calClearSelection()" title="선택 해제">✕</button>
+          </div>
+          <div class="day-ev-panel-list" id="day-ev-panel-list"></div>
+        </div>
+
+        <!-- Event List -->
+        <div class="card">
+          <div class="card-head">
+            <div class="card-head-left">
+              <div class="card-icon">📋</div>
+              <div><h3>전체 이벤트 목록</h3><p id="ev-list-sub">등록된 이벤트</p></div>
+            </div>
+            <div style="display:flex;gap:6px;flex-wrap:wrap;">
+              <select class="fi" id="ev-filter-cat" onchange="loadEvents()" style="padding:7px 10px;font-size:12px;width:auto;">
+                <option value="">전체 카테고리</option>
+                <option value="세미나">세미나</option>
+                <option value="직무연수">직무연수</option>
+                <option value="교육">교육</option>
+                <option value="기타">기타</option>
+              </select>
+              <button class="btn btn-outline btn-sm" onclick="loadEvents()">🔄 새로고침</button>
             </div>
           </div>
-          <div class="section-body">
-            <div class="form-row full">
-              <div>
-                <label class="field-label" for="seminar-title">세미나 제목</label>
-                <input type="text" id="seminar-title" class="field-input" placeholder="라스북 학부모 세미나" maxlength="50" />
-              </div>
+          <div class="card-body">
+            <div class="ev-list" id="ev-list"><p style="color:var(--g400);text-align:center;padding:20px;">불러오는 중...</p></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ═══════════════ POSTER TAB ═══════════════ -->
+      <div id="tab-poster" style="display:none;">
+        <div class="pg-header"><h2>🖼️ 포스터 관리</h2><p>이미지를 업로드하고 원하는 이벤트에 포스터를 설정하세요</p></div>
+
+        <!-- ① Image Library Card -->
+        <div class="card" id="pe-lib-card">
+          <div class="card-head">
+            <div class="card-head-left"><div class="card-icon">📁</div><div><h3>이미지 라이브러리</h3><p>업로드된 이미지를 클릭하면 편집 모드로 이동합니다</p></div></div>
+            <div>
+              <button class="btn btn-primary btn-sm" onclick="document.getElementById('pe-lib-file').click()">＋ 이미지 업로드</button>
+              <input type="file" id="pe-lib-file" accept="image/*" style="display:none;" onchange="libUpload(this)"/>
             </div>
-            <div class="form-row full">
-              <div>
-                <label class="field-label" for="seminar-date">일시</label>
-                <input type="text" id="seminar-date" class="field-input" placeholder="2025년 8월 23일 (토) 오전 10:00" maxlength="60" />
-              </div>
+          </div>
+          <div class="card-body">
+            <!-- Upload drop zone (shown when no images) -->
+            <div id="pe-lib-empty" style="display:none;border:2px dashed var(--g200);border-radius:14px;padding:40px;text-align:center;background:var(--g50);cursor:pointer;" onclick="document.getElementById('pe-lib-file').click()">
+              <div style="font-size:40px;margin-bottom:8px;">📂</div>
+              <h4 style="font-size:14px;font-weight:700;color:var(--navy);margin-bottom:4px;">이미지를 업로드하세요</h4>
+              <p style="font-size:12px;color:var(--g400);">JPG / PNG / WEBP · 최대 20MB</p>
             </div>
-            <div class="form-row full">
-              <div>
-                <label class="field-label" for="seminar-venue">장소</label>
-                <input type="text" id="seminar-venue" class="field-input" placeholder="라스북 교육문화센터 대강당" maxlength="80" />
-              </div>
+            <!-- Image grid -->
+            <div id="pe-lib-grid" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:12px;">
+              <!-- filled by JS -->
             </div>
-            <button class="btn btn-primary" onclick="saveSeminarInfo()">💾 정보 저장</button>
-            <div class="save-feedback" id="info-save-ok"><span>✅</span> 세미나 정보가 저장되었습니다.</div>
-            <div class="error-feedback" id="info-save-err"><span>❌</span> <span id="info-err-msg"></span></div>
+            <div id="pe-lib-loading" style="text-align:center;padding:20px;color:var(--g400);font-size:13px;">⏳ 불러오는 중...</div>
           </div>
         </div>
 
-        <!-- QR Link -->
-        <div class="section">
-          <div class="section-header">
-            <div class="section-icon">🔗</div>
-            <div>
-              <h3>신청 페이지 QR코드</h3>
-              <p>포스터에 사용할 QR 코드를 미리 확인합니다</p>
+        <!-- ② Canvas Editor Card (hidden until image selected) -->
+        <div class="card" id="pe-step2" style="display:none;">
+          <div class="card-head">
+            <div class="card-head-left"><div class="card-icon">✏️</div><div><h3 id="pe-ev-title-lbl">포스터 편집</h3><p>텍스트를 추가하고, QR 코드를 선택적으로 포함할 수 있습니다</p></div></div>
+            <div style="display:flex;gap:8px;flex-wrap:wrap;">
+              <button class="btn btn-outline btn-sm" onclick="peReset()">↩️ 라이브러리로</button>
+              <button class="btn btn-outline btn-sm" onclick="peAddText()">＋ 텍스트 추가</button>
+              <button class="btn btn-gold btn-sm" onclick="peSaveToEvent()">💾 이벤트에 저장</button>
+              <button class="btn btn-primary btn-sm" onclick="peDownload('png')">⬇️ PNG 저장</button>
             </div>
           </div>
-          <div class="section-body" style="text-align:center;">
-            <div id="qr-preview-area" style="display:inline-block;padding:20px;background:white;border:1px solid var(--gray-200);border-radius:16px;">
+          <div class="card-body" style="padding:16px;">
+            <!-- Event assign row -->
+            <div style="display:flex;align-items:center;gap:12px;margin-bottom:16px;padding:12px 14px;background:var(--g50);border-radius:10px;border:1.5px solid var(--g200);">
+              <div style="font-size:20px;">📌</div>
+              <div style="flex:1;">
+                <div style="font-size:11px;font-weight:700;color:var(--g600);margin-bottom:4px;">이 포스터를 저장할 이벤트</div>
+                <select class="fi" id="poster-event-select" onchange="onPosterEventChange()" style="margin-bottom:0;">
+                  <option value="">-- 이벤트 선택 --</option>
+                </select>
+              </div>
+            </div>
+            <div style="display:flex;gap:16px;flex-wrap:wrap;">
+              <!-- Canvas preview -->
+              <div style="flex:1;min-width:280px;">
+                <div id="pe-canvas-wrap" style="position:relative;display:inline-block;border-radius:10px;overflow:hidden;box-shadow:0 4px 20px rgba(0,0,0,.2);max-width:100%;">
+                  <canvas id="pe-canvas" style="display:block;max-width:100%;"></canvas>
+                  <div id="pe-overlay" style="position:absolute;top:0;left:0;width:100%;height:100%;pointer-events:none;overflow:hidden;"></div>
+                </div>
+                <p style="font-size:11px;color:var(--g400);margin-top:6px;">* 텍스트 블록을 마우스로 드래그해서 위치를 옮길 수 있습니다</p>
+              </div>
+
+              <!-- Right panel -->
+              <div style="width:300px;flex-shrink:0;">
+                <!-- Text layers -->
+                <div style="font-size:12px;font-weight:700;color:var(--g700);margin-bottom:8px;">📝 텍스트 레이어 <span style="font-size:10px;font-weight:400;color:var(--g400);">(클릭하여 편집)</span></div>
+                <div id="pe-layers" style="display:flex;flex-direction:column;gap:6px;margin-bottom:14px;"></div>
+
+                <!-- QR settings -->
+                <div style="border-top:1px solid var(--g200);padding-top:12px;margin-top:4px;">
+                  <!-- QR 포함 여부 토글 -->
+                  <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;">
+                    <div style="font-size:12px;font-weight:700;color:var(--g700);">📱 QR 코드 포함</div>
+                    <label style="display:flex;align-items:center;gap:8px;cursor:pointer;">
+                      <span style="font-size:11px;color:var(--g400);" id="qr-toggle-label">미포함</span>
+                      <div style="position:relative;width:40px;height:22px;">
+                        <input type="checkbox" id="qr-enabled" onchange="toggleQREnabled()" style="opacity:0;width:0;height:0;position:absolute;">
+                        <span id="qr-toggle-track" onclick="document.getElementById('qr-enabled').click()" style="position:absolute;inset:0;background:var(--g200);border-radius:22px;cursor:pointer;transition:.3s;"></span>
+                        <span id="qr-toggle-thumb" onclick="document.getElementById('qr-enabled').click()" style="position:absolute;top:3px;left:3px;width:16px;height:16px;background:white;border-radius:50%;cursor:pointer;transition:.3s;box-shadow:0 1px 3px rgba(0,0,0,.3);"></span>
+                      </div>
+                    </label>
+                  </div>
+                  <!-- QR 설정 패널 (토글 ON일 때만 표시) -->
+                  <div id="qr-settings-panel" style="display:none;">
+                    <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:8px;">
+                      <div>
+                        <span class="pe-label">X 위치 (%)</span>
+                        <input type="range" id="qr-x" min="5" max="95" value="50" class="pe-inp" oninput="peRenderFull()" style="padding:4px 0;"/>
+                      </div>
+                      <div>
+                        <span class="pe-label">Y 위치 (%)</span>
+                        <input type="range" id="qr-y" min="5" max="95" value="88" class="pe-inp" oninput="peRenderFull()" style="padding:4px 0;"/>
+                      </div>
+                      <div>
+                        <span class="pe-label">크기 (%)</span>
+                        <input type="range" id="qr-size" min="5" max="40" value="18" class="pe-inp" oninput="peRenderFull()" style="padding:4px 0;"/>
+                      </div>
+                      <div>
+                        <span class="pe-label">여백 (px)</span>
+                        <input type="range" id="qr-pad" min="0" max="30" value="10" class="pe-inp" oninput="peRenderFull()" style="padding:4px 0;"/>
+                      </div>
+                    </div>
+                    <div style="display:flex;gap:6px;">
+                      <button class="btn btn-outline btn-xs" onclick="setQRBg('white')" id="qrbg-white">⬜ 흰색</button>
+                      <button class="btn btn-outline btn-xs" onclick="setQRBg('gold')" id="qrbg-gold">🟨 금색</button>
+                      <button class="btn btn-outline btn-xs" onclick="setQRBg('transparent')" id="qrbg-transparent">◻️ 투명</button>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- ③ QR Preview Card -->
+        <div class="card" id="pe-qr-card">
+          <div class="card-head"><div class="card-head-left"><div class="card-icon">📱</div><div><h3>QR 코드 미리보기</h3><p>이벤트 신청 페이지 링크</p></div></div></div>
+          <div class="card-body" style="display:flex;align-items:flex-start;gap:20px;flex-wrap:wrap;">
+            <div style="display:inline-block;padding:12px;background:#fff;border:1px solid var(--g200);border-radius:12px;">
               <canvas id="qr-preview-canvas"></canvas>
             </div>
-            <p style="font-size:12px;color:var(--gray-400);margin-top:12px;" id="qr-preview-url">신청 URL을 불러오는 중...</p>
-            <div style="margin-top:16px;">
-              <button class="btn btn-outline btn-sm" onclick="downloadQR()">⬇️ QR 이미지 다운로드</button>
+            <div style="flex:1;min-width:200px;">
+              <p id="qr-preview-url" style="font-size:12px;color:var(--g400);margin-bottom:10px;word-break:break-all;"></p>
+              <button class="btn btn-outline btn-sm" onclick="downloadQROnly()">⬇️ QR만 저장</button>
             </div>
           </div>
         </div>
       </div>
 
-      <!-- POSTER TAB -->
-      <div id="tab-poster" style="display:none;">
-        <div class="page-header">
-          <h2>🎨 스마트 포스터 제작기</h2>
-          <p>포스터 배경에 QR코드를 합성하여 배포용 이미지를 만듭니다</p>
-        </div>
-
-        <div class="section">
-          <div class="section-header">
-            <div class="section-icon">🖼️</div>
-            <div>
-              <h3>포스터 편집</h3>
-              <p>배경 이미지를 업로드하고 QR 위치와 크기를 조절하세요</p>
-            </div>
-          </div>
-          <div class="section-body">
-            <div class="poster-maker">
-
-              <!-- Upload Zone -->
-              <div class="upload-zone" id="upload-zone" onclick="document.getElementById('poster-file-input').click()">
-                <div class="upload-zone-icon">🖼️</div>
-                <h4>포스터 배경 이미지를 업로드하세요</h4>
-                <p>클릭하거나 이미지를 드래그하여 업로드<br>지원 형식: JPG, PNG, GIF, WEBP (최대 20MB)</p>
-                <input type="file" id="poster-file-input" accept="image/*" />
-              </div>
-
-              <!-- Canvas -->
-              <div class="canvas-container" id="canvas-container">
-                <canvas id="poster-canvas"></canvas>
-              </div>
-
-              <!-- Controls -->
-              <div class="poster-controls" id="poster-controls">
-                <h4>🔧 QR 코드 위치 및 크기 조절</h4>
-
-                <div class="control-row">
-                  <span class="control-label">X 위치</span>
-                  <input type="range" class="range-input" id="qr-x" min="0" max="100" value="75" oninput="updateQRPosition()" />
-                  <span class="range-value" id="qr-x-val">75%</span>
-                </div>
-                <div class="control-row">
-                  <span class="control-label">Y 위치</span>
-                  <input type="range" class="range-input" id="qr-y" min="0" max="100" value="75" oninput="updateQRPosition()" />
-                  <span class="range-value" id="qr-y-val">75%</span>
-                </div>
-                <div class="control-row">
-                  <span class="control-label">크기</span>
-                  <input type="range" class="range-input" id="qr-size" min="5" max="40" value="18" oninput="updateQRPosition()" />
-                  <span class="range-value" id="qr-size-val">18%</span>
-                </div>
-                <div class="control-row">
-                  <span class="control-label">여백</span>
-                  <input type="range" class="range-input" id="qr-bg-padding" min="0" max="40" value="12" oninput="updateQRPosition()" />
-                  <span class="range-value" id="qr-bg-padding-val">12px</span>
-                </div>
-
-                <div style="display:flex;gap:12px;flex-wrap:wrap;margin-top:16px;">
-                  <div>
-                    <label class="field-label" style="font-size:11px;">QR 배경색</label>
-                    <div style="display:flex;gap:8px;margin-top:4px;">
-                      <button class="btn btn-sm" style="background:white;color:#333;border:2px solid #ddd;" onclick="setQRBg('white')">흰색</button>
-                      <button class="btn btn-sm" style="background:transparent;color:#333;border:2px solid #ddd;" onclick="setQRBg('transparent')">투명</button>
-                      <button class="btn btn-sm" style="background:var(--gold);color:var(--navy);border:none;" onclick="setQRBg('gold')">골드</button>
-                    </div>
-                  </div>
-                </div>
-
-                <div style="margin-top:20px;padding-top:20px;border-top:1px solid var(--gray-200);display:flex;gap:12px;flex-wrap:wrap;">
-                  <button class="btn btn-gold" onclick="downloadPoster('png')">⬇️ PNG 고화질 저장</button>
-                  <button class="btn btn-primary" onclick="downloadPoster('jpg')">⬇️ JPG 저장</button>
-                  <button class="btn btn-outline" onclick="resetPoster()">↩️ 다시 업로드</button>
-                </div>
-              </div>
-
-            </div>
-          </div>
-        </div>
-
-        <!-- Tips -->
-        <div class="section">
-          <div class="section-header">
-            <div class="section-icon">💡</div>
-            <div><h3>사용 팁</h3></div>
-          </div>
-          <div class="section-body">
-            <ul style="list-style:none;padding:0;">
-              <li style="font-size:13px;color:var(--gray-600);line-height:2;padding-left:16px;position:relative;">
-                <span style="position:absolute;left:0;color:var(--gold-dark);">✓</span>
-                포스터 이미지는 고해상도(300DPI 이상) 원본을 업로드하면 더 선명하게 출력됩니다.
-              </li>
-              <li style="font-size:13px;color:var(--gray-600);line-height:2;padding-left:16px;position:relative;">
-                <span style="position:absolute;left:0;color:var(--gold-dark);">✓</span>
-                QR 코드는 흰색 배경과 함께 사용하면 스캔이 더 잘 됩니다.
-              </li>
-              <li style="font-size:13px;color:var(--gray-600);line-height:2;padding-left:16px;position:relative;">
-                <span style="position:absolute;left:0;color:var(--gold-dark);">✓</span>
-                PNG 형식으로 저장 시 투명 배경이 지원됩니다.
-              </li>
-              <li style="font-size:13px;color:var(--gray-600);line-height:2;padding-left:16px;position:relative;">
-                <span style="position:absolute;left:0;color:var(--gold-dark);">✓</span>
-                저장된 포스터는 SNS, 카카오톡 등에 바로 활용할 수 있습니다.
-              </li>
-            </ul>
+      <!-- ═══════════════ SETTINGS TAB ═══════════════ -->
+      <div id="tab-settings" style="display:none;">
+        <div class="pg-header"><h2>⚙️ 기본 설정</h2><p>시스템 공통 설정을 관리합니다</p></div>
+        <div class="card">
+          <div class="card-head"><div class="card-head-left"><div class="card-icon">🏢</div><div><h3>기관 정보</h3></div></div></div>
+          <div class="card-body">
+            <div class="form-row full"><div><label class="fl">기관/회사명</label><input type="text" id="org-name" class="fi" placeholder="라스북"/></div></div>
+            <button class="btn btn-primary" onclick="saveSettings()">💾 저장</button>
+            <div class="fb-ok" id="set-ok"><span>✅</span>저장되었습니다.</div>
           </div>
         </div>
       </div>
@@ -593,354 +477,1139 @@
   </div><!-- /app-layout -->
 </div><!-- /app -->
 
+<!-- ═══════════════ EVENT MODAL ═══════════════ -->
+<div class="modal-bg" id="ev-modal">
+  <div class="modal">
+    <!-- Header -->
+    <div class="modal-header">
+      <button class="modal-close-x" onclick="closeEvModal()">✕</button>
+      <h3 id="ev-modal-title">이벤트 추가</h3>
+      <p class="modal-sub" id="ev-modal-sub">세미나, 교육, 직무연수 등을 등록합니다</p>
+    </div>
+
+    <input type="hidden" id="ev-id"/>
+
+    <div class="modal-body">
+
+      <!-- ① 기본 정보 -->
+      <div class="modal-section">
+        <div class="modal-section-title">📋 기본 정보</div>
+        <div class="form-row full"><div><label class="fl">이벤트 제목 *</label><input type="text" id="ev-title" class="fi" placeholder="라스북 학부모 세미나"/></div></div>
+        <div class="form-row tri">
+          <div>
+            <label class="fl">카테고리</label>
+            <select id="ev-category" class="fi">
+              <option value="세미나">세미나</option>
+              <option value="직무연수">직무연수</option>
+              <option value="교육">교육</option>
+              <option value="기타">기타</option>
+            </select>
+          </div>
+          <div><label class="fl">날짜 *</label><input type="date" id="ev-date" class="fi"/></div>
+          <div><label class="fl">최대 정원</label><input type="number" id="ev-capacity" class="fi" value="120" min="1" max="9999"/></div>
+        </div>
+        <div class="form-row">
+          <div><label class="fl">장소</label><input type="text" id="ev-venue" class="fi" placeholder="○○ 강당"/></div>
+          <div><label class="fl">입장 시작 시간 <span style="font-size:10px;color:var(--g400);">(티켓에 표시)</span></label><input type="time" id="ev-time" class="fi"/></div>
+        </div>
+        <div>
+          <label class="fl">캘린더 색상</label>
+          <div class="color-row" id="ev-color-row">
+            <div class="color-swatch sel" data-color="#1B2B4B" style="background:#1B2B4B;" onclick="selectColor(this)"></div>
+            <div class="color-swatch" data-color="#C9A84C" style="background:#C9A84C;" onclick="selectColor(this)"></div>
+            <div class="color-swatch" data-color="#3182CE" style="background:#3182CE;" onclick="selectColor(this)"></div>
+            <div class="color-swatch" data-color="#38A169" style="background:#38A169;" onclick="selectColor(this)"></div>
+            <div class="color-swatch" data-color="#E53E3E" style="background:#E53E3E;" onclick="selectColor(this)"></div>
+            <div class="color-swatch" data-color="#805AD5" style="background:#805AD5;" onclick="selectColor(this)"></div>
+            <div class="color-swatch" data-color="#DD6B20" style="background:#DD6B20;" onclick="selectColor(this)"></div>
+          </div>
+          <input type="hidden" id="ev-color" value="#1B2B4B"/>
+        </div>
+      </div>
+
+      <!-- ② 신청 페이지 문구 -->
+      <div class="modal-section">
+        <div class="modal-section-title">✏️ 신청 페이지 문구</div>
+        <div class="form-row">
+          <div><label class="fl">상단 뱃지</label><input type="text" id="ev-badge" class="fi" placeholder="선착순 무료 신청"/></div>
+          <div><label class="fl">메인 제목 <span style="font-size:10px;color:var(--g400);">(비우면 이벤트 제목 사용)</span></label><input type="text" id="ev-hero-title" class="fi" placeholder="라스북 학부모 세미나"/></div>
+        </div>
+        <div class="form-row full"><div><label class="fl">부제목</label><input type="text" id="ev-subtitle" class="fi" placeholder="아이의 미래를 위한 교육 인사이트"/></div></div>
+        <div class="form-row full"><div><label class="fl">안내 문구</label><textarea id="ev-notice" class="fi" placeholder="개인정보 수집 동의 등 안내 문구" style="height:70px;"></textarea></div></div>
+      </div>
+
+      <!-- ③ 신청 폼 필드 설정 -->
+      <div class="modal-section">
+        <div class="modal-section-title">📝 신청 폼 필드 설정</div>
+        <p style="font-size:12px;color:var(--g500);margin-bottom:12px;">각 필드의 표시 여부, 제목, 플레이스홀더를 설정하세요.</p>
+        <div id="field-builder"></div>
+        <button class="btn btn-outline btn-sm" onclick="addCustomFieldRow()" style="margin-top:8px;">＋ 필드 추가</button>
+      </div>
+
+      <!-- ④ 출석 세션 설정 -->
+      <div class="modal-section">
+        <div class="modal-section-title">🗓️ 출석 세션 설정</div>
+        <p style="font-size:12px;color:var(--g500);margin-bottom:12px;">오전/오후, 1일차/2일차 등 출석 체크 세션을 설정합니다.</p>
+        <div id="session-builder"></div>
+        <button class="btn btn-outline btn-sm" onclick="addSessionRow()" style="margin-top:8px;">＋ 세션 추가</button>
+      </div>
+
+    </div><!-- /modal-body -->
+
+    <div class="fb-err" id="ev-err" style="margin:0 24px 0;"><span>❌</span><span id="ev-err-msg"></span></div>
+    <div class="modal-footer">
+      <button class="btn btn-outline" onclick="closeEvModal()">취소</button>
+      <button class="btn btn-gold" onclick="saveEvent()">💾 저장</button>
+    </div>
+  </div>
+</div>
+
 <div class="toast" id="toast"></div>
 
+<script src="/js/qrcode.min.js"></script>
 <script>
-  const API_BASE = '/api';
-  let adminToken = localStorage.getItem('admin_token') || '';
-  let bgImage = null;
-  let qrDataURL = null;
-  let qrBgMode = 'white';
-  let posterCanvas, posterCtx;
+const API = '/api';
+let token = localStorage.getItem('admin_token') || '';
+let allEvents = [];
+let calYear, calMonth;
+let calSelectedDate = '';
+let qrBgMode = 'white'; // used by setQRBg
 
-  // ── Login ───────────────────────────────────────────────────────────────────
-  async function doLogin() {
-    const pw = document.getElementById('login-pw').value;
-    if (!pw) return;
+// ─── AUTH ──────────────────────────────────────────────────────────────────
+async function doLogin() {
+  const pw = document.getElementById('login-pw').value;
+  if (!pw) return;
+  try {
+    const r = await fetch(`${API}/admin/login`,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({password:pw})});
+    const d = await r.json();
+    if (d.success) {
+      token = d.token; localStorage.setItem('admin_token',token);
+      document.getElementById('login-err').style.display='none';
+      initApp();
+    } else { document.getElementById('login-err').style.display='block'; }
+  } catch(e) { document.getElementById('login-err').style.display='block'; }
+}
+document.getElementById('login-pw').addEventListener('keydown',e=>{ if(e.key==='Enter') doLogin(); });
 
-    const btn = document.getElementById('login-btn');
-    btn.textContent = '확인 중...';
-    btn.disabled = true;
+async function initApp() {
+  if (!token) { showLogin(); return; }
+  try {
+    const r = await fetch(`${API}/admin/settings`,{headers:{'X-Admin-Token':token}});
+    if (!r.ok) { showLogin(); return; }
+    const d = await r.json();
+    document.getElementById('org-name').value = d.data?.org_name || '';
+  } catch(e) { showLogin(); return; }
+  document.getElementById('login-screen').style.display='none';
+  document.getElementById('app').style.display='block';
+  const now = new Date();
+  calYear = now.getFullYear(); calMonth = now.getMonth();
+  loadEvents();
+  renderCalendar();
+  initPoster();
+  genQRPreview();
+}
+function showLogin(){ document.getElementById('login-screen').style.display='flex'; document.getElementById('app').style.display='none'; }
 
-    try {
-      const res = await fetch(`${API_BASE}/admin/login`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ password: pw })
-      });
-      const data = await res.json();
-      if (data.success) {
-        adminToken = data.token;
-        localStorage.setItem('admin_token', adminToken);
-        document.getElementById('login-error').style.display = 'none';
-        initApp();
-      } else {
-        document.getElementById('login-error').style.display = 'block';
-        btn.textContent = '로그인';
-        btn.disabled = false;
-      }
-    } catch (e) {
-      document.getElementById('login-error').textContent = '서버 연결 오류';
-      document.getElementById('login-error').style.display = 'block';
-      btn.textContent = '로그인';
-      btn.disabled = false;
-    }
+// ─── TAB ──────────────────────────────────────────────────────────────────
+function showTab(name,el) {
+  ['calendar','poster','settings'].forEach(t=>{
+    document.getElementById('tab-'+t).style.display = t===name?'block':'none';
+  });
+  document.querySelectorAll('.nav-item').forEach(n=>n.classList.remove('active'));
+  if(el) el.classList.add('active');
+  if(name==='poster'){ fillPosterEventSelect(); genQRPreview(); }
+}
+
+// ─── SETTINGS ────────────────────────────────────────────────────────────
+async function saveSettings() {
+  await fetch(`${API}/admin/settings`,{method:'PUT',headers:{'Content-Type':'application/json','X-Admin-Token':token},body:JSON.stringify({org_name:document.getElementById('org-name').value})});
+  const el = document.getElementById('set-ok'); el.classList.add('show'); setTimeout(()=>el.classList.remove('show'),2500);
+}
+
+// ─── EVENTS ──────────────────────────────────────────────────────────────
+async function loadEvents() {
+  try {
+    const cat = document.getElementById('ev-filter-cat').value;
+    const r = await fetch(`${API}/admin/events`,{headers:{'X-Admin-Token':token}});
+    const d = await r.json();
+    allEvents = d.data || [];
+    const filtered = cat ? allEvents.filter(e=>e.category===cat) : allEvents;
+    document.getElementById('ev-list-sub').textContent = `총 ${filtered.length}건`;
+    renderEvList(filtered);
+    renderCalendar();
+    if (calSelectedDate) { showDayEvPanel(calSelectedDate); highlightEvListForDate(calSelectedDate); }
+  } catch(e) {}
+}
+
+function renderEvList(evs) {
+  const el = document.getElementById('ev-list');
+  if (!evs.length) { el.innerHTML='<p style="color:var(--g400);text-align:center;padding:20px;">등록된 이벤트가 없습니다</p>'; return; }
+  el.innerHTML = evs.map(ev=>`
+    <div class="ev-card" data-date="${ev.event_date}">
+      <div class="ev-color-dot" style="background:${ev.color||'#1B2B4B'};"></div>
+      <div class="ev-card-body">
+        <div class="ev-card-title">
+          ${esc(ev.title)}
+          <span class="ev-cat-badge">${ev.category}</span>
+          ${!ev.is_active?'<span class="ev-cat-badge" style="background:#fff0f0;color:var(--red);">비활성</span>':''}
+        </div>
+        <div class="ev-card-meta">📅 ${formatDate(ev.event_date)} &nbsp;·&nbsp; 👥 ${ev.current_count}/${ev.max_capacity} &nbsp;·&nbsp; 🎫 세션 ${ev.session_count}개</div>
+        <div class="ref-link-wrap">
+          <div class="ref-link-label">🔗 공유 링크 (추천인 자동 첨부)</div>
+          <div style="display:flex;gap:6px;align-items:center;flex-wrap:wrap;">
+            <input type="text" id="ref-name-${ev.id}" class="fi" placeholder="추천인 이름 입력" style="padding:6px 10px;font-size:12px;flex:1;min-width:120px;max-width:200px;" oninput="updateShareLink(${ev.id})"/>
+            <input type="text" id="ref-link-${ev.id}" class="fi" readonly style="padding:6px 10px;font-size:11px;flex:2;min-width:160px;cursor:pointer;background:var(--g50);" value="${location.origin}/?event=${ev.id}" onclick="this.select()" />
+            <button class="btn btn-gold btn-xs" onclick="copyShareLink(${ev.id})">복사</button>
+          </div>
+        </div>
+      </div>
+      <div class="ev-card-actions">
+        <button class="btn btn-primary btn-xs" onclick="openEditEventModal(${ev.id})">✏️ 수정</button>
+        <a href="/admin/dashboard?event=${ev.id}" class="btn btn-outline btn-xs" style="text-decoration:none;">📊 현황</a>
+        <button class="btn btn-red btn-xs" onclick="deleteEvent(${ev.id},'${esc(ev.title)}')">🗑️</button>
+      </div>
+    </div>`).join('');
+}
+
+function updateShareLink(evId) {
+  const nameEl = document.getElementById(`ref-name-${evId}`);
+  const linkEl = document.getElementById(`ref-link-${evId}`);
+  if (!nameEl || !linkEl) return;
+  const ref = nameEl.value.trim();
+  const base = `${location.origin}/?event=${evId}`;
+  linkEl.value = ref ? `${base}&ref=${encodeURIComponent(ref)}` : base;
+}
+
+function copyShareLink(evId) {
+  const linkEl = document.getElementById(`ref-link-${evId}`);
+  if (!linkEl) return;
+  navigator.clipboard.writeText(linkEl.value).then(() => {
+    showToast('✅ 링크가 복사되었습니다!','ok');
+  }).catch(() => {
+    linkEl.select(); document.execCommand('copy');
+    showToast('✅ 링크가 복사되었습니다!','ok');
+  });
+}
+
+// ─── CALENDAR ────────────────────────────────────────────────────────────
+function renderCalendar() {
+  const lbl = document.getElementById('cal-month-label');
+  lbl.textContent = `${calYear}년 ${calMonth+1}월`;
+  const grid = document.getElementById('cal-grid');
+  const today = new Date(); today.setHours(0,0,0,0);
+  const first = new Date(calYear, calMonth, 1);
+  const last  = new Date(calYear, calMonth+1, 0);
+  const startDow = first.getDay();
+  const days = [];
+  // prev month padding
+  for(let i=startDow-1;i>=0;i--){ const d=new Date(calYear,calMonth,-i); days.push({date:d,cur:false}); }
+  // current month
+  for(let i=1;i<=last.getDate();i++) days.push({date:new Date(calYear,calMonth,i),cur:true});
+  // next month padding
+  while(days.length%7!==0){ const d=new Date(calYear,calMonth+1,days.length-(startDow+last.getDate()-1)); days.push({date:d,cur:false}); }
+
+  // 요일 헤더 유지, 날짜 셀만 교체
+  const existingDows = Array.from(grid.querySelectorAll('.cal-dow'));
+  grid.innerHTML = '';
+  existingDows.forEach(d => grid.appendChild(d));
+  const dayFrag = document.createDocumentFragment();
+  days.forEach(({date,cur})=>{
+    const iso = date.toISOString().slice(0,10);
+    const dow = date.getDay();
+    const isToday = date.getTime()===today.getTime();
+    const isSel   = iso === calSelectedDate;
+    const dayEvs = allEvents.filter(e=>e.event_date===iso);
+    const dotsHtml = dayEvs.slice(0,3).map(e=>`<div class="cal-event-dot" style="background:${e.color||'#1B2B4B'};">${e.title}</div>`).join('');
+    const cell = document.createElement('div');
+    cell.className = `cal-day${!cur?' other-month':''}${isToday?' today':''}${isSel?' selected':''}${dow===0?' sun':dow===6?' sat':''}`;
+    cell.innerHTML = `<div class="cal-day-num">${date.getDate()}</div>${dotsHtml}${dayEvs.length>3?`<div style="font-size:9px;color:var(--g400);">+${dayEvs.length-3}개 더</div>`:''}` ;
+    cell.onclick = () => calDayClick(iso);
+    dayFrag.appendChild(cell);
+  });
+  grid.appendChild(dayFrag);
+}
+
+function changeMonth(d){ calMonth+=d; if(calMonth>11){calMonth=0;calYear++;} if(calMonth<0){calMonth=11;calYear--;} renderCalendar(); }
+function goToday(){ const n=new Date(); calYear=n.getFullYear(); calMonth=n.getMonth(); renderCalendar(); }
+
+function calDayClick(isoDate) {
+  // 같은 날짜 다시 클릭 → 선택 해제
+  if (calSelectedDate === isoDate) { calClearSelection(); return; }
+  calSelectedDate = isoDate;
+  renderCalendar();
+  showDayEvPanel(isoDate);
+  highlightEvListForDate(isoDate);
+}
+
+function calClearSelection() {
+  calSelectedDate = '';
+  renderCalendar();
+  document.getElementById('day-ev-panel').classList.remove('show');
+  document.querySelectorAll('.ev-card').forEach(c => c.classList.remove('highlight'));
+}
+
+function showDayEvPanel(isoDate) {
+  const panel   = document.getElementById('day-ev-panel');
+  const titleEl = document.getElementById('day-ev-panel-title');
+  const listEl  = document.getElementById('day-ev-panel-list');
+  const dayEvs  = allEvents.filter(e => e.event_date === isoDate);
+  const parts   = isoDate.split('-');
+  const dow = ['일','월','화','수','목','금','토'][new Date(isoDate).getDay()];
+  titleEl.textContent = `📅 ${parseInt(parts[1])}월 ${parseInt(parts[2])}일 (${dow}) 이벤트`;
+  if (!dayEvs.length) {
+    listEl.innerHTML = `<div class="day-ev-empty">이 날짜에 등록된 이벤트가 없습니다<br><button class="btn btn-gold btn-sm" style="margin-top:10px;" onclick="openNewEventModal('${isoDate}')">+ 이벤트 추가</button></div>`;
+  } else {
+    listEl.innerHTML = dayEvs.map(ev=>`
+      <div class="day-ev-btn">
+        <span class="day-ev-btn-dot" style="background:${ev.color||'#1B2B4B'};"></span>
+        <span class="day-ev-btn-title">${esc(ev.title)}</span>
+        <span class="day-ev-btn-cat">${ev.category}</span>
+        <span class="day-ev-btn-cnt">${ev.current_count}/${ev.max_capacity}</span>
+        <button class="btn btn-primary btn-xs" onclick="openEditEventModal(${ev.id})">✏️ 수정</button>
+        <a href="/admin/dashboard?event=${ev.id}" class="btn btn-outline btn-xs" style="text-decoration:none;">📊 현황</a>
+      </div>`).join('');
   }
+  panel.classList.add('show');
+  panel.scrollIntoView({ behavior:'smooth', block:'nearest' });
+}
 
-  // Enter key login
-  document.getElementById('login-pw').addEventListener('keydown', e => {
-    if (e.key === 'Enter') doLogin();
+function highlightEvListForDate(isoDate) {
+  const cards = document.querySelectorAll('.ev-card');
+  let firstMatch = null;
+  cards.forEach(card => {
+    if (card.dataset.date === isoDate) {
+      card.classList.add('highlight');
+      if (!firstMatch) firstMatch = card;
+    } else {
+      card.classList.remove('highlight');
+    }
+  });
+  if (firstMatch) firstMatch.scrollIntoView({ behavior:'smooth', block:'nearest' });
+}
+
+// ─── EVENT MODAL ─────────────────────────────────────────────────────────
+// Built-in field definitions (can be extended by user)
+const BUILTIN_FIELDS = [
+  { key:'name',         label:'이름',   defaultPlaceholder:'홍길동',               alwaysShow:true,  removable:false },
+  { key:'phone',        label:'연락처', defaultPlaceholder:'010-1234-5678',        alwaysShow:false, removable:false },
+  { key:'organization', label:'소속',   defaultPlaceholder:'○○초등학교 / ○○회사', alwaysShow:false, removable:false },
+  { key:'referrer',     label:'추천인', defaultPlaceholder:'추천인 성함 (선택)',   alwaysShow:false, removable:false, isReferrer:true },
+];
+
+let sessionRows = [];
+let fieldRows = []; // [{key, label, placeholder, required, enabled, removable, isReferrer}]
+let fieldCounter = 10; // for unique custom field keys
+
+function buildFieldEditor(fields, labels, required, placeholders) {
+  placeholders = placeholders || {};
+  // Build fieldRows from built-in + any custom fields
+  const container = document.getElementById('field-builder');
+  container.innerHTML = '';
+  fieldRows = [];
+
+  // First add built-in fields in order
+  BUILTIN_FIELDS.forEach(def => {
+    const isOn  = fields.includes(def.key);
+    const isReq = required.includes(def.key);
+    fieldRows.push({
+      key: def.key,
+      label: labels[def.key] || def.label,
+      placeholder: placeholders[def.key] || def.defaultPlaceholder,
+      description: labels[def.key+'_desc'] || '',
+      required: isReq,
+      enabled: isOn,
+      removable: def.removable !== false ? true : false,
+      alwaysShow: def.alwaysShow || false,
+      isReferrer: def.isReferrer || false,
+      builtin: true
+    });
   });
 
-  // ── Init App ──────────────────────────────────────────────────────────────
-  async function initApp() {
-    // Check if already logged in
-    if (adminToken) {
-      try {
-        const res = await fetch(`${API_BASE}/admin/settings`, {
-          headers: { 'X-Admin-Token': adminToken }
-        });
-        if (res.ok) {
-          const data = await res.json();
-          populateSettings(data.data);
-          document.getElementById('login-screen').style.display = 'none';
-          document.getElementById('app').style.display = 'block';
-          generateQRPreview();
-          loadCurrentCount();
-          return;
-        }
-      } catch (e) {}
-    }
-
-    // Show login
-    document.getElementById('login-screen').style.display = 'flex';
-    document.getElementById('app').style.display = 'none';
-  }
-
-  function populateSettings(settings) {
-    document.getElementById('max-capacity').value = settings.max_capacity || '120';
-    document.getElementById('cap-display').textContent = settings.max_capacity || '120';
-    document.getElementById('seminar-title').value = settings.seminar_title || '';
-    document.getElementById('seminar-date').value = settings.seminar_date || '';
-    document.getElementById('seminar-venue').value = settings.seminar_venue || '';
-  }
-
-  async function loadCurrentCount() {
-    try {
-      const res = await fetch(`${API_BASE}/status`);
-      const data = await res.json();
-      if (data.success) {
-        document.getElementById('cap-current-count').textContent = `${data.data.currentCount}명 신청 중`;
-      }
-    } catch (e) {}
-  }
-
-  // ── Tab Navigation ────────────────────────────────────────────────────────
-  function showTab(name) {
-    document.getElementById('tab-settings').style.display = name === 'settings' ? 'block' : 'none';
-    document.getElementById('tab-poster').style.display = name === 'poster' ? 'block' : 'none';
-
-    document.querySelectorAll('.nav-item').forEach(el => el.classList.remove('active'));
-    event.currentTarget.classList.add('active');
-
-    if (name === 'poster') {
-      generateQRForPoster();
-    }
-  }
-
-  // ── Save Settings ─────────────────────────────────────────────────────────
-  async function saveCapacity() {
-    const cap = document.getElementById('max-capacity').value;
-    try {
-      const res = await fetch(`${API_BASE}/admin/settings`, {
-        method: 'PUT',
-        headers: { 'Content-Type': 'application/json', 'X-Admin-Token': adminToken },
-        body: JSON.stringify({ max_capacity: cap })
+  // Then add custom fields (keys not in BUILTIN_FIELDS)
+  const builtinKeys = BUILTIN_FIELDS.map(d=>d.key);
+  fields.forEach(key => {
+    if (!builtinKeys.includes(key)) {
+      fieldRows.push({
+        key,
+        label: labels[key] || key,
+        placeholder: placeholders[key] || '',
+        description: labels[key+'_desc'] || '',
+        required: required.includes(key),
+        enabled: true,
+        removable: true,
+        alwaysShow: false,
+        isReferrer: false,
+        builtin: false
       });
-      const data = await res.json();
-      if (data.success) {
-        document.getElementById('cap-display').textContent = cap;
-        showFeedback('cap-save-ok', 'cap-save-err');
-      } else {
-        document.getElementById('cap-err-msg').textContent = data.message;
-        showFeedback('cap-save-err', 'cap-save-ok');
-      }
-    } catch (e) {
-      document.getElementById('cap-err-msg').textContent = '서버 오류';
-      showFeedback('cap-save-err', 'cap-save-ok');
-    }
-  }
-
-  async function saveSeminarInfo() {
-    const body = {
-      seminar_title: document.getElementById('seminar-title').value,
-      seminar_date: document.getElementById('seminar-date').value,
-      seminar_venue: document.getElementById('seminar-venue').value,
-    };
-    try {
-      const res = await fetch(`${API_BASE}/admin/settings`, {
-        method: 'PUT',
-        headers: { 'Content-Type': 'application/json', 'X-Admin-Token': adminToken },
-        body: JSON.stringify(body)
-      });
-      const data = await res.json();
-      if (data.success) {
-        showFeedback('info-save-ok', 'info-save-err');
-        generateQRPreview(); // Refresh QR
-      } else {
-        document.getElementById('info-err-msg').textContent = data.message;
-        showFeedback('info-save-err', 'info-save-ok');
-      }
-    } catch (e) {
-      document.getElementById('info-err-msg').textContent = '서버 오류';
-      showFeedback('info-save-err', 'info-save-ok');
-    }
-  }
-
-  function showFeedback(okId, errId) {
-    document.getElementById(okId).classList.add('show');
-    document.getElementById(errId).classList.remove('show');
-    setTimeout(() => document.getElementById(okId).classList.remove('show'), 3000);
-  }
-
-  // ── QR Preview ────────────────────────────────────────────────────────────
-  function generateQRPreview() {
-    const url = window.location.origin + '/';
-    document.getElementById('qr-preview-url').textContent = url;
-    const canvas = document.getElementById('qr-preview-canvas');
-    QRCode.toCanvas(canvas, url, { width: 180, margin: 2, color: { dark: '#0A1628', light: '#FFFFFF' } });
-  }
-
-  function downloadQR() {
-    const canvas = document.getElementById('qr-preview-canvas');
-    const link = document.createElement('a');
-    link.download = 'lasbook_seminar_qr.png';
-    link.href = canvas.toDataURL();
-    link.click();
-  }
-
-  // ── Poster Maker ──────────────────────────────────────────────────────────
-  posterCanvas = document.getElementById('poster-canvas');
-  posterCtx = posterCanvas.getContext('2d');
-
-  // Upload
-  document.getElementById('poster-file-input').addEventListener('change', function(e) {
-    const file = e.target.files[0];
-    if (!file) return;
-    const reader = new FileReader();
-    reader.onload = function(ev) {
-      const img = new Image();
-      img.onload = function() {
-        bgImage = img;
-        const maxW = Math.min(800, window.innerWidth - 60);
-        const scale = maxW / img.width;
-        posterCanvas.width = img.width;
-        posterCanvas.height = img.height;
-        posterCanvas.style.maxWidth = maxW + 'px';
-
-        document.getElementById('canvas-container').style.display = 'block';
-        document.getElementById('upload-zone').style.display = 'none';
-        document.getElementById('poster-controls').style.display = 'block';
-        renderPoster();
-      };
-      img.src = ev.target.result;
-    };
-    reader.readAsDataURL(file);
-  });
-
-  // Drag & drop
-  const uploadZone = document.getElementById('upload-zone');
-  uploadZone.addEventListener('dragover', e => { e.preventDefault(); uploadZone.classList.add('drag-over'); });
-  uploadZone.addEventListener('dragleave', () => uploadZone.classList.remove('drag-over'));
-  uploadZone.addEventListener('drop', e => {
-    e.preventDefault();
-    uploadZone.classList.remove('drag-over');
-    const file = e.dataTransfer.files[0];
-    if (file && file.type.startsWith('image/')) {
-      const dt = new DataTransfer();
-      dt.items.add(file);
-      document.getElementById('poster-file-input').files = dt.files;
-      document.getElementById('poster-file-input').dispatchEvent(new Event('change'));
     }
   });
 
-  function generateQRForPoster() {
-    const url = window.location.origin + '/';
-    const offCanvas = document.createElement('canvas');
-    QRCode.toCanvas(offCanvas, url, {
-      width: 400, margin: 2,
-      color: { dark: '#0A1628', light: '#FFFFFF' }
-    }, () => { qrDataURL = offCanvas.toDataURL(); });
+  renderFieldRows();
+}
+
+function renderFieldRows() {
+  const container = document.getElementById('field-builder');
+  container.innerHTML = '';
+  fieldRows.forEach((f, i) => {
+    const row = document.createElement('div');
+    row.className = 'field-row';
+    row.dataset.idx = i;
+    const reqChecked = f.required ? 'checked' : '';
+    const enableChecked = f.enabled ? 'checked' : '';
+    const disabledAttr = f.alwaysShow ? 'disabled' : '';
+    const bodyShow = ''; // collapsed by default
+    const refTag = f.isReferrer ? ' <span style="font-size:9px;background:rgba(56,161,105,.15);color:var(--green);border:1px solid rgba(56,161,105,.3);padding:1px 6px;border-radius:8px;font-weight:700;">추천인</span>' : '';
+    row.innerHTML = `
+      <div class="field-row-header" id="frh-${i}">
+        <input type="checkbox" class="field-toggle" ${enableChecked} ${disabledAttr}
+          onchange="onFieldToggle(${i},this.checked)" title="${f.alwaysShow?'항상 표시됩니다':'표시 여부'}">
+        <span class="field-drag-handle">⠿</span>
+        <span class="field-row-title">${esc(f.label||f.key)}${refTag}</span>
+        <label style="display:flex;align-items:center;gap:4px;font-size:11px;color:var(--g600);cursor:pointer;white-space:nowrap;margin-right:6px;">
+          <input type="checkbox" ${reqChecked} ${!f.enabled?'disabled':''}
+            onchange="onReqToggle(${i},this.checked)" style="accent-color:var(--gold-d);width:13px;height:13px;">
+          필수
+        </label>
+        <button class="field-row-toggle-btn" onclick="toggleFieldBody(${i})" title="상세 설정">✏️</button>
+        ${f.removable&&!f.alwaysShow ? `<button class="btn btn-red btn-xs" onclick="removeFieldRow(${i})" style="padding:3px 7px;">✕</button>` : ''}
+      </div>
+      <div class="field-row-body${bodyShow}" id="frb-${i}">
+        <div class="field-sub-row">
+          <div>
+            <span class="field-sub-label">필드 제목 (라벨)</span>
+            <input type="text" class="field-sub-inp" value="${esc(f.label)}" placeholder="예) 이름, 학교명, 직책..."
+              oninput="updateFieldProp(${i},'label',this.value)">
+          </div>
+          <div>
+            <span class="field-sub-label">플레이스홀더 (입력 예시)</span>
+            <input type="text" class="field-sub-inp" value="${esc(f.placeholder)}" placeholder="예) 홍길동, 010-1234-5678..."
+              oninput="updateFieldProp(${i},'placeholder',this.value)">
+          </div>
+        </div>
+        ${f.isReferrer ? `<div style="background:rgba(56,161,105,.06);border:1px solid rgba(56,161,105,.2);border-radius:8px;padding:8px 10px;font-size:11px;color:var(--g600);line-height:1.6;">💡 추천인 필드: URL에 <code style="background:rgba(0,0,0,.05);padding:1px 4px;border-radius:3px;">?ref=이름</code> 파라미터를 붙이면 자동으로 입력됩니다. (이벤트 목록에서 공유 링크 생성 가능)</div>` : ''}
+      </div>`;
+    container.appendChild(row);
+  });
+}
+
+function toggleFieldBody(i) {
+  const body = document.getElementById(`frb-${i}`);
+  const header = document.getElementById(`frh-${i}`);
+  if (body.classList.contains('show')) {
+    body.classList.remove('show');
+    header.classList.remove('expanded');
+  } else {
+    body.classList.add('show');
+    header.classList.add('expanded');
   }
+}
 
-  function setQRBg(mode) { qrBgMode = mode; renderPoster(); }
-
-  function updateQRPosition() {
-    const x = document.getElementById('qr-x').value;
-    const y = document.getElementById('qr-y').value;
-    const s = document.getElementById('qr-size').value;
-    const p = document.getElementById('qr-bg-padding').value;
-    document.getElementById('qr-x-val').textContent = x + '%';
-    document.getElementById('qr-y-val').textContent = y + '%';
-    document.getElementById('qr-size-val').textContent = s + '%';
-    document.getElementById('qr-bg-padding-val').textContent = p + 'px';
-    renderPoster();
+function updateFieldProp(i, prop, val) {
+  fieldRows[i][prop] = val;
+  // Update displayed title in header
+  if (prop === 'label') {
+    const titleEl = document.querySelector(`#frh-${i} .field-row-title`);
+    if (titleEl) {
+      const refTag = fieldRows[i].isReferrer ? ' <span style="font-size:9px;background:rgba(56,161,105,.15);color:var(--green);border:1px solid rgba(56,161,105,.3);padding:1px 6px;border-radius:8px;font-weight:700;">추천인</span>' : '';
+      titleEl.innerHTML = esc(val||fieldRows[i].key) + refTag;
+    }
   }
+}
 
-  function renderPoster() {
-    if (!bgImage) return;
+function onFieldToggle(i, on) {
+  fieldRows[i].enabled = on;
+  if (!on) { fieldRows[i].required = false; }
+  // Update required checkbox disabled state
+  const reqCb = document.querySelector(`#frh-${i} input[type=checkbox]:not(.field-toggle)`);
+  if (reqCb) { reqCb.disabled = !on; if (!on) reqCb.checked = false; }
+}
 
-    const cw = posterCanvas.width;
-    const ch = posterCanvas.height;
+function onReqToggle(i, on) {
+  fieldRows[i].required = on;
+}
 
-    // Draw background
-    posterCtx.clearRect(0, 0, cw, ch);
-    posterCtx.drawImage(bgImage, 0, 0, cw, ch);
+function removeFieldRow(i) {
+  fieldRows.splice(i, 1);
+  renderFieldRows();
+}
 
-    if (!qrDataURL) {
-      generateQRForPoster();
-      setTimeout(renderPoster, 300);
+function addCustomFieldRow() {
+  fieldCounter++;
+  fieldRows.push({
+    key: `custom${fieldCounter}`,
+    label: '',
+    placeholder: '',
+    description: '',
+    required: false,
+    enabled: true,
+    removable: true,
+    alwaysShow: false,
+    isReferrer: false,
+    builtin: false
+  });
+  renderFieldRows();
+  // Auto-expand last row
+  const lastIdx = fieldRows.length - 1;
+  setTimeout(() => toggleFieldBody(lastIdx), 50);
+}
+
+function getFieldConfig() {
+  const fields = fieldRows.filter(f=>f.enabled).map(f=>f.key);
+  const required = fieldRows.filter(f=>f.enabled&&f.required).map(f=>f.key);
+  const labels = {};
+  const placeholders = {};
+  fieldRows.forEach(f => {
+    if (f.label) labels[f.key] = f.label;
+    if (f.placeholder) placeholders[f.key] = f.placeholder;
+  });
+  return { fields, required, labels, placeholders };
+}
+
+function buildSessionEditor(sessions) {
+  sessionRows = sessions ? sessions.map(s=>({id:s.id||null,name:s.name,order:s.session_order??0})) : [{id:null,name:'출석 체크',order:0}];
+  renderSessionRows();
+}
+function renderSessionRows() {
+  const el = document.getElementById('session-builder');
+  el.innerHTML = sessionRows.map((s,i)=>`
+    <div class="ses-item-row">
+      <div class="si-num">${i+1}</div>
+      <input type="text" value="${esc(s.name)}" class="fi si-name" style="padding:7px 10px;font-size:13px;" oninput="sessionRows[${i}].name=this.value" placeholder="예) 오전 교육"/>
+      <button class="btn btn-red btn-xs" onclick="removeSessionRow(${i})" ${sessionRows.length<=1?'disabled':''}>✕</button>
+    </div>`).join('');
+}
+function addSessionRow(){ sessionRows.push({id:null,name:'',order:sessionRows.length}); renderSessionRows(); }
+function removeSessionRow(i){ sessionRows.splice(i,1); renderSessionRows(); }
+
+function selectColor(el) {
+  document.querySelectorAll('.color-swatch').forEach(s=>s.classList.remove('sel'));
+  el.classList.add('sel');
+  document.getElementById('ev-color').value = el.dataset.color;
+}
+
+function openNewEventModal(date) {
+  document.getElementById('ev-modal-title').textContent = '이벤트 추가';
+  document.getElementById('ev-modal-sub').textContent   = '새 세미나·교육·직무연수를 등록합니다';
+  document.getElementById('ev-id').value = '';
+  document.getElementById('ev-title').value = '';
+  document.getElementById('ev-category').value = '세미나';
+  document.getElementById('ev-date').value = date || new Date().toISOString().slice(0,10);
+  document.getElementById('ev-capacity').value = 120;
+  document.getElementById('ev-venue').value = '';
+  document.getElementById('ev-time').value = '';
+  document.getElementById('ev-badge').value = '선착순 무료 신청';
+  document.getElementById('ev-hero-title').value = '';
+  document.getElementById('ev-subtitle').value = '';
+  document.getElementById('ev-notice').value = '';
+  document.getElementById('ev-color').value = '#1B2B4B';
+  document.querySelectorAll('.color-swatch').forEach(s=>{ s.classList.remove('sel'); if(s.dataset.color==='#1B2B4B') s.classList.add('sel'); });
+  document.getElementById('ev-err').classList.remove('show');
+  buildFieldEditor(['name','phone','organization','referrer'],{},['name','phone','organization'],{});
+  buildSessionEditor([{id:null,name:'출석 체크',order:0}]);
+  document.getElementById('ev-modal').classList.add('show');
+}
+
+async function openEditEventModal(id) {
+  document.getElementById('ev-modal-title').textContent = '이벤트 수정';
+  document.getElementById('ev-modal-sub').textContent   = '이벤트 정보와 설정을 수정합니다';
+  document.getElementById('ev-err').classList.remove('show');
+  try {
+    const r = await fetch(`${API}/admin/events/${id}`,{headers:{'X-Admin-Token':token}});
+    const d = await r.json();
+    if (!d.success) return;
+    const ev = d.data;
+    document.getElementById('ev-id').value           = ev.id;
+    document.getElementById('ev-title').value         = ev.title;
+    document.getElementById('ev-category').value      = ev.category;
+    document.getElementById('ev-date').value           = ev.event_date;
+    document.getElementById('ev-capacity').value       = ev.max_capacity;
+    document.getElementById('ev-venue').value          = ev.venue||'';
+    document.getElementById('ev-time').value           = ev.event_time||'';
+    document.getElementById('ev-badge').value          = ev.hero_badge||'선착순 무료 신청';
+    document.getElementById('ev-hero-title').value     = ev.hero_title||'';
+    document.getElementById('ev-subtitle').value       = ev.hero_subtitle||'';
+    document.getElementById('ev-notice').value         = ev.notice_text||'';
+    document.getElementById('ev-color').value          = ev.color||'#1B2B4B';
+    document.querySelectorAll('.color-swatch').forEach(s=>{ s.classList.remove('sel'); if(s.dataset.color===ev.color) s.classList.add('sel'); });
+
+    const ff = JSON.parse(ev.form_fields||'["name","phone","organization","referrer"]');
+    const fl = JSON.parse(ev.form_labels||'{}');
+    const fr = JSON.parse(ev.form_required||'["name","phone","organization"]');
+    const fp = JSON.parse(ev.form_placeholders||'{}');
+    buildFieldEditor(ff,fl,fr,fp);
+    buildSessionEditor(ev.sessions||[]);
+    document.getElementById('ev-modal').classList.add('show');
+  } catch(e){ showToast('불러오기 오류','err'); }
+}
+
+function closeEvModal(){ document.getElementById('ev-modal').classList.remove('show'); }
+
+async function saveEvent() {
+  const id       = document.getElementById('ev-id').value;
+  const title    = document.getElementById('ev-title').value.trim();
+  const date     = document.getElementById('ev-date').value;
+  const errEl    = document.getElementById('ev-err');
+  const errMsgEl = document.getElementById('ev-err-msg');
+
+  if (!title) { errMsgEl.textContent='제목을 입력해주세요.'; errEl.classList.add('show'); return; }
+  if (!date)  { errMsgEl.textContent='날짜를 선택해주세요.'; errEl.classList.add('show'); return; }
+  errEl.classList.remove('show');
+
+  const fc = getFieldConfig();
+
+  const body = {
+    title, category: document.getElementById('ev-category').value,
+    event_date: date, venue: document.getElementById('ev-venue').value,
+    event_time: document.getElementById('ev-time').value,
+    max_capacity: parseInt(document.getElementById('ev-capacity').value)||120,
+    color: document.getElementById('ev-color').value,
+    hero_badge: document.getElementById('ev-badge').value,
+    hero_title: document.getElementById('ev-hero-title').value,
+    hero_subtitle: document.getElementById('ev-subtitle').value,
+    notice_text: document.getElementById('ev-notice').value,
+    form_fields:       fc.fields,
+    form_labels:       fc.labels,
+    form_required:     fc.required,
+    form_placeholders: fc.placeholders,
+  };
+
+  try {
+    let evId = id;
+    if (id) {
+      await fetch(`${API}/admin/events/${id}`,{method:'PUT',headers:{'Content-Type':'application/json','X-Admin-Token':token},body:JSON.stringify(body)});
+    } else {
+      const r = await fetch(`${API}/admin/events`,{method:'POST',headers:{'Content-Type':'application/json','X-Admin-Token':token},body:JSON.stringify(body)});
+      const d = await r.json();
+      if (!d.success) { errMsgEl.textContent=d.message; errEl.classList.add('show'); return; }
+      evId = d.data.id;
+    }
+
+    // 세션 동기화
+    if (id) {
+      // 기존 세션 가져와서 삭제 후 재생성
+      const sr = await fetch(`${API}/admin/events/${id}/sessions`,{headers:{'X-Admin-Token':token}});
+      const sd = await sr.json();
+      for (const s of (sd.data||[])) {
+        await fetch(`${API}/admin/sessions/${s.id}`,{method:'DELETE',headers:{'X-Admin-Token':token}});
+      }
+    }
+    for (let i=0; i<sessionRows.length; i++) {
+      if (sessionRows[i].name.trim()) {
+        await fetch(`${API}/admin/events/${evId}/sessions`,{method:'POST',headers:{'Content-Type':'application/json','X-Admin-Token':token},body:JSON.stringify({name:sessionRows[i].name.trim(),session_order:i})});
+      }
+    }
+
+    closeEvModal();
+    showToast(id?'✅ 수정되었습니다.':'✅ 이벤트가 등록되었습니다.','ok');
+    loadEvents();
+  } catch(e){ errMsgEl.textContent='저장 중 오류'; errEl.classList.add('show'); }
+}
+
+async function deleteEvent(id, name) {
+  if (!confirm(`"${name}" 이벤트를 삭제하시겠습니까?\n신청자와 출석 데이터도 모두 삭제됩니다.`)) return;
+  await fetch(`${API}/admin/events/${id}`,{method:'DELETE',headers:{'X-Admin-Token':token}});
+  showToast('삭제되었습니다.','ok');
+  loadEvents();
+}
+
+// ─── POSTER ──────────────────────────────────────────────────────────────
+
+// Poster editor state
+let peCanvas, peCtx;
+let peBg = null;           // Image object (background)
+let peBgUrl = '';          // URL of currently loaded background
+let peQrDataURL = null;    // rendered QR data URL
+let peTextLayers = [];     // [{id, text, x, y, fontSize, color, bold, visible}]
+let peSelectedLayer = -1;
+let peDragState = null;    // {layerIdx, startX, startY, origX, origY}
+let peCanvasScale = 1;     // canvas CSS scale (for drag coord mapping)
+// qrBgMode is declared at the top of the script
+
+// ── Image Library ──────────────────────────────────────────────────────────
+async function libLoad() {
+  const grid    = document.getElementById('pe-lib-grid');
+  const empty   = document.getElementById('pe-lib-empty');
+  const loading = document.getElementById('pe-lib-loading');
+  loading.style.display = 'block';
+  grid.innerHTML = '';
+  try {
+    const r = await fetch('/api/poster-images', { headers:{'X-Admin-Token':token} });
+    const d = await r.json();
+    loading.style.display = 'none';
+    if (!d.success || !d.images.length) {
+      empty.style.display = 'block';
       return;
     }
+    empty.style.display = 'none';
+    grid.innerHTML = d.images.map(img => `
+      <div class="lib-img-card" id="libcard-${img.filename}" style="position:relative;border-radius:10px;overflow:hidden;border:2px solid var(--g200);cursor:pointer;background:var(--g50);transition:all .2s;"
+           onmouseover="this.style.borderColor='var(--gold)'"
+           onmouseout="this.style.borderColor='var(--g200)'"
+           onclick="libSelectImg('${img.url}','${img.filename}')">
+        <img src="${img.url}" style="width:100%;display:block;aspect-ratio:3/4;object-fit:cover;" loading="lazy"/>
+        <button onclick="event.stopPropagation();libDeleteImg('${img.filename}')"
+                style="position:absolute;top:5px;right:5px;background:rgba(220,38,38,.85);border:none;color:white;border-radius:50%;width:24px;height:24px;font-size:13px;cursor:pointer;display:flex;align-items:center;justify-content:center;line-height:1;">✕</button>
+        <div style="padding:5px 6px;font-size:10px;color:var(--g500);text-overflow:ellipsis;overflow:hidden;white-space:nowrap;">${img.filename}</div>
+      </div>`).join('');
+  } catch(e) {
+    loading.style.display = 'none';
+    empty.style.display = 'block';
+  }
+}
 
-    // QR size
-    const qrSize = (parseInt(document.getElementById('qr-size').value) / 100) * cw;
-    const bgPad = parseInt(document.getElementById('qr-bg-padding').value);
-    const qrX = (parseInt(document.getElementById('qr-x').value) / 100) * cw - qrSize / 2;
-    const qrY = (parseInt(document.getElementById('qr-y').value) / 100) * ch - qrSize / 2;
+async function libUpload(input) {
+  const f = input.files[0]; if (!f) return;
+  showToast('업로드 중...','');
+  const fd = new FormData();
+  fd.append('poster', f);
+  try {
+    const r = await fetch('/api/upload-poster', { method:'POST', headers:{'X-Admin-Token':token}, body:fd });
+    const d = await r.json();
+    input.value = '';
+    if (!d.success) { showToast('업로드 실패: '+d.message,'err'); return; }
+    showToast('✅ 업로드 완료!','ok');
+    await libLoad();
+  } catch(e) { showToast('업로드 오류','err'); }
+}
 
-    // Background
+function libSelectImg(url, filename) {
+  peBgUrl = url;
+  document.getElementById('pe-ev-title-lbl').textContent = filename;
+  peLoadBg(url, filename);
+}
+
+async function libDeleteImg(filename) {
+  if (!confirm(`"${filename}" 을(를) 삭제하시겠습니까?\n이 이미지를 포스터로 사용 중인 이벤트에도 영향을 줄 수 있습니다.`)) return;
+  try {
+    const r = await fetch(`/api/poster-images/${filename}`, { method:'DELETE', headers:{'X-Admin-Token':token} });
+    const d = await r.json();
+    if (!d.success) { showToast('삭제 실패','err'); return; }
+    showToast('🗑️ 삭제 완료','ok');
+    await libLoad();
+  } catch(e) { showToast('삭제 오류','err'); }
+}
+
+function initPoster() {
+  peCanvas = document.getElementById('pe-canvas');
+  peCtx    = peCanvas.getContext('2d');
+
+  // Canvas drag for text layers
+  peCanvas.addEventListener('mousedown', peOnMouseDown);
+  peCanvas.addEventListener('mousemove', peOnMouseMove);
+  peCanvas.addEventListener('mouseup',   peOnMouseUp);
+  peCanvas.addEventListener('mouseleave',peOnMouseUp);
+  peCanvas.addEventListener('click', peOnCanvasClick);
+
+  // Touch support
+  peCanvas.addEventListener('touchstart', e=>{const t=e.touches[0];peOnMouseDown({clientX:t.clientX,clientY:t.clientY,target:e.target});},{passive:true});
+  peCanvas.addEventListener('touchmove',  e=>{e.preventDefault();const t=e.touches[0];peOnMouseMove({clientX:t.clientX,clientY:t.clientY});},{passive:false});
+  peCanvas.addEventListener('touchend',   ()=>peOnMouseUp());
+
+  // Load the image library
+  libLoad();
+}
+
+function peLoadBg(src, name) {
+  const img = new Image();
+  img.crossOrigin = 'anonymous';
+  img.onload = () => {
+    peBg = img;
+    const maxW = Math.min(540, window.innerWidth - 100);
+    peCanvas.width  = img.width;
+    peCanvas.height = img.height;
+    peCanvas.style.maxWidth = maxW + 'px';
+    peCanvasScale = maxW / img.width;
+
+    // Default text layers if none
+    if (peTextLayers.length === 0) peInitDefaultLayers();
+
+    // Switch to editor view
+    document.getElementById('pe-lib-card').style.display = 'none';
+    document.getElementById('pe-step2').style.display = 'block';
+    document.getElementById('pe-ev-title-lbl').textContent = name;
+
+    // Render (no QR by default — user must enable the toggle)
+    const qrChk = document.getElementById('qr-enabled');
+    if (qrChk && qrChk.checked) {
+      peGenQR(() => peRenderFull());
+    } else {
+      peRenderFull();
+    }
+  };
+  img.onerror = () => showToast('이미지를 불러올 수 없습니다.','err');
+  img.src = src;
+}
+
+function peInitDefaultLayers() {
+  // Guess date from selected event
+  const evSel = document.getElementById('poster-event-select');
+  const evId  = evSel?.value;
+  const ev    = allEvents.find(e=>String(e.id)===String(evId));
+  const dateStr = ev ? formatDate(ev.event_date) : '0000년 00월 00일 (일)';
+  const timeStr = '11:00 ~ 13:00';
+
+  peTextLayers = [
+    { id:1, text: dateStr, x:50, y:72, fontSize:28, color:'#1B2B4B', bold:true,  visible:true, label:'날짜' },
+    { id:2, text: timeStr, x:50, y:80, fontSize:22, color:'#1B2B4B', bold:false, visible:true, label:'시간' },
+    { id:3, text: ev?.venue||'장소를 입력하세요', x:50, y:87, fontSize:20, color:'#5A6478', bold:false, visible:true, label:'장소' },
+  ];
+}
+
+function peAddText() {
+  const nextId = (peTextLayers.length ? Math.max(...peTextLayers.map(l=>l.id)) : 0) + 1;
+  peTextLayers.push({ id:nextId, text:'내용을 입력하세요', x:50, y:50, fontSize:24, color:'#1B2B4B', bold:false, visible:true, label:'텍스트'+nextId });
+  peRenderLayers();
+  peRenderFull();
+}
+
+function peRenderLayers() {
+  const el = document.getElementById('pe-layers');
+  el.innerHTML = peTextLayers.map((l,i)=>`
+    <div class="pe-layer${peSelectedLayer===i?' active':''}" onclick="peSelectLayer(${i})">
+      <div class="pe-layer-header">
+        <span class="pe-layer-handle">⠿</span>
+        <span class="pe-layer-preview">${esc(l.label||l.text)}</span>
+        <button class="pe-layer-del" onclick="event.stopPropagation();peRemoveLayer(${i})" title="삭제">✕</button>
+      </div>
+      <div class="pe-layer-body${peSelectedLayer===i?' show':''}">
+        <span class="pe-label">내용</span>
+        <textarea class="pe-text-inp" oninput="peUpdateLayer(${i},'text',this.value)">${esc(l.text)}</textarea>
+        <span class="pe-label">라벨 (구분용)</span>
+        <input class="pe-inp" type="text" value="${esc(l.label||'')}" oninput="peUpdateLayer(${i},'label',this.value)" style="margin-bottom:7px;"/>
+        <div class="pe-inp-row">
+          <div>
+            <span class="pe-label">폰트 크기 (px)</span>
+            <input class="pe-inp" type="number" value="${l.fontSize}" min="8" max="200" oninput="peUpdateLayer(${i},'fontSize',parseInt(this.value)||16)"/>
+          </div>
+          <div>
+            <span class="pe-label">색상</span>
+            <input class="pe-inp" type="color" value="${l.color}" oninput="peUpdateLayer(${i},'color',this.value)" style="height:34px;padding:2px;cursor:pointer;"/>
+          </div>
+        </div>
+        <div class="pe-inp-row">
+          <div>
+            <span class="pe-label">X 위치 (%)</span>
+            <input class="pe-inp" type="number" value="${l.x.toFixed(1)}" min="0" max="100" step="0.5" oninput="peUpdateLayer(${i},'x',parseFloat(this.value)||0)"/>
+          </div>
+          <div>
+            <span class="pe-label">Y 위치 (%)</span>
+            <input class="pe-inp" type="number" value="${l.y.toFixed(1)}" min="0" max="100" step="0.5" oninput="peUpdateLayer(${i},'y',parseFloat(this.value)||0)"/>
+          </div>
+        </div>
+        <label style="display:flex;align-items:center;gap:6px;font-size:11px;color:var(--g600);cursor:pointer;margin-top:4px;">
+          <input type="checkbox" ${l.bold?'checked':''} onchange="peUpdateLayer(${i},'bold',this.checked)" style="accent-color:var(--navy-mid);"/>
+          굵게 (Bold)
+        </label>
+      </div>
+    </div>`).join('');
+}
+
+function peSelectLayer(i) {
+  peSelectedLayer = (peSelectedLayer === i) ? -1 : i;
+  peRenderLayers();
+  peRenderFull();
+}
+
+function peUpdateLayer(i, prop, val) {
+  peTextLayers[i][prop] = val;
+  // sync x,y inputs in panel
+  peRenderFull();
+  if (prop === 'text') {
+    // also update preview label if no custom label
+    if (!peTextLayers[i].label || peTextLayers[i].label.startsWith('텍스트')) {
+      // keep label as is
+    }
+  }
+}
+
+function peRemoveLayer(i) {
+  peTextLayers.splice(i, 1);
+  peSelectedLayer = -1;
+  peRenderLayers();
+  peRenderFull();
+}
+
+// ── Canvas rendering ──────────────────────────────────────────────────────
+function peRenderFull() {
+  if (!peBg) return;
+  const cw = peCanvas.width, ch = peCanvas.height;
+  peCtx.clearRect(0,0,cw,ch);
+  peCtx.drawImage(peBg, 0,0,cw,ch);
+
+  // Draw text layers
+  peTextLayers.forEach((l, idx) => {
+    if (!l.visible) return;
+    const x = (l.x/100)*cw;
+    const y = (l.y/100)*ch;
+    const fontSize = Math.max(8, l.fontSize);
+    peCtx.save();
+    peCtx.font = `${l.bold?'bold ':'' }${fontSize}px 'Noto Sans KR', sans-serif`;
+    peCtx.fillStyle = l.color || '#1B2B4B';
+    peCtx.textAlign = 'center';
+    // shadow for readability
+    peCtx.shadowColor = 'rgba(255,255,255,0.7)';
+    peCtx.shadowBlur = 6;
+    // Multi-line
+    const lines = String(l.text).split('\n');
+    lines.forEach((line, li) => {
+      peCtx.fillText(line, x, y + li * (fontSize * 1.3));
+    });
+    peCtx.shadowBlur = 0;
+    // Selection indicator
+    if (peSelectedLayer === idx) {
+      const metrics = peCtx.measureText(lines[0]);
+      const w = metrics.width + 16;
+      const h = fontSize * lines.length * 1.3 + 8;
+      peCtx.strokeStyle = '#C9A84C';
+      peCtx.lineWidth = 2;
+      peCtx.setLineDash([4,3]);
+      peCtx.strokeRect(x - w/2, y - fontSize - 4, w, h);
+      peCtx.setLineDash([]);
+    }
+    peCtx.restore();
+  });
+
+  // Draw QR (only when the toggle is ON)
+  const qrEnabledEl = document.getElementById('qr-enabled');
+  const qrEnabled = qrEnabledEl ? qrEnabledEl.checked : false;
+  if (peQrDataURL && qrEnabled) {
+    const qrSizePct = parseInt(document.getElementById('qr-size').value) / 100;
+    const bgPad = parseInt(document.getElementById('qr-pad').value);
+    const qrSize = qrSizePct * cw;
+    const qrX = (parseInt(document.getElementById('qr-x').value)/100)*cw - qrSize/2;
+    const qrY = (parseInt(document.getElementById('qr-y').value)/100)*ch - qrSize/2;
+
     if (qrBgMode !== 'transparent') {
       const bgColor = qrBgMode === 'gold' ? '#E8C97A' : 'white';
-      const radius = 16;
-      const bx = qrX - bgPad;
-      const by = qrY - bgPad;
-      const bw = qrSize + bgPad * 2;
-      const bh = qrSize + bgPad * 2;
-
-      posterCtx.beginPath();
-      posterCtx.moveTo(bx + radius, by);
-      posterCtx.lineTo(bx + bw - radius, by);
-      posterCtx.arcTo(bx + bw, by, bx + bw, by + radius, radius);
-      posterCtx.lineTo(bx + bw, by + bh - radius);
-      posterCtx.arcTo(bx + bw, by + bh, bx + bw - radius, by + bh, radius);
-      posterCtx.lineTo(bx + radius, by + bh);
-      posterCtx.arcTo(bx, by + bh, bx, by + bh - radius, radius);
-      posterCtx.lineTo(bx, by + radius);
-      posterCtx.arcTo(bx, by, bx + radius, by, radius);
-      posterCtx.closePath();
-      posterCtx.fillStyle = bgColor;
-      posterCtx.fill();
-
-      // Shadow effect
-      posterCtx.shadowColor = 'rgba(0,0,0,0.2)';
-      posterCtx.shadowBlur = 20;
-      posterCtx.fill();
-      posterCtx.shadowBlur = 0;
+      const r = 12;
+      const bx=qrX-bgPad, by=qrY-bgPad, bw=qrSize+bgPad*2, bh=qrSize+bgPad*2;
+      peCtx.save();
+      peCtx.beginPath();
+      peCtx.moveTo(bx+r,by); peCtx.lineTo(bx+bw-r,by); peCtx.arcTo(bx+bw,by,bx+bw,by+r,r);
+      peCtx.lineTo(bx+bw,by+bh-r); peCtx.arcTo(bx+bw,by+bh,bx+bw-r,by+bh,r);
+      peCtx.lineTo(bx+r,by+bh); peCtx.arcTo(bx,by+bh,bx,by+bh-r,r);
+      peCtx.lineTo(bx,by+r); peCtx.arcTo(bx,by,bx+r,by,r); peCtx.closePath();
+      peCtx.shadowColor='rgba(0,0,0,.15)'; peCtx.shadowBlur=12;
+      peCtx.fillStyle = bgColor; peCtx.fill();
+      peCtx.shadowBlur=0; peCtx.restore();
     }
 
-    // Draw QR
     const qrImg = new Image();
     qrImg.onload = () => {
-      posterCtx.drawImage(qrImg, qrX, qrY, qrSize, qrSize);
-
+      peCtx.drawImage(qrImg, qrX, qrY, qrSize, qrSize);
       // Label below QR
-      const labelY = qrY + qrSize + bgPad + 20;
-      const labelX = qrX + qrSize / 2;
-      posterCtx.font = `bold ${Math.max(14, qrSize * 0.07)}px 'Noto Sans KR', sans-serif`;
-      posterCtx.fillStyle = qrBgMode === 'transparent' ? 'white' : '#0A1628';
-      posterCtx.textAlign = 'center';
-      posterCtx.fillText('지금 신청하기 →', labelX, labelY);
-      posterCtx.textAlign = 'left';
+      const lx = qrX + qrSize/2;
+      const ly = qrY + qrSize + bgPad + 18;
+      peCtx.save();
+      peCtx.font = `bold ${Math.max(12, qrSize*0.07)}px sans-serif`;
+      peCtx.fillStyle = qrBgMode==='transparent' ? 'white' : '#0A1628';
+      peCtx.textAlign = 'center';
+      peCtx.shadowColor='rgba(255,255,255,0.5)'; peCtx.shadowBlur=4;
+      peCtx.fillText('지금 신청하기 →', lx, ly);
+      peCtx.restore();
     };
-    qrImg.src = qrDataURL;
+    qrImg.src = peQrDataURL;
   }
 
-  function downloadPoster(format) {
-    if (!bgImage) { showToast('포스터 이미지를 먼저 업로드해주세요.', 'error'); return; }
-    renderPoster();
-    setTimeout(() => {
-      const mimeType = format === 'png' ? 'image/png' : 'image/jpeg';
-      const quality = format === 'jpg' ? 0.95 : undefined;
-      const dataURL = posterCanvas.toDataURL(mimeType, quality);
-      const link = document.createElement('a');
-      link.download = `lasbook_seminar_poster_${Date.now()}.${format}`;
-      link.href = dataURL;
-      link.click();
-      showToast(`포스터가 ${format.toUpperCase()} 형식으로 저장되었습니다!`, 'success');
-    }, 200);
+  // Update draggable overlay handles (visual only, small dots)
+  peRenderLayers();
+}
+
+// ── Drag support ──────────────────────────────────────────────────────────
+function peGetCanvasCoords(e) {
+  const rect = peCanvas.getBoundingClientRect();
+  const scaleX = peCanvas.width  / rect.width;
+  const scaleY = peCanvas.height / rect.height;
+  return {
+    x: (e.clientX - rect.left) * scaleX,
+    y: (e.clientY - rect.top)  * scaleY
+  };
+}
+
+function peOnMouseDown(e) {
+  if (!peTextLayers.length) return;
+  const {x, y} = peGetCanvasCoords(e);
+  const cw = peCanvas.width, ch = peCanvas.height;
+  // Hit test: find clicked layer (in reverse order so topmost is picked)
+  for (let i = peTextLayers.length-1; i >= 0; i--) {
+    const l = peTextLayers[i];
+    const lx = (l.x/100)*cw, ly = (l.y/100)*ch;
+    const fontSize = l.fontSize || 24;
+    if (Math.abs(x-lx) < 150 && Math.abs(y-ly) < fontSize*1.5) {
+      peDragState = { layerIdx:i, startX:x, startY:y, origX:l.x, origY:l.y };
+      peSelectedLayer = i;
+      return;
+    }
+  }
+  peDragState = null;
+}
+
+function peOnMouseMove(e) {
+  if (!peDragState) return;
+  const {x, y} = peGetCanvasCoords(e);
+  const cw = peCanvas.width, ch = peCanvas.height;
+  const dx = ((x - peDragState.startX) / cw) * 100;
+  const dy = ((y - peDragState.startY) / ch) * 100;
+  const l = peTextLayers[peDragState.layerIdx];
+  l.x = Math.max(0, Math.min(100, peDragState.origX + dx));
+  l.y = Math.max(0, Math.min(100, peDragState.origY + dy));
+  peRenderFull();
+}
+
+function peOnMouseUp() {
+  if (peDragState) { peDragState = null; peRenderLayers(); }
+}
+
+function peOnCanvasClick(e) {
+  // handled in mousedown already
+}
+
+// ── QR ────────────────────────────────────────────────────────────────────
+function getSelectedEventUrl() {
+  const evId = document.getElementById('poster-event-select').value;
+  return evId ? `${location.origin}/?event=${evId}` : `${location.origin}/`;
+}
+
+function peGenQR(cb) {
+  if (typeof QRCode === 'undefined') { if(cb) cb(); return; }
+  const url = getSelectedEventUrl();
+  const oc = document.createElement('canvas');
+  QRCode.toCanvas(oc, url, {width:400,margin:2,color:{dark:'#0A1628',light:'#FFFFFF'}}, ()=>{
+    peQrDataURL = oc.toDataURL();
+    if (cb) cb();
+  });
+}
+
+function setQRBg(m) { qrBgMode = m; peRenderFull(); }
+
+function toggleQREnabled() {
+  const enabled = document.getElementById('qr-enabled').checked;
+  const panel   = document.getElementById('qr-settings-panel');
+  const track   = document.getElementById('qr-toggle-track');
+  const thumb   = document.getElementById('qr-toggle-thumb');
+  const label   = document.getElementById('qr-toggle-label');
+  panel.style.display    = enabled ? '' : 'none';
+  track.style.background = enabled ? 'var(--gold)' : 'var(--g200)';
+  thumb.style.left       = enabled ? '21px' : '3px';
+  label.textContent      = enabled ? '포함' : '미포함';
+  if (enabled && !peQrDataURL) peGenQR(() => peRenderFull());
+  else peRenderFull();
+}
+
+// ── Save / Download ───────────────────────────────────────────────────────
+function peDownload(fmt) {
+  if (!peBg) { showToast('이미지를 먼저 선택해주세요.','err'); return; }
+  peRenderFull();
+  setTimeout(() => {
+    const mime = fmt==='png'?'image/png':'image/jpeg';
+    const l = document.createElement('a');
+    l.download = `lasbook_poster_${Date.now()}.${fmt}`;
+    l.href = peCanvas.toDataURL(mime, 0.95);
+    l.click();
+    showToast('📥 포스터가 저장되었습니다!','ok');
+  }, 300);
+}
+
+async function peSaveToEvent() {
+  const evId = document.getElementById('poster-event-select').value;
+  if (!evId) { showToast('이벤트를 먼저 선택해주세요.','err'); return; }
+  if (!peBg)  { showToast('포스터 이미지를 먼저 선택해주세요.','err'); return; }
+
+  const qrChk   = document.getElementById('qr-enabled');
+  const qrOn    = qrChk && qrChk.checked;
+  const hasText = peTextLayers.length > 0;
+
+  // 텍스트도 없고 QR도 OFF면 → 원본 이미지 URL 그대로 이벤트에 저장 (재업로드 불필요)
+  if (!hasText && !qrOn && peBgUrl) {
+    try {
+      await fetch(`${API}/admin/events/${evId}`, {
+        method:'PUT',
+        headers:{'Content-Type':'application/json','X-Admin-Token':token},
+        body: JSON.stringify({ poster_image: peBgUrl, poster_texts: [] })
+      });
+      showToast('✅ 이벤트에 저장되었습니다!','ok');
+    } catch(e) { showToast('저장 오류','err'); }
+    return;
   }
 
-  function resetPoster() {
-    bgImage = null;
-    document.getElementById('canvas-container').style.display = 'none';
-    document.getElementById('upload-zone').style.display = 'block';
-    document.getElementById('poster-controls').style.display = 'none';
-    document.getElementById('poster-file-input').value = '';
-  }
+  // 텍스트나 QR이 있으면 → 캔버스를 합성 이미지로 업로드
+  peCanvas.toBlob(async blob => {
+    const fd = new FormData();
+    fd.append('poster', blob, 'poster.jpg');
+    try {
+      const r = await fetch('/api/upload-poster', { method:'POST', headers:{'X-Admin-Token':token}, body: fd });
+      const d = await r.json();
+      if (!d.success) { showToast('업로드 실패: '+d.message,'err'); return; }
+      await fetch(`${API}/admin/events/${evId}`, {
+        method:'PUT',
+        headers:{'Content-Type':'application/json','X-Admin-Token':token},
+        body: JSON.stringify({ poster_image: d.url, poster_texts: peTextLayers })
+      });
+      showToast('✅ 이벤트에 저장되었습니다!','ok');
+    } catch(e) { showToast('저장 오류','err'); }
+  }, 'image/jpeg', 0.92);
+}
 
-  // ── Toast ─────────────────────────────────────────────────────────────────
-  function showToast(msg, type = '') {
-    const t = document.getElementById('toast');
-    t.textContent = msg;
-    t.className = 'toast ' + type;
-    t.classList.add('show');
-    setTimeout(() => t.classList.remove('show'), 3000);
-  }
+function peReset() {
+  document.getElementById('pe-lib-card').style.display = 'block';
+  document.getElementById('pe-step2').style.display = 'none';
+  peTextLayers = [];
+  peSelectedLayer = -1;
+  peBg = null;
+  peBgUrl = '';
+  peQrDataURL = null;
+  // Reset QR toggle to OFF
+  const qrChk = document.getElementById('qr-enabled');
+  if (qrChk && qrChk.checked) { qrChk.checked = false; toggleQREnabled(); }
+  libLoad();
+}
 
-  // ── Init ──────────────────────────────────────────────────────────────────
-  initApp();
-  generateQRForPoster();
+function fillPosterEventSelect() {
+  const sel = document.getElementById('poster-event-select');
+  if (!sel) return;
+  sel.innerHTML = '<option value="">-- 이벤트 선택 --</option>' +
+    allEvents.map(e=>`<option value="${e.id}">${e.title} (${formatDate(e.event_date)})</option>`).join('');
+  genQRPreview();
+}
+
+function onPosterEventChange() {
+  // QR 토글이 ON일 때만 재생성
+  const qrChk = document.getElementById('qr-enabled');
+  if (peBg && qrChk && qrChk.checked) { peGenQR(() => peRenderFull()); }
+  else if (peBg) { peRenderFull(); }
+  genQRPreview();
+}
+
+function genQRPreview() {
+  if (typeof QRCode === 'undefined') return;
+  const url = getSelectedEventUrl();
+  document.getElementById('qr-preview-url').textContent = url;
+  QRCode.toCanvas(document.getElementById('qr-preview-canvas'), url, {width:160,margin:2,color:{dark:'#0A1628',light:'#fff'}});
+}
+
+function downloadQROnly() {
+  const c = document.getElementById('qr-preview-canvas');
+  const l = document.createElement('a');
+  l.download = 'lasbook_qr.png';
+  l.href = c.toDataURL();
+  l.click();
+}
+
+// ─── UTILS ────────────────────────────────────────────────────────────────
+function formatDate(d) {
+  if(!d)return'--'; const [y,m,day]=d.split('-');
+  const days=['일','월','화','수','목','금','토'];
+  return `${y}.${m}.${day} (${days[new Date(d).getDay()]})`;
+}
+function esc(s){ return String(s||'').replace(/"/g,'&quot;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+
+function showToast(msg,type=''){
+  const t=document.getElementById('toast'); t.textContent=msg; t.className='toast '+(type||'');
+  t.classList.add('show'); setTimeout(()=>t.classList.remove('show'),3000);
+}
+
+// ─── INIT ─────────────────────────────────────────────────────────────────
+initApp();
 </script>
 </body>
 </html>
