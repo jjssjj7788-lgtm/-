@@ -604,7 +604,9 @@ async function openEvent(ev) {
   window.scrollTo(0, 0);
 
   renderRegView(ev);
-  history.pushState({ eventId: ev.id }, '', `/?event=${ev.id}`);
+  // ref 파라미터가 있으면 URL에도 포함하여 주소창 복사 시에도 추천인 유지
+  const pushUrl = '/?event=' + ev.id + (urlReferrer ? '&ref=' + encodeURIComponent(urlReferrer) : '');
+  history.pushState({ eventId: ev.id }, '', pushUrl);
 }
 
 function goBack() {
@@ -829,9 +831,14 @@ function downloadQRImage() {
 }
 async function copyLink() {
   const btn = document.getElementById('copy-link-btn');
-  try { await navigator.clipboard.writeText(shareUrl); }
+  // shareUrl에 ref가 없으면 urlReferrer를 직접 합산하여 보장
+  let urlToCopy = shareUrl;
+  if (urlReferrer && !urlToCopy.includes('ref=')) {
+    urlToCopy += (urlToCopy.includes('?') ? '&' : '?') + 'ref=' + encodeURIComponent(urlReferrer);
+  }
+  try { await navigator.clipboard.writeText(urlToCopy); }
   catch(e) {
-    const t = document.createElement('textarea'); t.value = shareUrl;
+    const t = document.createElement('textarea'); t.value = urlToCopy;
     t.style.cssText = 'position:fixed;opacity:0;'; document.body.appendChild(t);
     t.select(); document.execCommand('copy'); document.body.removeChild(t);
   }
