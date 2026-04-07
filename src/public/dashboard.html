@@ -129,15 +129,16 @@
     .b-att{display:inline-flex;align-items:center;gap:3px;background:#f0fff4;color:var(--green);border:1px solid #9AE6B4;padding:3px 9px;border-radius:18px;font-size:10px;font-weight:700;}
     .b-abs{display:inline-flex;align-items:center;gap:3px;background:var(--g100);color:var(--g400);border:1px solid var(--g200);padding:3px 9px;border-radius:18px;font-size:10px;font-weight:700;}
     .tbl-acts{display:flex;gap:3px;flex-wrap:wrap;}
-    /* 추천인 인라인 편집 */
-    .ref-cell{cursor:pointer;display:inline-flex;align-items:center;gap:4px;padding:2px 6px;border-radius:6px;border:1px solid transparent;transition:all .15s;white-space:nowrap;}
-    .ref-cell:hover{background:#fffbf0;border-color:var(--gold);color:var(--navy);}
-    .ref-cell::after{content:'✏️';font-size:9px;opacity:0;transition:opacity .15s;}
-    .ref-cell:hover::after{opacity:1;}
-    .ref-edit-wrap{display:inline-flex;align-items:center;gap:4px;}
-    .ref-edit-inp{padding:3px 7px;border:1.5px solid var(--gold);border-radius:6px;font-size:12px;font-family:inherit;color:var(--navy);background:#fff;outline:none;width:110px;}
-    .ref-save-btn{padding:3px 8px;background:var(--gold-dark);color:#fff;border:none;border-radius:5px;font-size:11px;font-weight:700;cursor:pointer;}
-    .ref-cancel-btn{padding:3px 7px;background:var(--g200);color:var(--g600);border:none;border-radius:5px;font-size:11px;cursor:pointer;}
+    /* 인라인 편집 공통 */
+    .edit-cell{cursor:pointer;display:inline-flex;align-items:center;gap:4px;padding:2px 6px;border-radius:6px;border:1px solid transparent;transition:all .15s;white-space:nowrap;max-width:160px;overflow:hidden;text-overflow:ellipsis;}
+    .edit-cell:hover{background:#fffbf0;border-color:var(--gold);color:var(--navy);}
+    .edit-cell::after{content:'✏️';font-size:9px;opacity:0;transition:opacity .15s;flex-shrink:0;}
+    .edit-cell:hover::after{opacity:1;}
+    .edit-wrap{display:inline-flex;align-items:center;gap:4px;}
+    .edit-inp{padding:3px 7px;border:1.5px solid var(--gold);border-radius:6px;font-size:12px;font-family:inherit;color:var(--navy);background:#fff;outline:none;width:110px;}
+    .edit-inp.wide{width:140px;}
+    .edit-save-btn{padding:3px 8px;background:var(--gold-dark);color:#fff;border:none;border-radius:5px;font-size:11px;font-weight:700;cursor:pointer;white-space:nowrap;}
+    .edit-cancel-btn{padding:3px 7px;background:var(--g200);color:var(--g600);border:none;border-radius:5px;font-size:11px;cursor:pointer;}
     .empty-st{padding:50px;text-align:center;color:var(--g400);}
     .empty-st .ei{font-size:40px;margin-bottom:10px;}
     .tbl-foot{padding:11px 20px;border-top:1px solid var(--g100);display:flex;align-items:center;justify-content:space-between;}
@@ -863,12 +864,16 @@ function renderTable(rows) {
 
   tbody.innerHTML = rows.map(r => {
     const attCells = buildAttCells(r);
+    const nameDisp = esc(r.name||'-');
+    const phoneDisp = fmtPhone(r.phone);
+    const orgDisp  = esc(r.organization||'-');
+    const refDisp  = r.referrer ? esc(r.referrer) : '<span style="color:var(--g400)">-</span>';
     return `<tr>
       <td><span class="tno">No.${String(r.ticket_number).padStart(3,'0')}</span></td>
-      <td><strong>${esc(r.name)}</strong></td>
-      <td>${fmtPhone(r.phone)}</td>
-      <td>${esc(r.organization||'-')}</td>
-      <td><span class="ref-cell" data-reg-id="${r.id}" data-referrer="${esc(r.referrer||'')}">${r.referrer?esc(r.referrer):'<span style="color:var(--g400)">-</span>'}</span></td>
+      <td><span class="edit-cell" data-reg-id="${r.id}" data-field="name" data-value="${esc(r.name||'')}" data-inputmode="text"><strong>${nameDisp}</strong></span></td>
+      <td><span class="edit-cell" data-reg-id="${r.id}" data-field="phone" data-value="${esc(r.phone||'')}" data-inputmode="tel">${phoneDisp}</span></td>
+      <td><span class="edit-cell" data-reg-id="${r.id}" data-field="organization" data-value="${esc(r.organization||'')}" data-inputmode="text">${orgDisp}</span></td>
+      <td><span class="edit-cell" data-reg-id="${r.id}" data-field="referrer" data-value="${esc(r.referrer||'')}" data-inputmode="text">${refDisp}</span></td>
       <td style="font-size:11px;color:var(--g400);">${r.registered_at||''}</td>
       <td>${attCells}</td>
       <td><div class="tbl-acts">${buildActions(r)}</div></td>
