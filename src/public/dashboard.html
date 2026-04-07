@@ -550,7 +550,7 @@ function calMove(dir) {
 }
 
 function calRender() {
-  const todayStr = new Date().toISOString().slice(0,10);
+  const _t0 = new Date(); const todayStr = `${_t0.getFullYear()}-${String(_t0.getMonth()+1).padStart(2,'0')}-${String(_t0.getDate()).padStart(2,'0')}`;
   // 이 달의 이벤트 날짜 Set
   const eventDates = new Set(allEvents.map(e => e.event_date));
 
@@ -655,7 +655,7 @@ async function loadEventList() {
     let toSelect = null;
     if (urlEvId) toSelect = allEvents.find(e => e.id === urlEvId);
     if (!toSelect) {
-      const today = new Date().toISOString().slice(0,10);
+      const _t1 = new Date(); const today = `${_t1.getFullYear()}-${String(_t1.getMonth()+1).padStart(2,'0')}-${String(_t1.getDate()).padStart(2,'0')}`;
       toSelect = allEvents.find(e => e.event_date >= today && e.is_active) || allEvents[0];
     }
 

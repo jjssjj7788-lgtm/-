@@ -554,7 +554,7 @@ function renderEventCards(evs) {
     el.innerHTML = `<div class="ev-empty"><div class="ei">📋</div><p>해당 카테고리의 프로그램이 없습니다</p></div>`;
     return;
   }
-  const today = new Date().toISOString().slice(0,10);
+  const _td = new Date(); const today = `${_td.getFullYear()}-${String(_td.getMonth()+1).padStart(2,'0')}-${String(_td.getDate()).padStart(2,'0')}`;
   el.innerHTML = evs.map(ev => {
     const pct    = ev.max_capacity > 0 ? Math.round((ev.current_count / ev.max_capacity) * 100) : 0;
     const isFull = ev.current_count >= ev.max_capacity;
