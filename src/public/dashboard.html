@@ -927,40 +927,47 @@ function buildActions(r) {
   return btns.join('');
 }
 
-// ─── REFERRER INLINE EDIT ──────────────────────────────────────────────────
-// 이벤트 위임: tbody 클릭 시 .ref-cell 감지
+// ─── 전체 필드 인라인 편집 ──────────────────────────────────────────────────
+const FIELD_META = {
+  name:         { label:'이름',   placeholder:'이름',         wide:true  },
+  phone:        { label:'연락처', placeholder:'연락처',       wide:true  },
+  organization: { label:'소속',   placeholder:'소속 (없으면 빈칸)', wide:false },
+  referrer:     { label:'추천인', placeholder:'추천인 이름',  wide:false },
+};
+
+// 이벤트 위임: tbody 클릭 시 .edit-cell 감지
 document.addEventListener('click', function(e) {
-  const cell = e.target.closest('.ref-cell');
+  const cell = e.target.closest('.edit-cell');
   if (!cell) return;
-  // 이미 입력창이 있으면 무시
-  if (cell.querySelector('.ref-edit-inp')) return;
+  if (cell.querySelector('.edit-inp')) return; // 이미 편집 중
   const regId   = parseInt(cell.dataset.regId);
-  const current = cell.dataset.referrer || '';
-  openRefEdit(cell, regId, current);
+  const field   = cell.dataset.field;
+  const current = cell.dataset.value || '';
+  openCellEdit(cell, regId, field, current);
 });
 
-function openRefEdit(cell, regId, current) {
-  // 기존 텍스트 내용 저장
-  const prevHTML     = cell.innerHTML;
-  const prevReferrer = cell.dataset.referrer || '';
+function openCellEdit(cell, regId, field, current) {
+  const meta     = FIELD_META[field] || { label: field, placeholder: field, wide: false };
+  const prevHTML = cell.innerHTML;
+  const prevVal  = cell.dataset.value || '';
 
-  // 입력창 생성
   const wrap = document.createElement('span');
-  wrap.className = 'ref-edit-wrap';
+  wrap.className = 'edit-wrap';
 
   const inp = document.createElement('input');
-  inp.className   = 'ref-edit-inp';
-  inp.type        = 'text';
+  inp.className   = 'edit-inp' + (meta.wide ? ' wide' : '');
+  inp.type        = field === 'phone' ? 'tel' : 'text';
+  inp.inputMode   = cell.dataset.inputmode || 'text';
   inp.value       = current;
-  inp.placeholder = '추천인 이름';
-  inp.maxLength   = 50;
+  inp.placeholder = meta.placeholder;
+  inp.maxLength   = field === 'name' ? 30 : 100;
 
-  const saveBtn   = document.createElement('button');
-  saveBtn.className   = 'ref-save-btn';
+  const saveBtn = document.createElement('button');
+  saveBtn.className   = 'edit-save-btn';
   saveBtn.textContent = '저장';
 
-  const cancelBtn   = document.createElement('button');
-  cancelBtn.className   = 'ref-cancel-btn';
+  const cancelBtn = document.createElement('button');
+  cancelBtn.className   = 'edit-cancel-btn';
   cancelBtn.textContent = '✕';
 
   wrap.appendChild(inp);
@@ -972,59 +979,67 @@ function openRefEdit(cell, regId, current) {
   inp.focus();
   inp.select();
 
-  // 저장
-  const doSave = () => saveReferrer(cell, regId, inp.value.trim(), prevHTML, prevReferrer);
+  const doSave = () => saveCellField(cell, regId, field, inp.value.trim(), prevHTML, prevVal);
 
-  saveBtn.addEventListener('click', (e) => { e.stopPropagation(); doSave(); });
+  saveBtn.addEventListener('click',  (e) => { e.stopPropagation(); doSave(); });
   cancelBtn.addEventListener('click', (e) => {
     e.stopPropagation();
     cell.innerHTML = prevHTML;
-    cell.dataset.referrer = prevReferrer;
+    cell.dataset.value = prevVal;
   });
   inp.addEventListener('keydown', (e) => {
     if (e.key === 'Enter')  { e.preventDefault(); doSave(); }
-    if (e.key === 'Escape') { e.preventDefault(); cell.innerHTML = prevHTML; cell.dataset.referrer = prevReferrer; }
+    if (e.key === 'Escape') { e.preventDefault(); cell.innerHTML = prevHTML; cell.dataset.value = prevVal; }
   });
-  // 셀 바깥 클릭 시 취소
-  inp.addEventListener('blur', (e) => {
+  inp.addEventListener('blur', () => {
     setTimeout(() => {
       if (!cell.contains(document.activeElement)) {
-        if (cell.querySelector('.ref-edit-inp')) {
+        if (cell.querySelector('.edit-inp')) {
           cell.innerHTML = prevHTML;
-          cell.dataset.referrer = prevReferrer;
+          cell.dataset.value = prevVal;
         }
       }
     }, 150);
   });
 }
 
-async function saveReferrer(cell, regId, newVal, prevHTML, prevReferrer) {
+async function saveCellField(cell, regId, field, newVal, prevHTML, prevVal) {
+  // 이름/연락처는 빈값 불가
+  if ((field === 'name' || field === 'phone') && !newVal) {
+    showToast(`${FIELD_META[field].label}은(는) 비워둘 수 없습니다.`, 'err');
+    cell.innerHTML = prevHTML;
+    cell.dataset.value = prevVal;
+    return;
+  }
   try {
-    const r = await fetch(`${API}/admin/registrations/${regId}/referrer`, {
-      method: 'PUT',
+    const r = await fetch(`${API}/admin/registrations/${regId}`, {
+      method:  'PUT',
       headers: { 'Content-Type':'application/json', 'X-Admin-Token': token },
-      body: JSON.stringify({ referrer: newVal })
+      body:    JSON.stringify({ [field]: newVal }),
     });
     const d = await r.json();
     if (d.success) {
-      showToast('추천인이 변경되었습니다.', 'ok');
+      showToast(`${FIELD_META[field]?.label || field} 변경 완료`, 'ok');
       // allRegs 캐시 업데이트
       const reg = allRegs.find(x => x.id === regId);
-      if (reg) reg.referrer = newVal;
-      // 셀 즉시 업데이트
-      cell.dataset.referrer = newVal;
-      cell.innerHTML = newVal
-        ? esc(newVal)
-        : '<span style="color:var(--g400)">-</span>';
+      if (reg) reg[field] = newVal;
+      // 셀 표시 업데이트
+      cell.dataset.value = newVal;
+      const display = newVal ? esc(newVal) : '<span style="color:var(--g400)">-</span>';
+      cell.innerHTML = field === 'name'
+        ? `<strong>${display}</strong>`
+        : field === 'phone'
+          ? fmtPhone(newVal)
+          : display;
     } else {
       showToast(d.message || '저장 실패', 'err');
       cell.innerHTML = prevHTML;
-      cell.dataset.referrer = prevReferrer;
+      cell.dataset.value = prevVal;
     }
   } catch(e) {
     showToast('오류가 발생했습니다.', 'err');
     cell.innerHTML = prevHTML;
-    cell.dataset.referrer = prevReferrer;
+    cell.dataset.value = prevVal;
   }
 }
 

@@ -516,7 +516,7 @@ router.delete('/admin/registrations/:id', adminAuth, (req, res) => {
   res.json({ success:true });
 });
 
-// ── 추천인 수정 ────────────────────────────────────────────────────────────────
+// ── 추천인 수정 (하위 호환 유지) ───────────────────────────────────────────────
 router.put('/admin/registrations/:id/referrer', adminAuth, (req, res) => {
   try {
     const db = getDb();
@@ -526,6 +526,37 @@ router.put('/admin/registrations/:id/referrer', adminAuth, (req, res) => {
     if (!reg) return res.status(404).json({ success:false, message:'신청 정보를 찾을 수 없습니다.' });
     db.prepare("UPDATE registrations SET referrer=? WHERE id=?").run(referrer, id);
     res.json({ success:true, referrer });
+  } catch(e) {
+    console.error(e);
+    res.status(500).json({ success:false, message:e.message });
+  }
+});
+
+// ── 신청자 전체 필드 수정 ──────────────────────────────────────────────────────
+router.put('/admin/registrations/:id', adminAuth, (req, res) => {
+  try {
+    const db  = getDb();
+    const id  = parseInt(req.params.id);
+    const reg = db.prepare("SELECT id FROM registrations WHERE id=?").get(id);
+    if (!reg) return res.status(404).json({ success:false, message:'신청 정보를 찾을 수 없습니다.' });
+
+    const allowed = ['name', 'phone', 'organization', 'referrer'];
+    const updates = [];
+    const values  = [];
+
+    for (const field of allowed) {
+      if (req.body[field] !== undefined) {
+        updates.push(`${field}=?`);
+        values.push((req.body[field] || '').trim());
+      }
+    }
+    if (!updates.length) return res.status(400).json({ success:false, message:'수정할 필드가 없습니다.' });
+
+    values.push(id);
+    db.prepare(`UPDATE registrations SET ${updates.join(',')} WHERE id=?`).run(...values);
+
+    const updated = db.prepare("SELECT id,name,phone,organization,referrer FROM registrations WHERE id=?").get(id);
+    res.json({ success:true, data: updated });
   } catch(e) {
     console.error(e);
     res.status(500).json({ success:false, message:e.message });
