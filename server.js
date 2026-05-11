@@ -256,6 +256,9 @@ app.get('/', (req, res) => {
         const desc    = [ev.venue, dateStr ? dateStr + ' 개최' : ''].filter(Boolean).join(' | ') || '라스북 세미나에 신청하세요';
         const ogMeta = buildOgMeta({ title: ev.title, description: desc, imageUrl: posterUrl, pageUrl });
         const html = injectOgMeta(indexPath, ogMeta);
+        res.setHeader('Cache-Control', 'no-cache, no-store, must-revalidate');
+        res.setHeader('Pragma', 'no-cache');
+        res.setHeader('Expires', '0');
         return res.type('html').send(html);
       }
     } catch(e) {
@@ -271,6 +274,9 @@ app.get('/', (req, res) => {
     pageUrl: origin + '/'
   });
   const html = injectOgMeta(indexPath, defaultOg);
+  res.setHeader('Cache-Control', 'no-cache, no-store, must-revalidate');
+  res.setHeader('Pragma', 'no-cache');
+  res.setHeader('Expires', '0');
   res.type('html').send(html);
 });
 

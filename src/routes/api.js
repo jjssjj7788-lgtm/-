@@ -136,6 +136,7 @@ router.get('/public/events', (req, res) => {
     const db = getDb();
     const events = db.prepare(`
       SELECT id, title, event_date, venue, category, color, max_capacity,
+        poster_image, poster_images,
         (SELECT COUNT(*) FROM registrations r WHERE r.event_id=e.id) as current_count
       FROM events e
       WHERE e.is_active=1
@@ -286,7 +287,7 @@ router.post('/admin/events', adminAuth, (req, res) => {
     const db = getDb();
     const { title, category, event_date, venue, event_time, description, max_capacity, color,
             form_fields, form_labels, form_required, form_placeholders,
-            poster_image, poster_texts,
+            poster_image, poster_texts, poster_images,
             hero_badge, hero_title, hero_subtitle, notice_text } = req.body;
     if (!title?.trim()) return res.status(400).json({ success:false, message:'제목을 입력해주세요.' });
     if (!event_date)    return res.status(400).json({ success:false, message:'날짜를 입력해주세요.' });
@@ -294,9 +295,9 @@ router.post('/admin/events', adminAuth, (req, res) => {
     const id = db.prepare(`
       INSERT INTO events(title,category,event_date,venue,event_time,description,max_capacity,color,
         form_fields,form_labels,form_required,form_placeholders,
-        poster_image,poster_texts,
+        poster_image,poster_texts,poster_images,
         hero_badge,hero_title,hero_subtitle,notice_text)
-      VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)
+      VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)
     `).run(
       title.trim(), category||'세미나', event_date, venue||'', event_time||'', description||'',
       parseInt(max_capacity)||120, color||'#1B2B4B',
@@ -304,7 +305,7 @@ router.post('/admin/events', adminAuth, (req, res) => {
       JSON.stringify(form_labels||{}),
       JSON.stringify(form_required||["name","phone","organization"]),
       JSON.stringify(form_placeholders||{}),
-      poster_image||'', JSON.stringify(poster_texts||[]),
+      poster_image||'', JSON.stringify(poster_texts||[]), JSON.stringify(poster_images||[]),
       hero_badge||'선착순 무료 신청', hero_title||'', hero_subtitle||'', notice_text||''
     ).lastInsertRowid;
 
@@ -321,7 +322,7 @@ router.put('/admin/events/:id', adminAuth, (req, res) => {
     const id = parseInt(req.params.id);
     const { title, category, event_date, venue, event_time, description, max_capacity, color, is_active,
             form_fields, form_labels, form_required, form_placeholders,
-            poster_image, poster_texts,
+            poster_image, poster_texts, poster_images,
             hero_badge, hero_title, hero_subtitle, notice_text } = req.body;
 
     // 정원 축소 방지
@@ -340,6 +341,7 @@ router.put('/admin/events/:id', adminAuth, (req, res) => {
       form_fields=COALESCE(?,form_fields), form_labels=COALESCE(?,form_labels),
       form_required=COALESCE(?,form_required), form_placeholders=COALESCE(?,form_placeholders),
       poster_image=COALESCE(?,poster_image), poster_texts=COALESCE(?,poster_texts),
+      poster_images=COALESCE(?,poster_images),
       hero_badge=COALESCE(?,hero_badge), hero_title=COALESCE(?,hero_title),
       hero_subtitle=COALESCE(?,hero_subtitle), notice_text=COALESCE(?,notice_text)
       WHERE id=?
@@ -355,6 +357,7 @@ router.put('/admin/events/:id', adminAuth, (req, res) => {
       form_placeholders?JSON.stringify(form_placeholders):null,
       poster_image!==undefined?poster_image:null,
       poster_texts?JSON.stringify(poster_texts):null,
+      poster_images!==undefined?JSON.stringify(poster_images):null,
       hero_badge??null, hero_title??null, hero_subtitle??null, notice_text??null,
       id
     );

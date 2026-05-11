@@ -43,8 +43,9 @@ function initSchema() {
     form_required TEXT   NOT NULL DEFAULT '["name","phone","organization"]',
     form_placeholders TEXT NOT NULL DEFAULT '{}',    -- {"name":"홍길동","phone":"010-1234-5678",...}
     -- 포스터
-    poster_image TEXT    NOT NULL DEFAULT '',        -- 이벤트 포스터 이미지 URL
-    poster_texts TEXT    NOT NULL DEFAULT '[]',      -- 텍스트 오버레이 JSON 배열
+    poster_image  TEXT   NOT NULL DEFAULT '',        -- 이벤트 포스터 이미지 URL (단일, 레거시)
+    poster_texts  TEXT   NOT NULL DEFAULT '[]',      -- 텍스트 오버레이 JSON 배열
+    poster_images TEXT   NOT NULL DEFAULT '[]',      -- 다중 포스터 이미지 URL 배열 (JSON)
     -- 안내 문구
     hero_badge   TEXT    NOT NULL DEFAULT '선착순 무료 신청',
     hero_title   TEXT    NOT NULL DEFAULT '',        -- 비면 title 사용
@@ -151,6 +152,9 @@ function initSchema() {
     }
     if (!evCols.includes('event_time')) {
       d.exec("ALTER TABLE events ADD COLUMN event_time TEXT NOT NULL DEFAULT ''");
+    }
+    if (!evCols.includes('poster_images')) {
+      d.exec("ALTER TABLE events ADD COLUMN poster_images TEXT NOT NULL DEFAULT '[]'");
     }
   } catch(e) { /* column migration optional */ }
 

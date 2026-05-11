@@ -335,7 +335,50 @@
 
       <!-- ═══════════════ POSTER TAB ═══════════════ -->
       <div id="tab-poster" style="display:none;">
-        <div class="pg-header"><h2>🖼️ 포스터 관리</h2><p>이미지를 업로드하고 원하는 이벤트에 포스터를 설정하세요</p></div>
+        <div class="pg-header"><h2>🖼️ 포스터 관리</h2><p>이미지를 업로드하고 이벤트에 여러 장의 포스터를 설정하세요 (최대 20장)</p></div>
+
+        <!-- ③ 이벤트 다중 포스터 관리 카드 -->
+        <div class="card" id="multi-poster-card">
+          <div class="card-head">
+            <div class="card-head-left"><div class="card-icon">🗂️</div><div><h3>이벤트 포스터 슬라이드 관리</h3><p>이벤트를 선택하고 포스터를 여러 장 추가하세요. 신청 페이지에서 슬라이더로 표시됩니다</p></div></div>
+          </div>
+          <div class="card-body">
+            <div style="display:flex;align-items:center;gap:12px;margin-bottom:16px;padding:12px 14px;background:var(--g50);border-radius:10px;border:1.5px solid var(--g200);">
+              <div style="font-size:20px;">📌</div>
+              <div style="flex:1;">
+                <div style="font-size:11px;font-weight:700;color:var(--g600);margin-bottom:4px;">포스터를 관리할 이벤트</div>
+                <select class="fi" id="multi-poster-event-select" onchange="loadEventPosters()" style="margin-bottom:0;">
+                  <option value="">-- 이벤트 선택 --</option>
+                </select>
+              </div>
+            </div>
+
+            <!-- 현재 등록된 포스터 목록 -->
+            <div id="multi-poster-list-wrap" style="display:none;">
+              <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;">
+                <div style="font-size:13px;font-weight:700;color:var(--navy);">📋 현재 포스터 목록 <span id="multi-poster-count" style="font-size:11px;color:var(--g400);font-weight:400;"></span></div>
+                <button class="btn btn-primary btn-sm" onclick="document.getElementById('multi-poster-add-file').click()">＋ 포스터 추가</button>
+                <input type="file" id="multi-poster-add-file" accept="image/*" multiple style="display:none;" onchange="addPostersToEvent(this)"/>
+              </div>
+              <!-- 포스터 드래그 정렬 그리드 -->
+              <div id="multi-poster-grid" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(140px,1fr));gap:10px;min-height:60px;padding:8px;border:2px dashed var(--g200);border-radius:10px;background:var(--g50);">
+                <!-- filled by JS -->
+              </div>
+              <p style="font-size:11px;color:var(--g400);margin-top:6px;">* 포스터를 드래그하여 순서를 변경할 수 있습니다. 신청 페이지에서 이 순서대로 표시됩니다.</p>
+
+              <!-- 저장 버튼 -->
+              <div style="margin-top:12px;display:flex;gap:8px;justify-content:flex-end;">
+                <button class="btn btn-outline btn-sm" onclick="loadEventPosters()">↩️ 초기화</button>
+                <button class="btn btn-gold btn-sm" onclick="saveEventPosters()">💾 순서 저장</button>
+              </div>
+            </div>
+
+            <div id="multi-poster-empty" style="text-align:center;padding:30px;color:var(--g400);font-size:13px;display:none;">
+              <div style="font-size:36px;margin-bottom:8px;">🖼️</div>
+              <p>이벤트를 선택하면 포스터를 관리할 수 있습니다</p>
+            </div>
+          </div>
+        </div>
 
         <!-- ① Image Library Card -->
         <div class="card" id="pe-lib-card">
@@ -1571,6 +1614,134 @@ function fillPosterEventSelect() {
   sel.innerHTML = '<option value="">-- 이벤트 선택 --</option>' +
     allEvents.map(e=>`<option value="${e.id}">${e.title} (${formatDate(e.event_date)})</option>`).join('');
   genQRPreview();
+
+  // 다중 포스터 이벤트 선택도 같이 채우기
+  const sel2 = document.getElementById('multi-poster-event-select');
+  if (sel2) {
+    sel2.innerHTML = '<option value="">-- 이벤트 선택 --</option>' +
+      allEvents.map(e=>`<option value="${e.id}">${e.title} (${formatDate(e.event_date)})</option>`).join('');
+  }
+}
+
+// ── 다중 포스터 관리 ──────────────────────────────────────────────────────────
+let currentPosterList = []; // 현재 편집 중인 포스터 URL 배열
+let dragSrcIdx = null;      // 드래그 소스 인덱스
+
+async function loadEventPosters() {
+  const evId = document.getElementById('multi-poster-event-select').value;
+  const wrap  = document.getElementById('multi-poster-list-wrap');
+  const empty = document.getElementById('multi-poster-empty');
+  if (!evId) {
+    wrap.style.display  = 'none';
+    empty.style.display = 'block';
+    return;
+  }
+  empty.style.display = 'none';
+  wrap.style.display  = 'block';
+  try {
+    const r = await fetch(`${API}/admin/events/${evId}`, { headers:{'X-Admin-Token':token} });
+    const d = await r.json();
+    if (!d.success) { showToast('이벤트 정보를 불러올 수 없습니다.','err'); return; }
+    const ev = d.data;
+    // poster_images 우선, 없으면 poster_image 단일 이미지를 배열로
+    let imgs = [];
+    try { imgs = JSON.parse(ev.poster_images || '[]'); } catch(e) { imgs = []; }
+    if (imgs.length === 0 && ev.poster_image) imgs = [ev.poster_image];
+    currentPosterList = imgs.slice();
+    renderPosterGrid();
+  } catch(e) { showToast('불러오기 오류: '+e.message,'err'); }
+}
+
+function renderPosterGrid() {
+  const grid = document.getElementById('multi-poster-grid');
+  const cnt  = document.getElementById('multi-poster-count');
+  cnt.textContent = `(${currentPosterList.length}장)`;
+  if (currentPosterList.length === 0) {
+    grid.innerHTML = `<div style="grid-column:1/-1;text-align:center;padding:24px;color:var(--g400);font-size:13px;">
+      <div style="font-size:32px;margin-bottom:6px;">➕</div>
+      <p>포스터 추가 버튼을 눌러 이미지를 추가하세요</p>
+      <p style="font-size:11px;margin-top:4px;">최소 6장 권장</p>
+    </div>`;
+    return;
+  }
+  grid.innerHTML = currentPosterList.map((url, i) => `
+    <div class="mp-item" draggable="true" data-idx="${i}"
+         ondragstart="mpDragStart(event,${i})" ondragover="mpDragOver(event)" ondrop="mpDrop(event,${i})"
+         ondragend="mpDragEnd(event)"
+         style="position:relative;border-radius:8px;overflow:hidden;border:2px solid var(--g200);background:#fff;cursor:grab;aspect-ratio:3/4;">
+      <img src="${url}" style="width:100%;height:100%;object-fit:cover;" loading="lazy" onerror="this.src='/images/1.jpg'"/>
+      <div style="position:absolute;top:4px;left:4px;background:rgba(0,0,0,.55);color:#fff;font-size:10px;font-weight:700;padding:2px 6px;border-radius:6px;">${i+1}</div>
+      <button onclick="removePoster(${i})" style="position:absolute;top:4px;right:4px;background:rgba(229,62,62,.85);color:#fff;border:none;border-radius:6px;width:22px;height:22px;cursor:pointer;font-size:13px;line-height:1;display:flex;align-items:center;justify-content:center;">✕</button>
+    </div>
+  `).join('');
+}
+
+function removePoster(idx) {
+  currentPosterList.splice(idx, 1);
+  renderPosterGrid();
+}
+
+function mpDragStart(e, idx) {
+  dragSrcIdx = idx;
+  e.dataTransfer.effectAllowed = 'move';
+  e.currentTarget.style.opacity = '0.4';
+}
+function mpDragOver(e) {
+  e.preventDefault();
+  e.dataTransfer.dropEffect = 'move';
+}
+function mpDrop(e, toIdx) {
+  e.preventDefault();
+  if (dragSrcIdx === null || dragSrcIdx === toIdx) return;
+  const moved = currentPosterList.splice(dragSrcIdx, 1)[0];
+  currentPosterList.splice(toIdx, 0, moved);
+  dragSrcIdx = null;
+  renderPosterGrid();
+}
+function mpDragEnd(e) {
+  e.currentTarget.style.opacity = '';
+  dragSrcIdx = null;
+  renderPosterGrid();
+}
+
+async function addPostersToEvent(input) {
+  const files = Array.from(input.files);
+  if (!files.length) return;
+  showToast('⏳ 이미지 업로드 중...','ok');
+  for (const f of files) {
+    const fd = new FormData();
+    fd.append('poster', f);
+    try {
+      const r = await fetch('/api/upload-poster', { method:'POST', headers:{'X-Admin-Token':token}, body:fd });
+      const d = await r.json();
+      if (d.success && d.url) {
+        currentPosterList.push(d.url);
+      } else { showToast('업로드 실패: '+(d.message||'알 수 없는 오류'),'err'); }
+    } catch(e) { showToast('업로드 오류: '+e.message,'err'); }
+  }
+  input.value = '';
+  renderPosterGrid();
+  showToast(`✅ ${files.length}장 추가 완료 (총 ${currentPosterList.length}장)`, 'ok');
+}
+
+async function saveEventPosters() {
+  const evId = document.getElementById('multi-poster-event-select').value;
+  if (!evId) { showToast('이벤트를 선택해주세요.','err'); return; }
+  try {
+    // poster_images 배열 저장 + poster_image는 첫 번째 이미지로 호환성 유지
+    const body = {
+      poster_images: currentPosterList,
+      poster_image: currentPosterList[0] || ''
+    };
+    const r = await fetch(`${API}/admin/events/${evId}`, {
+      method:'PUT',
+      headers:{'Content-Type':'application/json','X-Admin-Token':token},
+      body: JSON.stringify(body)
+    });
+    const d = await r.json();
+    if (d.success) showToast(`✅ ${currentPosterList.length}장의 포스터가 저장되었습니다!`, 'ok');
+    else showToast('저장 실패: '+d.message,'err');
+  } catch(e) { showToast('저장 오류: '+e.message,'err'); }
 }
 
 function onPosterEventChange() {

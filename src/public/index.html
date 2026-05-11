@@ -90,6 +90,15 @@
       background: linear-gradient(135deg, var(--gold-dark), var(--gold));
       color: var(--navy); border-color: transparent;
     }
+    .cat-btn-ended {
+      border-color: rgba(100,100,100,.4);
+      color: rgba(255,255,255,.45);
+    }
+    .cat-btn-ended.active {
+      background: rgba(100,100,100,.25);
+      color: rgba(255,255,255,.7);
+      border-color: rgba(150,150,150,.4);
+    }
 
     /* Event cards */
     .ev-cards { padding: 0 16px 32px; display: flex; flex-direction: column; gap: 12px; }
@@ -120,11 +129,7 @@
     .ev-card-meta { display: flex; flex-direction: column; gap: 5px; }
     .ev-meta-row { display: flex; align-items: center; gap: 8px; font-size: 12px; color: rgba(255,255,255,.65); }
     .ev-meta-icon { width: 16px; text-align: center; font-size: 12px; }
-    .ev-capacity-bar { margin-top: 12px; }
-    .ev-cap-row { display: flex; justify-content: space-between; font-size: 11px; color: rgba(255,255,255,.5); margin-bottom: 5px; }
-    .ev-cap-row strong { color: rgba(255,255,255,.75); }
-    .ev-cap-bg { height: 5px; background: rgba(255,255,255,.1); border-radius: 3px; overflow: hidden; }
-    .ev-cap-fill { height: 100%; background: linear-gradient(90deg, var(--gold-dark), var(--gold-light)); border-radius: 3px; transition: width .6s ease; }
+
 
     .ev-empty { text-align: center; padding: 60px 24px; color: rgba(255,255,255,.5); }
     .ev-empty .ei { font-size: 48px; margin-bottom: 12px; }
@@ -143,25 +148,88 @@
     }
     .back-btn:hover { color: #fff; }
 
-    /* 포스터 이미지 섹션 */
+    /* 포스터 슬라이더 섹션 */
     .poster-section {
       display: none;
       width: 100%;
       position: relative;
+      overflow: hidden;
+      touch-action: pan-y;
     }
-    .poster-section img {
+    .poster-slider-track {
+      display: flex;
+      will-change: transform;
+      transition: transform 0.45s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+    }
+    .poster-slider-track.no-transition {
+      transition: none !important;
+    }
+    .poster-slide {
+      min-width: 100%;
+      flex-shrink: 0;
+      position: relative;
+    }
+    .poster-slide img {
       width: 100%;
       display: block;
       height: auto;
+      max-height: 80vh;
+      object-fit: contain;
+      background: var(--navy);
     }
     .poster-section::after {
       content: '';
       position: absolute;
       left: 0; right: 0; bottom: 0;
-      height: 140px;
+      height: 100px;
       background: linear-gradient(to bottom, transparent, var(--navy));
       pointer-events: none;
+      z-index: 2;
     }
+    /* 슬라이더 인디케이터 */
+    .slider-dots {
+      position: absolute;
+      bottom: 12px;
+      left: 50%;
+      transform: translateX(-50%);
+      display: flex;
+      gap: 6px;
+      z-index: 3;
+    }
+    .slider-dot {
+      width: 6px; height: 6px;
+      border-radius: 50%;
+      background: rgba(255,255,255,0.4);
+      transition: all 0.3s;
+      cursor: pointer;
+    }
+    .slider-dot.active {
+      background: var(--gold);
+      width: 18px;
+      border-radius: 3px;
+    }
+    /* 슬라이더 화살표 (태블릿/PC) */
+    .slider-arrow {
+      display: none;
+      position: absolute;
+      top: 50%;
+      transform: translateY(-50%);
+      z-index: 4;
+      background: rgba(0,0,0,0.45);
+      color: #fff;
+      border: none;
+      border-radius: 50%;
+      width: 38px; height: 38px;
+      font-size: 18px;
+      cursor: pointer;
+      align-items: center;
+      justify-content: center;
+      transition: background 0.2s;
+    }
+    .slider-arrow:hover { background: rgba(0,0,0,0.7); }
+    .slider-arrow-prev { left: 10px; }
+    .slider-arrow-next { right: 10px; }
+    @media (min-width: 500px) { .slider-arrow { display: flex; } }
 
     /* Hero */
     .hero {
@@ -206,15 +274,6 @@
     }
     .info-card-label { font-size: 10px; color: var(--gold); font-weight: 600; letter-spacing: 1px; margin-bottom: 2px; }
     .info-card-value { font-size: 13px; font-weight: 600; color: var(--white); line-height: 1.4; }
-
-    /* Capacity */
-    .capacity-section { margin: 16px 0 0; }
-    .capacity-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px; }
-    .capacity-label { font-size: 12px; color: rgba(255,255,255,.65); }
-    .capacity-count { font-size: 14px; font-weight: 700; color: var(--gold-light); }
-    .capacity-bar-bg { height: 8px; background: rgba(255,255,255,.12); border-radius: 4px; overflow: hidden; }
-    .capacity-bar-fill { height: 100%; background: linear-gradient(90deg, var(--gold-dark), var(--gold-light)); border-radius: 4px; transition: width .8s ease; }
-    .capacity-remaining { font-size: 12px; color: rgba(255,255,255,.5); margin-top: 5px; text-align: right; }
 
     /* Share Section */
     .share-section {
@@ -408,6 +467,7 @@
     <button class="cat-btn" onclick="filterCat('직무연수',this)">직무연수</button>
     <button class="cat-btn" onclick="filterCat('교육',this)">교육</button>
     <button class="cat-btn" onclick="filterCat('기타',this)">기타</button>
+    <button class="cat-btn cat-btn-ended" onclick="filterCat('__ended__',this)">종료된 이벤트</button>
   </div>
 
   <div class="ev-cards" id="ev-cards">
@@ -423,9 +483,14 @@
     목록으로
   </button>
 
-  <!-- 포스터 이미지 (있을 때만 표시) -->
+  <!-- 포스터 슬라이더 (있을 때만 표시) -->
   <div class="poster-section" id="poster-section">
-    <img id="poster-img" src="" alt="이벤트 포스터" />
+    <div class="poster-slider-track" id="poster-track">
+      <!-- slides injected by JS -->
+    </div>
+    <button class="slider-arrow slider-arrow-prev" id="slider-prev" onclick="sliderMove(-1)">&#8249;</button>
+    <button class="slider-arrow slider-arrow-next" id="slider-next" onclick="sliderMove(1)">&#8250;</button>
+    <div class="slider-dots" id="slider-dots"></div>
   </div>
 
   <!-- Hero -->
@@ -437,16 +502,7 @@
 
     <div class="info-cards" id="info-cards"></div>
 
-    <div class="capacity-section">
-      <div class="capacity-header">
-        <span class="capacity-label">신청 현황</span>
-        <span class="capacity-count" id="cap-count">0/0</span>
-      </div>
-      <div class="capacity-bar-bg">
-        <div class="capacity-bar-fill" id="cap-bar" style="width:0%"></div>
-      </div>
-      <p class="capacity-remaining" id="cap-remaining">남은 자리: --명</p>
-    </div>
+
   </div>
 
   <!-- Share Section -->
@@ -533,39 +589,60 @@ function showEventList() {
   document.getElementById('ev-list-view').style.display   = 'block';
   document.getElementById('reg-view').style.display       = 'none';
 
+  const _td = new Date();
+  const today = `${_td.getFullYear()}-${String(_td.getMonth()+1).padStart(2,'0')}-${String(_td.getDate()).padStart(2,'0')}`;
+  // 진행중 이벤트만 카운트
+  const activeEvs = allEvents.filter(e => e.event_date >= today);
   const subEl = document.getElementById('ev-hero-sub');
-  subEl.textContent = allEvents.length > 0
-    ? `현재 ${allEvents.length}개의 프로그램이 신청 가능합니다`
+  subEl.textContent = activeEvs.length > 0
+    ? `현재 ${activeEvs.length}개의 프로그램이 신청 가능합니다`
     : '현재 신청 가능한 프로그램이 없습니다';
 
-  renderEventCards(allEvents);
+  // 종료 탭이 선택되었으면 유지, 아니면 전체(진행중만) 보여주기
+  if (currentCat !== '__ended__') renderEventCards(allEvents);
+  else renderEventCards(allEvents, '__ended__');
 }
 
 function filterCat(cat, el) {
   currentCat = cat;
   document.querySelectorAll('.cat-btn').forEach(b => b.classList.remove('active'));
   el.classList.add('active');
-  renderEventCards(cat ? allEvents.filter(e => e.category === cat) : allEvents);
+  if (cat === '__ended__') {
+    renderEventCards(allEvents, '__ended__');
+  } else {
+    renderEventCards(cat ? allEvents.filter(e => e.category === cat) : allEvents);
+  }
 }
 
-function renderEventCards(evs) {
+function renderEventCards(evs, mode) {
   const el = document.getElementById('ev-cards');
-  if (!evs.length) {
-    el.innerHTML = `<div class="ev-empty"><div class="ei">📋</div><p>해당 카테고리의 프로그램이 없습니다</p></div>`;
+  const _td = new Date();
+  const today = `${_td.getFullYear()}-${String(_td.getMonth()+1).padStart(2,'0')}-${String(_td.getDate()).padStart(2,'0')}`;
+
+  // mode === '__ended__': 종료된 이벤트만
+  // mode 없음: 진행중(오늘 포함) 이벤트만
+  let filtered;
+  if (mode === '__ended__') {
+    filtered = evs.filter(e => e.event_date < today);
+  } else {
+    filtered = evs.filter(e => e.event_date >= today);
+  }
+
+  if (!filtered.length) {
+    const msg = mode === '__ended__' ? '종료된 이벤트가 없습니다' : '해당 카테고리의 프로그램이 없습니다';
+    el.innerHTML = `<div class="ev-empty"><div class="ei">📋</div><p>${msg}</p></div>`;
     return;
   }
-  const _td = new Date(); const today = `${_td.getFullYear()}-${String(_td.getMonth()+1).padStart(2,'0')}-${String(_td.getDate()).padStart(2,'0')}`;
-  el.innerHTML = evs.map(ev => {
-    const pct    = ev.max_capacity > 0 ? Math.round((ev.current_count / ev.max_capacity) * 100) : 0;
+
+  el.innerHTML = filtered.map(ev => {
     const isFull = ev.current_count >= ev.max_capacity;
     const isPast = ev.event_date < today;
     return `
-      <div class="ev-card" style="--ev-color:${ev.color||'#C9A84C'}" onclick="openEventById(${ev.id})">
+      <div class="ev-card" style="--ev-color:${ev.color||'#C9A84C'}${isPast ? ';opacity:0.75' : ''}" onclick="openEventById(${ev.id})">
         <div class="ev-card-top">
           <div class="ev-card-badges">
             <span class="badge-cat">${ev.category}</span>
-            ${isFull ? '<span class="badge-full">마감</span>' : '<span class="badge-open">신청중</span>'}
-            ${isPast ? '<span class="badge-cat" style="background:rgba(100,100,100,.3);">종료</span>' : ''}
+            ${isPast ? '<span class="badge-cat" style="background:rgba(100,100,100,.35);color:rgba(255,255,255,.6);">종료</span>' : (isFull ? '<span class="badge-full">마감</span>' : '<span class="badge-open">신청중</span>')}
           </div>
           <span class="ev-card-arrow">›</span>
         </div>
@@ -574,13 +651,7 @@ function renderEventCards(evs) {
           <div class="ev-meta-row"><span class="ev-meta-icon">📅</span>${formatDate(ev.event_date)}</div>
           ${ev.venue ? `<div class="ev-meta-row"><span class="ev-meta-icon">📍</span>${esc(ev.venue)}</div>` : ''}
         </div>
-        <div class="ev-capacity-bar">
-          <div class="ev-cap-row">
-            <span>신청 현황</span>
-            <strong>${ev.current_count}/${ev.max_capacity}명</strong>
-          </div>
-          <div class="ev-cap-bg"><div class="ev-cap-fill" style="width:${Math.min(100,pct)}%"></div></div>
-        </div>
+
       </div>`;
   }).join('');
 }
@@ -611,11 +682,17 @@ async function openEvent(ev) {
 
 function goBack() {
   currentEvent = null;
+  clearInterval(sliderAutoTimer);
   history.pushState({}, '', '/');
   loadEvents().then(() => {
     showEventList();
     if (currentCat) {
-      const btn = document.querySelector(`.cat-btn[onclick*="'${currentCat}'"]`);
+      let btn;
+      if (currentCat === '__ended__') {
+        btn = document.querySelector('.cat-btn-ended');
+      } else {
+        btn = document.querySelector(`.cat-btn[onclick*="'${currentCat}'"]`);
+      }
       if (btn) filterCat(currentCat, btn);
     }
   });
@@ -624,19 +701,202 @@ window.onpopstate = function(e) {
   if (!e.state?.eventId) { currentEvent = null; loadEvents().then(showEventList); }
 };
 
+// ── Poster Slider ──────────────────────────────────────────────────────────────
+let sliderImages  = [];   // 실제 이미지 URL 배열
+let sliderCurrent = 0;    // 현재 슬라이드 인덱스 (클론 제외, 1부터 시작)
+let sliderTotal   = 0;    // 실제 슬라이드 수
+let sliderAnimating = false;
+let sliderAutoTimer = null;
+
+// 터치/드래그 상태
+let sliderTouchStart = 0;
+let sliderTouchDiff  = 0;
+let sliderDragging   = false;
+
+function initSlider(images) {
+  sliderImages = images;
+  sliderTotal  = images.length;
+  sliderCurrent = 1; // 클론 슬라이드 1개 앞에 배치하므로 index 1이 첫 번째 실제 슬라이드
+  sliderAnimating = false;
+  clearInterval(sliderAutoTimer);
+
+  const track  = document.getElementById('poster-track');
+  const dots   = document.getElementById('slider-dots');
+  const sec    = document.getElementById('poster-section');
+
+  if (!images.length) {
+    sec.style.display = 'none';
+    document.getElementById('reg-hero').classList.add('no-poster');
+    return;
+  }
+
+  sec.style.display = 'block';
+  document.getElementById('reg-hero').classList.remove('no-poster');
+
+  // 무한 루프를 위해 앞뒤에 클론 추가
+  // [마지막 클론, 1, 2, ..., N, 첫번째 클론]
+  const allSlides = [images[images.length - 1], ...images, images[0]];
+  track.innerHTML = allSlides.map((url, i) => `
+    <div class="poster-slide">
+      <img src="${url}" alt="포스터 ${i}" loading="${i === 1 ? 'eager' : 'lazy'}" onerror="this.src='/images/1.jpg'"/>
+    </div>
+  `).join('');
+
+  // 초기 위치 (클론 없이 첫 번째 실제 슬라이드)
+  track.classList.add('no-transition');
+  track.style.transform = `translateX(-${sliderCurrent * 100}%)`;
+  setTimeout(() => track.classList.remove('no-transition'), 50);
+
+  // 인디케이터
+  if (images.length > 1) {
+    dots.innerHTML = images.map((_, i) =>
+      `<div class="slider-dot ${i === 0 ? 'active' : ''}" onclick="sliderGoTo(${i + 1})"></div>`
+    ).join('');
+  } else {
+    dots.innerHTML = '';
+  }
+
+  // 화살표 표시
+  document.getElementById('slider-prev').style.display = images.length > 1 ? 'flex' : 'none';
+  document.getElementById('slider-next').style.display = images.length > 1 ? 'flex' : 'none';
+
+  // 자동 슬라이드 (3장 이상일 때)
+  if (images.length >= 2) {
+    sliderAutoTimer = setInterval(() => sliderMove(1), 4000);
+  }
+
+  // 터치/드래그 이벤트
+  track.addEventListener('touchstart',  sliderTouchStartFn, { passive: true });
+  track.addEventListener('touchmove',   sliderTouchMoveFn,  { passive: true });
+  track.addEventListener('touchend',    sliderTouchEndFn);
+  track.addEventListener('mousedown',   sliderMouseDownFn);
+  track.addEventListener('mousemove',   sliderMouseMoveFn);
+  track.addEventListener('mouseup',     sliderMouseUpFn);
+  track.addEventListener('mouseleave',  sliderMouseUpFn);
+
+  // 트랜지션 끝 이벤트 (무한 루프 처리)
+  track.addEventListener('transitionend', sliderTransitionEnd);
+}
+
+function sliderTransitionEnd() {
+  const track = document.getElementById('poster-track');
+  // 마지막 클론에서 실제 마지막으로
+  if (sliderCurrent === sliderTotal + 1) {
+    sliderCurrent = 1;
+    track.classList.add('no-transition');
+    track.style.transform = `translateX(-${sliderCurrent * 100}%)`;
+    setTimeout(() => track.classList.remove('no-transition'), 30);
+  }
+  // 첫 번째 클론에서 실제 첫 번째로
+  if (sliderCurrent === 0) {
+    sliderCurrent = sliderTotal;
+    track.classList.add('no-transition');
+    track.style.transform = `translateX(-${sliderCurrent * 100}%)`;
+    setTimeout(() => track.classList.remove('no-transition'), 30);
+  }
+  sliderAnimating = false;
+  updateSliderDots();
+}
+
+function sliderMove(dir) {
+  if (sliderAnimating || sliderTotal <= 1) return;
+  sliderAnimating = true;
+  clearInterval(sliderAutoTimer);
+  sliderCurrent += dir;
+  const track = document.getElementById('poster-track');
+  track.classList.remove('no-transition');
+  track.style.transform = `translateX(-${sliderCurrent * 100}%)`;
+  updateSliderDots();
+  // 자동 재시작
+  sliderAutoTimer = setInterval(() => sliderMove(1), 4000);
+}
+
+function sliderGoTo(realIdx) {
+  if (sliderAnimating) return;
+  sliderAnimating = true;
+  sliderCurrent = realIdx;
+  const track = document.getElementById('poster-track');
+  track.classList.remove('no-transition');
+  track.style.transform = `translateX(-${sliderCurrent * 100}%)`;
+  updateSliderDots();
+}
+
+function updateSliderDots() {
+  const realIdx = ((sliderCurrent - 1 + sliderTotal) % sliderTotal);
+  document.querySelectorAll('.slider-dot').forEach((d, i) => {
+    d.classList.toggle('active', i === realIdx);
+  });
+}
+
+function sliderTouchStartFn(e) {
+  sliderTouchStart = e.touches[0].clientX;
+  sliderTouchDiff  = 0;
+  sliderDragging   = true;
+  clearInterval(sliderAutoTimer);
+}
+function sliderTouchMoveFn(e) {
+  if (!sliderDragging) return;
+  sliderTouchDiff = e.touches[0].clientX - sliderTouchStart;
+  const track = document.getElementById('poster-track');
+  track.classList.add('no-transition');
+  track.style.transform = `translateX(calc(-${sliderCurrent * 100}% + ${sliderTouchDiff}px))`;
+}
+function sliderTouchEndFn() {
+  sliderDragging = false;
+  const track = document.getElementById('poster-track');
+  track.classList.remove('no-transition');
+  if (Math.abs(sliderTouchDiff) > 50) {
+    sliderMove(sliderTouchDiff < 0 ? 1 : -1);
+  } else {
+    track.style.transform = `translateX(-${sliderCurrent * 100}%)`;
+    sliderAutoTimer = setInterval(() => sliderMove(1), 4000);
+  }
+  sliderTouchDiff = 0;
+}
+function sliderMouseDownFn(e) {
+  sliderTouchStart = e.clientX;
+  sliderTouchDiff  = 0;
+  sliderDragging   = true;
+  clearInterval(sliderAutoTimer);
+  e.preventDefault();
+}
+function sliderMouseMoveFn(e) {
+  if (!sliderDragging) return;
+  sliderTouchDiff = e.clientX - sliderTouchStart;
+  const track = document.getElementById('poster-track');
+  track.classList.add('no-transition');
+  track.style.transform = `translateX(calc(-${sliderCurrent * 100}% + ${sliderTouchDiff}px))`;
+}
+function sliderMouseUpFn(e) {
+  if (!sliderDragging) return;
+  sliderDragging = false;
+  const track = document.getElementById('poster-track');
+  track.classList.remove('no-transition');
+  if (Math.abs(sliderTouchDiff) > 60) {
+    sliderMove(sliderTouchDiff < 0 ? 1 : -1);
+  } else {
+    track.style.transform = `translateX(-${sliderCurrent * 100}%)`;
+    sliderAutoTimer = setInterval(() => sliderMove(1), 4000);
+  }
+  sliderTouchDiff = 0;
+}
+
 // ── Render Registration View ──────────────────────────────────────────────────
 function renderRegView(ev) {
-  // 포스터 이미지
-  const posterSec = document.getElementById('poster-section');
-  const posterImg = document.getElementById('poster-img');
-  if (ev.poster_image && ev.poster_image.trim()) {
-    posterImg.src = ev.poster_image;
-    posterSec.style.display = 'block';
-    document.getElementById('reg-hero').classList.remove('no-poster');
-  } else {
-    posterSec.style.display = 'none';
-    document.getElementById('reg-hero').classList.add('no-poster');
+  // 포스터 슬라이더 초기화
+  clearInterval(sliderAutoTimer);
+  const track = document.getElementById('poster-track');
+  // 기존 이벤트 리스너 제거를 위해 track을 교체
+  const newTrack = track.cloneNode(false);
+  track.parentNode.replaceChild(newTrack, track);
+
+  // poster_images(다중) 우선, 없으면 poster_image(단일) 폴백
+  let posterImgs = [];
+  try { posterImgs = JSON.parse(ev.poster_images || '[]'); } catch(e) { posterImgs = []; }
+  if (posterImgs.length === 0 && ev.poster_image && ev.poster_image.trim()) {
+    posterImgs = [ev.poster_image];
   }
+  initSlider(posterImgs);
 
   // Hero
   document.getElementById('hero-badge').textContent = ev.hero_badge || '선착순 무료 신청';
@@ -653,12 +913,6 @@ function renderRegView(ev) {
   if (ev.event_date) rows.push(`<div class="info-card"><div class="info-card-icon">📅</div><div><div class="info-card-label">DATE</div><div class="info-card-value">${formatDate(ev.event_date)}</div></div></div>`);
   if (ev.venue)      rows.push(`<div class="info-card"><div class="info-card-icon">📍</div><div><div class="info-card-label">VENUE</div><div class="info-card-value">${esc(ev.venue)}</div></div></div>`);
   cards.innerHTML = rows.join('');
-
-  // Capacity
-  const pct = ev.max_capacity > 0 ? Math.round((ev.current_count / ev.max_capacity) * 100) : 0;
-  document.getElementById('cap-count').textContent     = `${ev.current_count}/${ev.max_capacity}`;
-  document.getElementById('cap-bar').style.width       = Math.min(100, pct) + '%';
-  document.getElementById('cap-remaining').textContent = `남은 자리: ${Math.max(0, ev.max_capacity - ev.current_count)}명`;
 
   // Share URL (ref 파라미터가 있으면 포함하여 추천인 고정 링크 유지)
   shareUrl = location.origin + '/?event=' + ev.id + (urlReferrer ? '&ref=' + encodeURIComponent(urlReferrer) : '');
@@ -683,10 +937,10 @@ function renderRegView(ev) {
 
 // ── Dynamic Form Builder ──────────────────────────────────────────────────────
 const FIELD_DEFAULTS = {
-  name:         { label: '이름',   placeholder: '홍길동',              type: 'text', inputmode: 'text' },
-  phone:        { label: '연락처', placeholder: '010-1234-5678',        type: 'tel',  inputmode: 'tel'  },
-  organization: { label: '소속',   placeholder: '○○초등학교 / ○○회사', type: 'text', inputmode: 'text' },
-  referrer:     { label: '추천인', placeholder: '추천인 성함 (선택)',    type: 'text', inputmode: 'text' },
+  name:         { label: '이름',   placeholder: '홍길동',              type: 'text' },
+  phone:        { label: '연락처', placeholder: '010-1234-5678',        type: 'text' },
+  organization: { label: '소속',   placeholder: '○○초등학교 / ○○회사', type: 'text' },
+  referrer:     { label: '추천인', placeholder: '추천인 성함 (선택)',    type: 'text' },
 };
 
 function buildForm(ev) {
@@ -708,33 +962,48 @@ function buildForm(ev) {
     const group = document.createElement('div');
     group.className = 'form-group';
     group.id = `fg-${key}`;
-    group.innerHTML = `
-      <label class="form-label" for="f-${key}">${esc(lbl)}${isReq ? '<span class="required">*</span>' : `<span class="optional-badge">선택</span>`}</label>
-      ${refLocked
-        ? `<div style="padding:12px 16px;background:linear-gradient(135deg,rgba(56,161,105,.08),rgba(56,161,105,.04));border:1.5px solid rgba(56,161,105,.3);border-radius:12px;display:flex;align-items:center;gap:8px;">
-             <span style="font-size:16px;">👤</span>
-             <span style="font-size:14px;font-weight:700;color:var(--navy);">${esc(urlReferrer)}</span>
-             <span style="font-size:11px;color:var(--green);margin-left:auto;">자동 입력됨</span>
-           </div>
-           <input type="hidden" id="f-${key}" value="${esc(urlReferrer)}">`
-        : `<input type="${def.type}" id="f-${key}" class="form-input" placeholder="${esc(ph)}" inputmode="${def.inputmode}" autocomplete="${key==='name'?'name':key==='phone'?'tel':'off'}"/>`
-      }
-      ${key==='phone' ? `<p class="form-hint">숫자만 입력하셔도 됩니다 (예: 01012345678)</p>` : ''}
-      <p class="form-error" id="fe-${key}"></p>`;
+
+    // phone 필드는 innerHTML로, 나머지는 DOM API로 직접 생성
+    // → iOS Safari가 innerHTML의 라벨/placeholder 텍스트를 파싱해 키보드 추론하는 것을 차단
+    const labelEl = document.createElement('label');
+    labelEl.className = 'form-label';
+    labelEl.htmlFor = `f-${key}`;
+    labelEl.innerHTML = esc(lbl) + (isReq ? '<span class="required">*</span>' : '<span class="optional-badge">선택</span>');
+    group.appendChild(labelEl);
+
+    if (refLocked) {
+      const lockDiv = document.createElement('div');
+      lockDiv.style.cssText = 'padding:12px 16px;background:linear-gradient(135deg,rgba(56,161,105,.08),rgba(56,161,105,.04));border:1.5px solid rgba(56,161,105,.3);border-radius:12px;display:flex;align-items:center;gap:8px;';
+      lockDiv.innerHTML = `<span style="font-size:16px;">👤</span><span style="font-size:14px;font-weight:700;color:var(--navy);">${esc(urlReferrer)}</span><span style="font-size:11px;color:var(--green);margin-left:auto;">자동 입력됨</span>`;
+      group.appendChild(lockDiv);
+      const hiddenEl = document.createElement('input');
+      hiddenEl.type = 'hidden';
+      hiddenEl.id = `f-${key}`;
+      hiddenEl.value = urlReferrer;
+      group.appendChild(hiddenEl);
+    } else {
+      const inputEl = document.createElement('input');
+      inputEl.type = 'text';
+      inputEl.id = `f-${key}`;
+      inputEl.className = 'form-input';
+      inputEl.placeholder = ph;          // 텍스트만 세팅, HTML 파싱 없음
+      inputEl.autocomplete = 'off';
+      inputEl.setAttribute('autocorrect', 'off');
+      inputEl.setAttribute('autocapitalize', 'off');
+      inputEl.setAttribute('spellcheck', 'false');
+      inputEl.setAttribute('enterkeyhint', 'next');
+      inputEl.inputMode = 'text';
+      group.appendChild(inputEl);
+    }
+
+    const errEl = document.createElement('p');
+    errEl.className = 'form-error';
+    errEl.id = `fe-${key}`;
+    group.appendChild(errEl);
+
     container.appendChild(group);
 
-    if (key === 'phone') {
-      document.getElementById('f-phone').addEventListener('input', e => {
-        const raw = e.target.value.replace(/[^0-9]/g,'');
-        if (raw.length <= 11) {
-          let fmt = raw;
-          if (raw.length >= 4 && raw.length <= 7)           fmt = raw.slice(0,3) + '-' + raw.slice(3);
-          else if (raw.length >= 8 && raw.startsWith('02')) fmt = raw.slice(0,2) + '-' + raw.slice(2,6) + '-' + raw.slice(6);
-          else if (raw.length >= 8)                          fmt = raw.slice(0,3) + '-' + raw.slice(3,7) + '-' + raw.slice(7);
-          e.target.value = fmt;
-        }
-      });
-    }
+
   });
 }
 
@@ -752,14 +1021,9 @@ async function submitForm() {
   for (const key of fields) {
     const inp = document.getElementById(`f-${key}`); if (!inp) continue;
     let val = inp.value.trim();
-    if (key === 'phone') val = val.replace(/[^0-9]/g,'');
-
     if (required.includes(key) && !val) {
       const lbl = labels[key] || FIELD_DEFAULTS[key]?.label || key;
       showError(key, `${lbl}을(를) 입력해주세요.`);
-      if (valid) inp.focus(); valid = false;
-    } else if (key === 'phone' && required.includes('phone') && val && (val.length < 10 || val.length > 11)) {
-      showError(key, '올바른 연락처를 입력해주세요. (10-11자리)');
       if (valid) inp.focus(); valid = false;
     }
 
