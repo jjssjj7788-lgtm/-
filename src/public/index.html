@@ -462,12 +462,7 @@
   </div>
 
   <div class="cat-filter" id="cat-filter">
-    <button class="cat-btn active" onclick="filterCat('',this)">전체</button>
-    <button class="cat-btn" onclick="filterCat('세미나',this)">세미나</button>
-    <button class="cat-btn" onclick="filterCat('직무연수',this)">직무연수</button>
-    <button class="cat-btn" onclick="filterCat('교육',this)">교육</button>
-    <button class="cat-btn" onclick="filterCat('기타',this)">기타</button>
-    <button class="cat-btn cat-btn-ended" onclick="filterCat('__ended__',this)">종료된 이벤트</button>
+    <!-- 카테고리 버튼은 JS에서 동적 렌더링 -->
   </div>
 
   <div class="ev-cards" id="ev-cards">
@@ -541,8 +536,13 @@
         <span class="btn-spinner" id="btn-spinner"></span>
         <span id="btn-text">🎫 신청하기</span>
       </button>
+      <button class="btn-submit" id="btn-waitlist" onclick="submitForm()" style="display:none;background:linear-gradient(135deg,#C9A84C,#a8862e);">
+        <span class="btn-spinner" id="btn-spinner-wl"></span>
+        <span id="btn-text-wl">⏳ 대기 신청하기</span>
+      </button>
     </div>
-    <div id="full-msg" class="full-badge" style="display:none;">⚠️ 정원이 마감되었습니다</div>
+    <div id="full-msg" class="full-badge" style="display:none;">⚠️ 정원 및 대기 인원이 마감되었습니다</div>
+    <div id="waitlist-notice" style="display:none;margin-top:8px;padding:10px 14px;background:linear-gradient(135deg,rgba(201,168,76,.12),rgba(201,168,76,.06));border:1.5px solid rgba(201,168,76,.4);border-radius:12px;font-size:13px;color:#7a5c1e;font-weight:600;text-align:center;">⏳ 정원이 마감되었습니다. 대기 신청이 가능합니다.</div>
   </div>
 </div>
 
@@ -577,10 +577,28 @@ async function init() {
 
 async function loadEvents() {
   try {
-    const r = await fetch(`${API}/events`);
-    const d = await r.json();
-    allEvents = (d.data || []).filter(e => e.is_active);
+    const [evR, catR] = await Promise.all([
+      fetch(`${API}/events`),
+      fetch(`${API}/categories`)
+    ]);
+    const evD  = await evR.json();
+    const catD = await catR.json();
+    allEvents = (evD.data || []).filter(e => e.is_active);
+    renderCatFilter(catD.data || []);
   } catch(e) { allEvents = []; }
+}
+
+function renderCatFilter(cats) {
+  const el = document.getElementById('cat-filter');
+  if (!el) return;
+  // 실제 이벤트에 존재하는 카테고리만 버튼 표시
+  const usedCats = cats.filter(c => allEvents.some(e => e.category === c));
+  el.innerHTML =
+    `<button class="cat-btn${currentCat===''?' active':''}" onclick="filterCat('',this)">전체</button>` +
+    usedCats.map(c =>
+      `<button class="cat-btn${currentCat===c?' active':''}" onclick="filterCat('${c.replace(/'/g,"\\'")}",this)">${esc(c)}</button>`
+    ).join('') +
+    `<button class="cat-btn cat-btn-ended${currentCat==='__ended__'?' active':''}" onclick="filterCat('__ended__',this)">종료된 이벤트</button>`;
 }
 
 // ── Event List ────────────────────────────────────────────────────────────────
@@ -927,10 +945,40 @@ function renderRegView(ev) {
     noticeBox.style.display = 'block';
   } else { noticeBox.style.display = 'none'; }
 
-  // Full state
-  const isFull = ev.current_count >= ev.max_capacity;
-  document.getElementById('btn-submit').style.display = isFull ? 'none' : 'block';
-  document.getElementById('full-msg').style.display   = isFull ? 'block' : 'none';
+  // Full / Waitlist state
+  const confirmedCount = ev.current_count || 0;
+  const waitlistCount  = ev.waitlist_count || 0;
+  const maxCap   = ev.max_capacity || 0;
+  const waitCap  = ev.waitlist_capacity || 0;
+  const isFull       = confirmedCount >= maxCap;
+  const isWaitFull   = waitlistCount  >= waitCap;
+  const hasWaitlist  = waitCap > 0;
+
+  const btnSubmit   = document.getElementById('btn-submit');
+  const btnWaitlist = document.getElementById('btn-waitlist');
+  const fullMsg     = document.getElementById('full-msg');
+  const waitNotice  = document.getElementById('waitlist-notice');
+
+  if (!isFull) {
+    // 정원 남음 → 일반 신청
+    btnSubmit.style.display   = 'block';
+    btnWaitlist.style.display = 'none';
+    fullMsg.style.display     = 'none';
+    waitNotice.style.display  = 'none';
+  } else if (isFull && hasWaitlist && !isWaitFull) {
+    // 정원 마감 + 대기 가능
+    btnSubmit.style.display   = 'none';
+    btnWaitlist.style.display = 'block';
+    fullMsg.style.display     = 'none';
+    waitNotice.style.display  = 'block';
+    waitNotice.textContent    = `⏳ 정원(${maxCap}명)이 마감되었습니다. 대기 신청 가능 (대기 ${waitlistCount}/${waitCap}명)`;
+  } else {
+    // 전부 마감
+    btnSubmit.style.display   = 'none';
+    btnWaitlist.style.display = 'none';
+    fullMsg.style.display     = 'block';
+    waitNotice.style.display  = 'none';
+  }
 
   document.title = (ev.hero_title || ev.title) + ' - 라스북';
 }
@@ -986,13 +1034,26 @@ function buildForm(ev) {
       inputEl.type = 'text';
       inputEl.id = `f-${key}`;
       inputEl.className = 'form-input';
-      inputEl.placeholder = ph;          // 텍스트만 세팅, HTML 파싱 없음
+      inputEl.placeholder = ph;
       inputEl.autocomplete = 'off';
       inputEl.setAttribute('autocorrect', 'off');
       inputEl.setAttribute('autocapitalize', 'off');
       inputEl.setAttribute('spellcheck', 'false');
       inputEl.setAttribute('enterkeyhint', 'next');
-      inputEl.inputMode = 'text';
+      if (key === 'phone') {
+        inputEl.inputMode = 'numeric';
+        inputEl.setAttribute('pattern', '[0-9]*');
+        // 숫자 외 입력 차단
+        inputEl.addEventListener('input', () => {
+          const cleaned = inputEl.value.replace(/[^0-9]/g, '');
+          if (inputEl.value !== cleaned) inputEl.value = cleaned;
+        });
+        inputEl.addEventListener('keypress', (e) => {
+          if (!/[0-9]/.test(e.key) && !['Backspace','Delete','ArrowLeft','ArrowRight','Tab'].includes(e.key)) e.preventDefault();
+        });
+      } else {
+        inputEl.inputMode = 'text';
+      }
       group.appendChild(inputEl);
     }
 
@@ -1026,6 +1087,11 @@ async function submitForm() {
       showError(key, `${lbl}을(를) 입력해주세요.`);
       if (valid) inp.focus(); valid = false;
     }
+    // 연락처: 숫자만 허용 검증
+    if (key === 'phone' && val && /[^0-9]/.test(val)) {
+      showError(key, '숫자만 입력해주세요.');
+      if (valid) inp.focus(); valid = false;
+    }
 
     const std = ['name','phone','organization','referrer'];
     if (std.includes(key)) body[key] = val;
@@ -1033,9 +1099,13 @@ async function submitForm() {
   }
   if (!valid) return;
 
-  const btn = document.getElementById('btn-submit');
-  const sp  = document.getElementById('btn-spinner');
-  const bt  = document.getElementById('btn-text');
+  // 어떤 버튼이 보이는지 확인해서 둘 다 처리
+  const btn   = document.getElementById('btn-submit').style.display !== 'none'
+                  ? document.getElementById('btn-submit')
+                  : document.getElementById('btn-waitlist');
+  const sp    = btn.id === 'btn-submit' ? document.getElementById('btn-spinner') : document.getElementById('btn-spinner-wl');
+  const bt    = btn.id === 'btn-submit' ? document.getElementById('btn-text')    : document.getElementById('btn-text-wl');
+  const origText = bt.textContent;
   btn.disabled = true; sp.classList.add('show'); bt.textContent = '신청 중...';
 
   try {
@@ -1043,16 +1113,25 @@ async function submitForm() {
       method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body)
     });
     const d = await r.json();
-    if (d.success) { window.location.href = `/ticket?code=${d.data.ticketCode}`; return; }
+    if (d.success) {
+      if (d.status === 'waitlist') {
+        // 대기 신청 성공 → 대기 티켓 페이지
+        window.location.href = `/ticket?code=${d.data.ticketCode}`;
+      } else {
+        // 일반 신청 성공
+        window.location.href = `/ticket?code=${d.data.ticketCode}`;
+      }
+      return;
+    }
     showToast(d.message || '신청 중 오류가 발생했습니다.', 'err');
-    if (r.status === 400 && (d.message||'').includes('정원')) {
-      btn.style.display = 'none';
-      document.getElementById('full-msg').style.display = 'block';
+    if (d.message && (d.message.includes('정원') || d.message.includes('대기 인원'))) {
+      // 마감 상태면 페이지 새로고침하여 버튼 상태 최신화
+      setTimeout(() => location.reload(), 1500);
     }
   } catch(e) {
     showToast('네트워크 오류가 발생했습니다. 다시 시도해주세요.', 'err');
   } finally {
-    btn.disabled = false; sp.classList.remove('show'); bt.textContent = '🎫 신청하기';
+    btn.disabled = false; sp.classList.remove('show'); bt.textContent = origText;
   }
 }
 

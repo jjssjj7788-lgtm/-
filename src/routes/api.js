@@ -18,13 +18,14 @@ function adminAuth(req, res, next) {
 function getEventStatus(db, eventId) {
   const ev    = db.prepare("SELECT * FROM events WHERE id=?").get(eventId);
   if (!ev) return null;
-  const total = db.prepare("SELECT COUNT(*) as c FROM registrations WHERE event_id=?").get(eventId).c;
+  const confirmed  = db.prepare("SELECT COUNT(*) as c FROM registrations WHERE event_id=? AND status='confirmed'").get(eventId).c;
+  const waitlisted = db.prepare("SELECT COUNT(*) as c FROM registrations WHERE event_id=? AND status='waitlist'").get(eventId).c;
   const sessions = db.prepare("SELECT * FROM attendance_sessions WHERE event_id=? ORDER BY session_order").all(eventId);
   const sessionsWithCount = sessions.map(s => {
     const cnt = db.prepare("SELECT COUNT(*) as c FROM attendance_records WHERE session_id=?").get(s.id).c;
     return { ...s, attended_count: cnt };
   });
-  return { ...ev, current_count: total, sessions: sessionsWithCount };
+  return { ...ev, current_count: confirmed, waitlist_count: waitlisted, sessions: sessionsWithCount };
 }
 
 // ════════════════════════════════════════════════════════════════════════
@@ -37,7 +38,8 @@ router.get('/events', (req, res) => {
     const db = getDb();
     const events = db.prepare(`
       SELECT e.*,
-        (SELECT COUNT(*) FROM registrations r WHERE r.event_id=e.id) as current_count
+        (SELECT COUNT(*) FROM registrations r WHERE r.event_id=e.id AND r.status='confirmed') as current_count,
+        (SELECT COUNT(*) FROM registrations r WHERE r.event_id=e.id AND r.status='waitlist')  as waitlist_count
       FROM events e
       WHERE e.is_active=1
       ORDER BY e.event_date ASC, e.id ASC
@@ -77,36 +79,57 @@ router.post('/events/:id/register', (req, res) => {
     }
 
     const phoneClean = (phone||'').replace(/[^0-9]/g,'');
-    if (required.includes('phone') && (phoneClean.length < 10 || phoneClean.length > 11))
-      return res.status(400).json({ success:false, message:'올바른 연락처를 입력해주세요.' });
+    if (!phoneClean) return res.status(400).json({ success:false, message:'연락처를 입력해주세요.' });
 
     const register = db.transaction(() => {
-      const total = db.prepare("SELECT COUNT(*) as c FROM registrations WHERE event_id=?").get(eventId).c;
-      if (total >= ev.max_capacity)
-        return { success:false, message:'정원이 마감되었습니다.' };
+      const confirmedCount  = db.prepare("SELECT COUNT(*) as c FROM registrations WHERE event_id=? AND status='confirmed'").get(eventId).c;
+      const waitlistCount   = db.prepare("SELECT COUNT(*) as c FROM registrations WHERE event_id=? AND status='waitlist'").get(eventId).c;
+      const waitlistCap     = ev.waitlist_capacity || 0;
 
-      // 중복 체크
-      if (phoneClean) {
-        const dup = db.prepare("SELECT name FROM registrations WHERE event_id=? AND phone=?").get(eventId, phoneClean);
-        if (dup) return { success:false, message:`이미 신청하셨습니다. (신청자: ${dup.name})`, duplicate:true };
+      // 중복 체크 — 연락처(phone) 기준 (confirmed/waitlist 모두)
+      const dup = db.prepare("SELECT name, status FROM registrations WHERE event_id=? AND phone=?").get(eventId, phoneClean);
+      if (dup) {
+        const dupMsg = dup.status === 'waitlist'
+          ? `이미 대기 신청하셨습니다. (신청자: ${dup.name})`
+          : `이미 신청하셨습니다. (신청자: ${dup.name})`;
+        return { success:false, message:dupMsg, duplicate:true };
       }
 
-      // MAX 기반으로 ticket_number 계산 (COUNT 기반 시 삭제/충돌 문제 방지)
-      const maxRow = db.prepare("SELECT MAX(ticket_number) as m FROM registrations WHERE event_id=?").get(eventId);
-      const ticketNumber = (maxRow.m || 0) + 1;
-      const ticketCode   = 'LB-' + uuidv4().replace(/-/g,'').substring(0,14).toUpperCase();
-      const extraJson    = JSON.stringify(extra_data || {});
+      // 정원 & 대기 마감 체크
+      const isFull     = confirmedCount >= ev.max_capacity;
+      const isWaitFull = waitlistCount  >= waitlistCap;
 
-      // KST(UTC+9) 시간 직접 생성
-      const nowKST = new Date(Date.now() + 9 * 60 * 60 * 1000);
-      const kstStr = nowKST.toISOString().replace('T',' ').slice(0,19);
+      if (isFull && waitlistCap === 0)
+        return { success:false, message:'정원이 마감되었습니다.' };
+      if (isFull && isWaitFull)
+        return { success:false, message:'정원 및 대기 인원이 모두 마감되었습니다.' };
 
-      db.prepare(`
-        INSERT INTO registrations(event_id,ticket_number,name,phone,organization,referrer,extra_data,ticket_code,registered_at)
-        VALUES(?,?,?,?,?,?,?,?,?)
-      `).run(eventId, ticketNumber, name.trim(), phoneClean, (organization||'').trim(), (referrer||'').trim(), extraJson, ticketCode, kstStr);
+      const status = isFull ? 'waitlist' : 'confirmed';
 
-      return { success:true, data:{ ticketNumber, ticketCode, name:name.trim(), eventTitle:ev.title } };
+      // ticket_number: confirmed 기준 MAX, waitlist_number: waitlist 기준 MAX
+      const nowKST   = new Date(Date.now() + 9 * 60 * 60 * 1000);
+      const kstStr   = nowKST.toISOString().replace('T',' ').slice(0,19);
+      const ticketCode = 'LB-' + uuidv4().replace(/-/g,'').substring(0,14).toUpperCase();
+      const extraJson  = JSON.stringify(extra_data || {});
+
+      if (status === 'confirmed') {
+        const maxRow = db.prepare("SELECT MAX(ticket_number) as m FROM registrations WHERE event_id=? AND status='confirmed'").get(eventId);
+        const ticketNumber = (maxRow.m || 0) + 1;
+        db.prepare(`
+          INSERT INTO registrations(event_id,ticket_number,name,phone,organization,referrer,extra_data,ticket_code,registered_at,status)
+          VALUES(?,?,?,?,?,?,?,?,?,?)
+        `).run(eventId, ticketNumber, name.trim(), phoneClean, (organization||'').trim(), (referrer||'').trim(), extraJson, ticketCode, kstStr, 'confirmed');
+        return { success:true, status:'confirmed', data:{ ticketNumber, ticketCode, name:name.trim(), eventTitle:ev.title } };
+      } else {
+        const maxWait = db.prepare("SELECT MAX(waitlist_number) as m FROM registrations WHERE event_id=? AND status='waitlist'").get(eventId);
+        const waitlistNumber = (maxWait.m || 0) + 1;
+        const ticketNumber   = 90000 + waitlistNumber; // 대기 전용 번호 범위
+        db.prepare(`
+          INSERT INTO registrations(event_id,ticket_number,name,phone,organization,referrer,extra_data,ticket_code,registered_at,status,waitlist_number)
+          VALUES(?,?,?,?,?,?,?,?,?,?,?)
+        `).run(eventId, ticketNumber, name.trim(), phoneClean, (organization||'').trim(), (referrer||'').trim(), extraJson, ticketCode, kstStr, 'waitlist', waitlistNumber);
+        return { success:true, status:'waitlist', data:{ waitlistNumber, ticketCode, name:name.trim(), eventTitle:ev.title } };
+      }
     });
 
     // UNIQUE 충돌 시 최대 3회 재시도
@@ -135,9 +158,10 @@ router.get('/public/events', (req, res) => {
   try {
     const db = getDb();
     const events = db.prepare(`
-      SELECT id, title, event_date, venue, category, color, max_capacity,
+      SELECT id, title, event_date, venue, category, color, max_capacity, waitlist_capacity,
         poster_image, poster_images,
-        (SELECT COUNT(*) FROM registrations r WHERE r.event_id=e.id) as current_count
+        (SELECT COUNT(*) FROM registrations r WHERE r.event_id=e.id AND r.status='confirmed') as current_count,
+        (SELECT COUNT(*) FROM registrations r WHERE r.event_id=e.id AND r.status='waitlist')  as waitlist_count
       FROM events e
       WHERE e.is_active=1
       ORDER BY e.event_date ASC, e.id ASC
@@ -263,12 +287,94 @@ router.put('/admin/settings', adminAuth, (req, res) => {
   tx(); res.json({ success:true });
 });
 
+// ── 카테고리 CRUD ─────────────────────────────────────────────────────────────
+router.get('/admin/categories', adminAuth, (req, res) => {
+  const db = getDb();
+  const cats = db.prepare(`
+    SELECT c.*, (SELECT COUNT(*) FROM events e WHERE e.category=c.name) as event_count
+    FROM categories c ORDER BY c.sort_order ASC, c.id ASC
+  `).all();
+  res.json({ success:true, data:cats });
+});
+
+router.post('/admin/categories', adminAuth, (req, res) => {
+  try {
+    const db = getDb();
+    const { name } = req.body;
+    if (!name?.trim()) return res.status(400).json({ success:false, message:'카테고리 이름을 입력해주세요.' });
+    const maxOrder = db.prepare('SELECT MAX(sort_order) as m FROM categories').get().m || 0;
+    const id = db.prepare('INSERT INTO categories(name,sort_order) VALUES(?,?)').run(name.trim(), maxOrder+1).lastInsertRowid;
+    res.json({ success:true, data:{ id, name:name.trim() } });
+  } catch(e) {
+    if (e.message?.includes('UNIQUE')) return res.status(400).json({ success:false, message:'이미 존재하는 카테고리입니다.' });
+    res.status(500).json({ success:false, message:e.message });
+  }
+});
+
+router.put('/admin/categories/:id', adminAuth, (req, res) => {
+  try {
+    const db = getDb();
+    const id = parseInt(req.params.id);
+    const { name } = req.body;
+    if (!name?.trim()) return res.status(400).json({ success:false, message:'카테고리 이름을 입력해주세요.' });
+    const old = db.prepare('SELECT name FROM categories WHERE id=?').get(id);
+    if (!old) return res.status(404).json({ success:false, message:'카테고리를 찾을 수 없습니다.' });
+    db.prepare('UPDATE categories SET name=? WHERE id=?').run(name.trim(), id);
+    // 이벤트에서 쓰던 카테고리 이름도 함께 변경
+    db.prepare('UPDATE events SET category=? WHERE category=?').run(name.trim(), old.name);
+    res.json({ success:true });
+  } catch(e) {
+    if (e.message?.includes('UNIQUE')) return res.status(400).json({ success:false, message:'이미 존재하는 카테고리입니다.' });
+    res.status(500).json({ success:false, message:e.message });
+  }
+});
+
+router.delete('/admin/categories/:id', adminAuth, (req, res) => {
+  try {
+    const db = getDb();
+    const id = parseInt(req.params.id);
+    const cat = db.prepare('SELECT name FROM categories WHERE id=?').get(id);
+    if (!cat) return res.status(404).json({ success:false, message:'카테고리를 찾을 수 없습니다.' });
+    const inUse = db.prepare('SELECT COUNT(*) as c FROM events WHERE category=?').get(cat.name).c;
+    if (inUse > 0) return res.status(400).json({ success:false, message:`이벤트 ${inUse}건에서 사용 중입니다. 먼저 이벤트 카테고리를 변경해주세요.` });
+    db.prepare('DELETE FROM categories WHERE id=?').run(id);
+    res.json({ success:true });
+  } catch(e) { res.status(500).json({ success:false, message:e.message }); }
+});
+
+router.put('/admin/categories/:id/order', adminAuth, (req, res) => {
+  try {
+    const db = getDb();
+    const id = parseInt(req.params.id);
+    const { direction } = req.body; // 'up' | 'down'
+    const all = db.prepare('SELECT * FROM categories ORDER BY sort_order ASC, id ASC').all();
+    const idx = all.findIndex(c => c.id === id);
+    if (idx < 0) return res.status(404).json({ success:false });
+    const swapIdx = direction === 'up' ? idx - 1 : idx + 1;
+    if (swapIdx < 0 || swapIdx >= all.length) return res.json({ success:true });
+    const upd = db.prepare('UPDATE categories SET sort_order=? WHERE id=?');
+    db.transaction(() => {
+      upd.run(all[swapIdx].sort_order, all[idx].id);
+      upd.run(all[idx].sort_order,     all[swapIdx].id);
+    })();
+    res.json({ success:true });
+  } catch(e) { res.status(500).json({ success:false, message:e.message }); }
+});
+
+// 카테고리 공개 조회 (이벤트 폼 등에서 사용)
+router.get('/categories', (req, res) => {
+  const db = getDb();
+  const cats = db.prepare('SELECT name FROM categories ORDER BY sort_order ASC, id ASC').all();
+  res.json({ success:true, data: cats.map(c=>c.name) });
+});
+
 // ── 이벤트 CRUD ──────────────────────────────────────────────────────────────
 router.get('/admin/events', adminAuth, (req, res) => {
   const db = getDb();
   const events = db.prepare(`
     SELECT e.*,
-      (SELECT COUNT(*) FROM registrations r WHERE r.event_id=e.id) as current_count,
+      (SELECT COUNT(*) FROM registrations r WHERE r.event_id=e.id AND r.status='confirmed') as current_count,
+      (SELECT COUNT(*) FROM registrations r WHERE r.event_id=e.id AND r.status='waitlist')  as waitlist_count,
       (SELECT COUNT(*) FROM attendance_sessions s WHERE s.event_id=e.id) as session_count
     FROM events e ORDER BY e.event_date DESC, e.id DESC
   `).all();
@@ -285,7 +391,7 @@ router.get('/admin/events/:id', adminAuth, (req, res) => {
 router.post('/admin/events', adminAuth, (req, res) => {
   try {
     const db = getDb();
-    const { title, category, event_date, venue, event_time, description, max_capacity, color,
+    const { title, category, event_date, venue, event_time, description, max_capacity, waitlist_capacity, color,
             form_fields, form_labels, form_required, form_placeholders,
             poster_image, poster_texts, poster_images,
             hero_badge, hero_title, hero_subtitle, notice_text } = req.body;
@@ -293,14 +399,14 @@ router.post('/admin/events', adminAuth, (req, res) => {
     if (!event_date)    return res.status(400).json({ success:false, message:'날짜를 입력해주세요.' });
 
     const id = db.prepare(`
-      INSERT INTO events(title,category,event_date,venue,event_time,description,max_capacity,color,
+      INSERT INTO events(title,category,event_date,venue,event_time,description,max_capacity,waitlist_capacity,color,
         form_fields,form_labels,form_required,form_placeholders,
         poster_image,poster_texts,poster_images,
         hero_badge,hero_title,hero_subtitle,notice_text)
-      VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)
+      VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)
     `).run(
       title.trim(), category||'세미나', event_date, venue||'', event_time||'', description||'',
-      parseInt(max_capacity)||120, color||'#1B2B4B',
+      parseInt(max_capacity)||120, parseInt(waitlist_capacity)||0, color||'#1B2B4B',
       JSON.stringify(form_fields||["name","phone","organization","referrer"]),
       JSON.stringify(form_labels||{}),
       JSON.stringify(form_required||["name","phone","organization"]),
@@ -320,16 +426,16 @@ router.put('/admin/events/:id', adminAuth, (req, res) => {
   try {
     const db = getDb();
     const id = parseInt(req.params.id);
-    const { title, category, event_date, venue, event_time, description, max_capacity, color, is_active,
+    const { title, category, event_date, venue, event_time, description, max_capacity, waitlist_capacity, color, is_active,
             form_fields, form_labels, form_required, form_placeholders,
             poster_image, poster_texts, poster_images,
             hero_badge, hero_title, hero_subtitle, notice_text } = req.body;
 
     // 정원 축소 방지
     if (max_capacity !== undefined) {
-      const cnt = db.prepare("SELECT COUNT(*) as c FROM registrations WHERE event_id=?").get(id).c;
+      const cnt = db.prepare("SELECT COUNT(*) as c FROM registrations WHERE event_id=? AND status='confirmed'").get(id).c;
       if (parseInt(max_capacity) < cnt)
-        return res.status(400).json({ success:false, message:`현재 신청 인원(${cnt}명)보다 낮게 설정할 수 없습니다.` });
+        return res.status(400).json({ success:false, message:`현재 확정 신청 인원(${cnt}명)보다 낮게 설정할 수 없습니다.` });
     }
 
     db.prepare(`UPDATE events SET
@@ -337,6 +443,7 @@ router.put('/admin/events/:id', adminAuth, (req, res) => {
       event_date=COALESCE(?,event_date), venue=COALESCE(?,venue),
       event_time=COALESCE(?,event_time),
       description=COALESCE(?,description), max_capacity=COALESCE(?,max_capacity),
+      waitlist_capacity=COALESCE(?,waitlist_capacity),
       color=COALESCE(?,color), is_active=COALESCE(?,is_active),
       form_fields=COALESCE(?,form_fields), form_labels=COALESCE(?,form_labels),
       form_required=COALESCE(?,form_required), form_placeholders=COALESCE(?,form_placeholders),
@@ -350,6 +457,7 @@ router.put('/admin/events/:id', adminAuth, (req, res) => {
       event_time!==undefined?event_time:null,
       description??null,
       max_capacity!==undefined?parseInt(max_capacity):null,
+      waitlist_capacity!==undefined?parseInt(waitlist_capacity):null,
       color||null, is_active!==undefined?(is_active?1:0):null,
       form_fields?JSON.stringify(form_fields):null,
       form_labels?JSON.stringify(form_labels):null,
@@ -407,7 +515,8 @@ router.delete('/admin/sessions/:id', adminAuth, (req, res) => {
 router.get('/admin/events/:id/registrations', adminAuth, (req, res) => {
   const db = getDb();
   const eventId = parseInt(req.params.id);
-  const regs = db.prepare("SELECT * FROM registrations WHERE event_id=? ORDER BY ticket_number").all(eventId);
+  // confirmed / waitlist 분리 반환
+  const regs = db.prepare("SELECT * FROM registrations WHERE event_id=? ORDER BY status ASC, ticket_number ASC").all(eventId);
   const sessions = db.prepare("SELECT * FROM attendance_sessions WHERE event_id=? ORDER BY session_order").all(eventId);
   const records  = db.prepare(`
     SELECT ar.registration_id, ar.session_id, ar.attended_at
@@ -416,7 +525,6 @@ router.get('/admin/events/:id/registrations', adminAuth, (req, res) => {
     WHERE r.event_id=?
   `).all(eventId);
 
-  // 신청자마다 세션별 출석 여부 합산
   const recMap = {};
   for (const r of records) {
     if (!recMap[r.registration_id]) recMap[r.registration_id] = {};

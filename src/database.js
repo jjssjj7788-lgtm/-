@@ -156,6 +156,36 @@ function initSchema() {
     if (!evCols.includes('poster_images')) {
       d.exec("ALTER TABLE events ADD COLUMN poster_images TEXT NOT NULL DEFAULT '[]'");
     }
+    // 대기 인원 컬럼
+    if (!evCols.includes('waitlist_capacity')) {
+      d.exec("ALTER TABLE events ADD COLUMN waitlist_capacity INTEGER NOT NULL DEFAULT 0");
+    }
+  } catch(e) { /* column migration optional */ }
+
+  // ── categories 테이블 생성 + 기본값 삽입 ─────────────────────────────────
+  try {
+    d.exec(`CREATE TABLE IF NOT EXISTS categories (
+      id         INTEGER PRIMARY KEY AUTOINCREMENT,
+      name       TEXT    NOT NULL UNIQUE,
+      sort_order INTEGER NOT NULL DEFAULT 0,
+      created_at TEXT    NOT NULL DEFAULT (datetime('now','localtime'))
+    )`);
+    // 기존 카테고리 기본값 삽입 (없으면)
+    const ins = d.prepare('INSERT OR IGNORE INTO categories(name,sort_order) VALUES(?,?)');
+    [['세미나',0],['직무연수',1],['교육',2],['기타',3]].forEach(([n,o]) => ins.run(n,o));
+    // 기존 이벤트에서 쓰고 있는 카테고리 값도 자동 추가
+    const evCats = d.prepare('SELECT DISTINCT category FROM events WHERE category IS NOT NULL AND category != \'\'').all();
+    evCats.forEach(r => ins.run(r.category, 99));
+  } catch(e) { /* categories optional */ }
+  try {
+    const regCols = d.prepare("PRAGMA table_info(registrations)").all().map(r=>r.name);
+    if (!regCols.includes('status')) {
+      // 기존 데이터는 모두 'confirmed'
+      d.exec("ALTER TABLE registrations ADD COLUMN status TEXT NOT NULL DEFAULT 'confirmed'");
+    }
+    if (!regCols.includes('waitlist_number')) {
+      d.exec("ALTER TABLE registrations ADD COLUMN waitlist_number INTEGER DEFAULT NULL");
+    }
   } catch(e) { /* column migration optional */ }
 
   // ── 인덱스 생성 (마이그레이션 후) ────────────────────────────────────────

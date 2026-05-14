@@ -319,10 +319,6 @@
             <div style="display:flex;gap:6px;flex-wrap:wrap;">
               <select class="fi" id="ev-filter-cat" onchange="loadEvents()" style="padding:7px 10px;font-size:12px;width:auto;">
                 <option value="">전체 카테고리</option>
-                <option value="세미나">세미나</option>
-                <option value="직무연수">직무연수</option>
-                <option value="교육">교육</option>
-                <option value="기타">기타</option>
               </select>
               <button class="btn btn-outline btn-sm" onclick="loadEvents()">🔄 새로고침</button>
             </div>
@@ -506,12 +502,31 @@
       <!-- ═══════════════ SETTINGS TAB ═══════════════ -->
       <div id="tab-settings" style="display:none;">
         <div class="pg-header"><h2>⚙️ 기본 설정</h2><p>시스템 공통 설정을 관리합니다</p></div>
+
+        <!-- 기관 정보 -->
         <div class="card">
           <div class="card-head"><div class="card-head-left"><div class="card-icon">🏢</div><div><h3>기관 정보</h3></div></div></div>
           <div class="card-body">
             <div class="form-row full"><div><label class="fl">기관/회사명</label><input type="text" id="org-name" class="fi" placeholder="라스북"/></div></div>
             <button class="btn btn-primary" onclick="saveSettings()">💾 저장</button>
             <div class="fb-ok" id="set-ok"><span>✅</span>저장되었습니다.</div>
+          </div>
+        </div>
+
+        <!-- 카테고리 관리 -->
+        <div class="card" style="margin-top:20px;">
+          <div class="card-head">
+            <div class="card-head-left"><div class="card-icon">🏷️</div><div><h3>카테고리 관리</h3><p>이벤트 분류 카테고리를 추가·수정·삭제합니다</p></div></div>
+          </div>
+          <div class="card-body">
+            <!-- 추가 폼 -->
+            <div style="display:flex;gap:8px;margin-bottom:16px;">
+              <input type="text" id="cat-new-name" class="fi" placeholder="새 카테고리 이름" style="flex:1;" onkeydown="if(event.key==='Enter')addCategory()"/>
+              <button class="btn btn-gold" onclick="addCategory()">+ 추가</button>
+            </div>
+            <div class="fb-err" id="cat-err"><span>⚠️</span><span id="cat-err-msg"></span></div>
+            <!-- 목록 -->
+            <div id="cat-list" style="display:flex;flex-direction:column;gap:6px;"></div>
           </div>
         </div>
       </div>
@@ -543,13 +558,11 @@
             <label class="fl">카테고리</label>
             <select id="ev-category" class="fi">
               <option value="세미나">세미나</option>
-              <option value="직무연수">직무연수</option>
-              <option value="교육">교육</option>
-              <option value="기타">기타</option>
             </select>
           </div>
           <div><label class="fl">날짜 *</label><input type="date" id="ev-date" class="fi"/></div>
           <div><label class="fl">최대 정원</label><input type="number" id="ev-capacity" class="fi" value="120" min="1" max="9999"/></div>
+          <div><label class="fl">대기 인원 <span style="font-size:10px;color:var(--g400);">(0이면 대기 없음)</span></label><input type="number" id="ev-waitlist" class="fi" value="0" min="0" max="9999"/></div>
         </div>
         <div class="form-row">
           <div><label class="fl">장소</label><input type="text" id="ev-venue" class="fi" placeholder="○○ 강당"/></div>
@@ -646,6 +659,7 @@ async function initApp() {
   document.getElementById('app').style.display='block';
   const now = new Date();
   calYear = now.getFullYear(); calMonth = now.getMonth();
+  await loadCategories();   // 카테고리 먼저 로드
   loadEvents();
   renderCalendar();
   initPoster();
@@ -661,12 +675,133 @@ function showTab(name,el) {
   document.querySelectorAll('.nav-item').forEach(n=>n.classList.remove('active'));
   if(el) el.classList.add('active');
   if(name==='poster'){ fillPosterEventSelect(); genQRPreview(); }
+  if(name==='settings'){ loadCategories(); }
 }
 
 // ─── SETTINGS ────────────────────────────────────────────────────────────
 async function saveSettings() {
   await fetch(`${API}/admin/settings`,{method:'PUT',headers:{'Content-Type':'application/json','X-Admin-Token':token},body:JSON.stringify({org_name:document.getElementById('org-name').value})});
   const el = document.getElementById('set-ok'); el.classList.add('show'); setTimeout(()=>el.classList.remove('show'),2500);
+}
+
+// ─── CATEGORIES ──────────────────────────────────────────────────────────
+let allCategories = [];
+
+async function loadCategories() {
+  try {
+    const r = await fetch(`${API}/admin/categories`,{headers:{'X-Admin-Token':token}});
+    const d = await r.json();
+    allCategories = d.data || [];
+    refreshCategorySelects();
+    renderCategoryList();
+  } catch(e) {}
+}
+
+function refreshCategorySelects() {
+  const names = allCategories.map(c=>c.name);
+  // 이벤트 폼 셀렉트
+  const evSel = document.getElementById('ev-category');
+  const prevVal = evSel?.value;
+  if (evSel) {
+    evSel.innerHTML = names.map(n=>`<option value="${esc(n)}">${esc(n)}</option>`).join('');
+    if (prevVal && names.includes(prevVal)) evSel.value = prevVal;
+  }
+  // 이벤트 목록 필터 셀렉트
+  const filterSel = document.getElementById('ev-filter-cat');
+  const prevFilter = filterSel?.value;
+  if (filterSel) {
+    filterSel.innerHTML = '<option value="">전체 카테고리</option>' +
+      names.map(n=>`<option value="${esc(n)}">${esc(n)}</option>`).join('');
+    if (prevFilter && names.includes(prevFilter)) filterSel.value = prevFilter;
+  }
+}
+
+function renderCategoryList() {
+  const el = document.getElementById('cat-list');
+  if (!el) return;
+  if (!allCategories.length) {
+    el.innerHTML = '<p style="color:var(--g400);font-size:13px;">카테고리가 없습니다.</p>';
+    return;
+  }
+  el.innerHTML = allCategories.map((c,i) => `
+    <div style="display:flex;align-items:center;gap:8px;padding:10px 12px;background:var(--g50);border:1px solid var(--g200);border-radius:10px;" id="cat-row-${c.id}">
+      <div id="cat-view-${c.id}" style="flex:1;display:flex;align-items:center;gap:8px;">
+        <span style="font-size:14px;font-weight:600;color:var(--navy);">${esc(c.name)}</span>
+        <span style="font-size:11px;color:var(--g400);background:var(--g100);padding:2px 8px;border-radius:6px;">이벤트 ${c.event_count||0}건</span>
+      </div>
+      <div id="cat-edit-${c.id}" style="flex:1;display:none;">
+        <input type="text" class="fi" id="cat-inp-${c.id}" value="${esc(c.name)}" style="padding:5px 10px;font-size:13px;" onkeydown="if(event.key==='Enter')saveCategory(${c.id});if(event.key==='Escape')cancelEditCategory(${c.id})"/>
+      </div>
+      <div style="display:flex;gap:4px;flex-shrink:0;">
+        <button class="btn btn-outline btn-xs" onclick="moveCategory(${c.id},'up')" ${i===0?'disabled':''} title="위로">↑</button>
+        <button class="btn btn-outline btn-xs" onclick="moveCategory(${c.id},'down')" ${i===allCategories.length-1?'disabled':''} title="아래로">↓</button>
+        <button class="btn btn-outline btn-xs" id="cat-edit-btn-${c.id}" onclick="startEditCategory(${c.id})">✏️ 수정</button>
+        <button class="btn btn-xs" style="background:#fff5f5;color:var(--red);border:1px solid #fed7d7;" onclick="deleteCategory(${c.id},'${esc(c.name)}')">🗑️</button>
+      </div>
+    </div>`).join('');
+}
+
+async function addCategory() {
+  const inp = document.getElementById('cat-new-name');
+  const name = inp.value.trim();
+  if (!name) { showCatErr('카테고리 이름을 입력해주세요.'); return; }
+  const r = await fetch(`${API}/admin/categories`,{method:'POST',headers:{'Content-Type':'application/json','X-Admin-Token':token},body:JSON.stringify({name})});
+  const d = await r.json();
+  if (!d.success) { showCatErr(d.message); return; }
+  inp.value = '';
+  hideCatErr();
+  showToast('카테고리가 추가되었습니다.','ok');
+  await loadCategories();
+}
+
+function startEditCategory(id) {
+  document.getElementById(`cat-view-${id}`).style.display='none';
+  document.getElementById(`cat-edit-${id}`).style.display='flex';
+  document.getElementById(`cat-edit-btn-${id}`).textContent='✓ 저장';
+  document.getElementById(`cat-edit-btn-${id}`).onclick=()=>saveCategory(id);
+  document.getElementById(`cat-inp-${id}`).focus();
+}
+
+function cancelEditCategory(id) {
+  document.getElementById(`cat-view-${id}`).style.display='flex';
+  document.getElementById(`cat-edit-${id}`).style.display='none';
+  document.getElementById(`cat-edit-btn-${id}`).textContent='✏️ 수정';
+  document.getElementById(`cat-edit-btn-${id}`).onclick=()=>startEditCategory(id);
+}
+
+async function saveCategory(id) {
+  const name = document.getElementById(`cat-inp-${id}`).value.trim();
+  if (!name) { showCatErr('이름을 입력해주세요.'); return; }
+  const r = await fetch(`${API}/admin/categories/${id}`,{method:'PUT',headers:{'Content-Type':'application/json','X-Admin-Token':token},body:JSON.stringify({name})});
+  const d = await r.json();
+  if (!d.success) { showCatErr(d.message); return; }
+  hideCatErr();
+  showToast('수정되었습니다.','ok');
+  await loadCategories();
+  await loadEvents(); // 이벤트 목록도 갱신
+}
+
+async function deleteCategory(id, name) {
+  if (!confirm(`"${name}" 카테고리를 삭제하시겠습니까?`)) return;
+  const r = await fetch(`${API}/admin/categories/${id}`,{method:'DELETE',headers:{'X-Admin-Token':token}});
+  const d = await r.json();
+  if (!d.success) { showCatErr(d.message); return; }
+  showToast('삭제되었습니다.','ok');
+  await loadCategories();
+}
+
+async function moveCategory(id, direction) {
+  await fetch(`${API}/admin/categories/${id}/order`,{method:'PUT',headers:{'Content-Type':'application/json','X-Admin-Token':token},body:JSON.stringify({direction})});
+  await loadCategories();
+}
+
+function showCatErr(msg) {
+  const el = document.getElementById('cat-err');
+  document.getElementById('cat-err-msg').textContent = msg;
+  el.classList.add('show');
+}
+function hideCatErr() {
+  document.getElementById('cat-err')?.classList.remove('show');
 }
 
 // ─── EVENTS ──────────────────────────────────────────────────────────────
@@ -1039,6 +1174,7 @@ function openNewEventModal(date) {
   const _now = new Date(); const _todayLocal = `${_now.getFullYear()}-${String(_now.getMonth()+1).padStart(2,'0')}-${String(_now.getDate()).padStart(2,'0')}`;
   document.getElementById('ev-date').value = date || _todayLocal;
   document.getElementById('ev-capacity').value = 120;
+  document.getElementById('ev-waitlist').value  = 0;
   document.getElementById('ev-venue').value = '';
   document.getElementById('ev-time').value = '';
   document.getElementById('ev-badge').value = '선착순 무료 신청';
@@ -1067,6 +1203,7 @@ async function openEditEventModal(id) {
     document.getElementById('ev-category').value      = ev.category;
     document.getElementById('ev-date').value           = ev.event_date;
     document.getElementById('ev-capacity').value       = ev.max_capacity;
+    document.getElementById('ev-waitlist').value        = ev.waitlist_capacity || 0;
     document.getElementById('ev-venue').value          = ev.venue||'';
     document.getElementById('ev-time').value           = ev.event_time||'';
     document.getElementById('ev-badge').value          = ev.hero_badge||'선착순 무료 신청';
@@ -1106,6 +1243,7 @@ async function saveEvent() {
     event_date: date, venue: document.getElementById('ev-venue').value,
     event_time: document.getElementById('ev-time').value,
     max_capacity: parseInt(document.getElementById('ev-capacity').value)||120,
+    waitlist_capacity: parseInt(document.getElementById('ev-waitlist').value)||0,
     color: document.getElementById('ev-color').value,
     hero_badge: document.getElementById('ev-badge').value,
     hero_title: document.getElementById('ev-hero-title').value,

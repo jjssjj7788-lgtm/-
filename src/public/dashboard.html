@@ -367,9 +367,10 @@
     <!-- Stats -->
     <div class="stats-row">
       <div class="stat-card blue"><div class="stat-icon">📋</div><div class="stat-lbl">총 신청</div><div class="stat-val" id="s-total">--</div><div class="stat-sub">명 신청</div></div>
-      <div class="stat-card gold"><div class="stat-icon">👥</div><div class="stat-lbl">전체 정원</div><div class="stat-val" id="s-cap">--</div><div class="stat-sub">명 최대</div></div>
+      <div class="stat-card gold"><div class="stat-icon">👥</div><div class="stat-lbl">확정 정원</div><div class="stat-val" id="s-cap">--</div><div class="stat-sub">명 최대</div></div>
       <div class="stat-card green"><div class="stat-icon">✅</div><div class="stat-lbl" id="s-att-lbl">출석 (세션)</div><div class="stat-val" id="s-att">--</div><div class="stat-sub">명 입장</div></div>
       <div class="stat-card navy"><div class="stat-icon">🎫</div><div class="stat-lbl">잔여 좌석</div><div class="stat-val" id="s-rem">--</div><div class="stat-sub">석 남음</div></div>
+      <div class="stat-card" style="background:linear-gradient(135deg,rgba(201,168,76,.12),rgba(201,168,76,.06));border-color:rgba(201,168,76,.3);"><div class="stat-icon">⏳</div><div class="stat-lbl">대기자</div><div class="stat-val" id="s-wait" style="color:#a8862e;">--</div><div class="stat-sub">명 대기</div></div>
     </div>
 
     <!-- Progress -->
@@ -408,6 +409,7 @@
         <button class="ftab active" onclick="setFilter('all',this)">전체 <span id="fc-all">(0)</span></button>
         <button class="ftab" onclick="setFilter('attended',this)">출석 <span id="fc-att">(0)</span></button>
         <button class="ftab" onclick="setFilter('absent',this)">미출석 <span id="fc-abs">(0)</span></button>
+        <button class="ftab" onclick="setFilter('waitlist',this)" style="color:#a8862e;">⏳ 대기 <span id="fc-wait">(0)</span></button>
       </div>
       <div class="tbl-wrap">
         <table>
@@ -693,23 +695,31 @@ function resetStats() {
 }
 
 function renderEventStats(ev) {
-  const total = ev.current_count || 0;
+  const confirmed  = ev.current_count || 0;
+  const waitlisted = ev.waitlist_count || 0;
   const cap   = ev.max_capacity;
-  const remaining = Math.max(0, cap - total);
-  document.getElementById('s-total').textContent = total;
+  const waitCap = ev.waitlist_capacity || 0;
+  const remaining = Math.max(0, cap - confirmed);
+  document.getElementById('s-total').textContent = confirmed;
   document.getElementById('s-cap').textContent   = cap;
   document.getElementById('s-rem').textContent   = remaining;
+  document.getElementById('s-wait').textContent  = waitlisted;
+  // 대기 카드: 대기 인원 설정 없으면 흐리게
+  const waitCard = document.getElementById('s-wait').closest('.stat-card');
+  if (waitCard) waitCard.style.opacity = waitCap > 0 ? '1' : '0.4';
 
   // Progress: registration
-  const regPct = cap > 0 ? Math.min(100, total/cap*100) : 0;
+  const regPct = cap > 0 ? Math.min(100, confirmed/cap*100) : 0;
   document.getElementById('p-reg-b').style.width = regPct+'%';
-  document.getElementById('p-reg-v').textContent = `${total}/${cap}`;
-  document.getElementById('p-reg-d').textContent = total >= cap ? '마감' : `잔여 ${remaining}석`;
+  document.getElementById('p-reg-v').textContent = `${confirmed}/${cap}`;
+  document.getElementById('p-reg-d').textContent = confirmed >= cap
+    ? `마감 (대기 ${waitlisted}${waitCap>0?'/'+waitCap:''}명)`
+    : `잔여 ${remaining}석`;
 
   // Sessions tabs
   const sessions = ev.sessions || [];
-  renderSessionTabs(sessions, total);
-  renderSessionStatCards(sessions, total);
+  renderSessionTabs(sessions, confirmed);
+  renderSessionStatCards(sessions, confirmed);
 }
 
 function renderSessionTabs(sessions, totalRegs) {
@@ -795,18 +805,22 @@ function selectSession(sesId) {
 
 // ─── TABLE ─────────────────────────────────────────────────────────────────
 function renderAll() {
-  // Compute stats with first session or selected session
+  // confirmed만 출석 통계 계산
+  const confirmedRegs = allRegs.filter(r => r.status !== 'waitlist');
   const ses0id = currentSessions[0]?.id;
   const checkId = currentSessionId !== null ? currentSessionId : ses0id;
-  const attAny = allRegs.filter(r=>r.attendance?.some(a=>a.attended)).length;
-  const attSel = checkId ? allRegs.filter(r=>r.attendance?.find(a=>a.session_id===checkId&&a.attended)).length : attAny;
+  const attAny = confirmedRegs.filter(r=>r.attendance?.some(a=>a.attended)).length;
+  const attSel = checkId ? confirmedRegs.filter(r=>r.attendance?.find(a=>a.session_id===checkId&&a.attended)).length : attAny;
 
-  document.getElementById('s-total').textContent = allRegs.length;
+  document.getElementById('s-total').textContent = confirmedRegs.length;
   document.getElementById('s-att').textContent = currentSessionId !== null ? attSel : attAny;
 
-  const pct = allRegs.length > 0 ? Math.min(100, attSel/allRegs.length*100) : 0;
+  const waitRegs = allRegs.filter(r => r.status === 'waitlist');
+  document.getElementById('s-wait').textContent = waitRegs.length;
+
+  const pct = confirmedRegs.length > 0 ? Math.min(100, attSel/confirmedRegs.length*100) : 0;
   document.getElementById('p-att-b').style.width = pct+'%';
-  document.getElementById('p-att-v').textContent = `${attSel}/${allRegs.length}`;
+  document.getElementById('p-att-v').textContent = `${attSel}/${confirmedRegs.length}`;
   document.getElementById('p-att-d').textContent = `출석 ${attSel}명 (${pct.toFixed(0)}%)`;
 
   filterTable();
@@ -815,6 +829,9 @@ function renderAll() {
 function filterTable() {
   searchTerm = document.getElementById('search-inp').value.toLowerCase();
 
+  const confirmedRegs = allRegs.filter(r => r.status !== 'waitlist');
+  const waitRegs      = allRegs.filter(r => r.status === 'waitlist');
+
   const isAttended = (reg) => {
     if (currentSessionId !== null) {
       return reg.attendance?.find(a=>a.session_id===currentSessionId&&a.attended);
@@ -822,16 +839,19 @@ function filterTable() {
     return reg.attendance?.some(a=>a.attended);
   };
 
-  const attended = allRegs.filter(r=>isAttended(r));
-  const absent   = allRegs.filter(r=>!isAttended(r));
+  const attended = confirmedRegs.filter(r=>isAttended(r));
+  const absent   = confirmedRegs.filter(r=>!isAttended(r));
 
-  document.getElementById('fc-all').textContent = `(${allRegs.length})`;
-  document.getElementById('fc-att').textContent = `(${attended.length})`;
-  document.getElementById('fc-abs').textContent = `(${absent.length})`;
+  document.getElementById('fc-all').textContent  = `(${confirmedRegs.length})`;
+  document.getElementById('fc-att').textContent  = `(${attended.length})`;
+  document.getElementById('fc-abs').textContent  = `(${absent.length})`;
+  document.getElementById('fc-wait').textContent = `(${waitRegs.length})`;
 
-  let filtered = allRegs;
-  if (filterMode==='attended') filtered=attended;
-  if (filterMode==='absent')   filtered=absent;
+  let filtered;
+  if (filterMode === 'waitlist')  filtered = waitRegs;
+  else if (filterMode === 'attended') filtered = attended;
+  else if (filterMode === 'absent')   filtered = absent;
+  else filtered = filterMode === 'all' ? confirmedRegs : confirmedRegs;
 
   if (searchTerm) {
     filtered = filtered.filter(r=>
@@ -863,13 +883,18 @@ function renderTable(rows) {
   const multiSession = currentSessions.length > 1;
 
   tbody.innerHTML = rows.map(r => {
-    const attCells = buildAttCells(r);
-    const nameDisp = esc(r.name||'-');
+    const isWait    = r.status === 'waitlist';
+    const attCells  = isWait ? '<span style="color:var(--g400);font-size:11px;">-</span>' : buildAttCells(r);
+    const nameDisp  = esc(r.name||'-');
     const phoneDisp = fmtPhone(r.phone);
-    const orgDisp  = esc(r.organization||'-');
-    const refDisp  = r.referrer ? esc(r.referrer) : '<span style="color:var(--g400)">-</span>';
-    return `<tr>
-      <td><span class="tno">No.${String(r.ticket_number).padStart(3,'0')}</span></td>
+    const orgDisp   = esc(r.organization||'-');
+    const refDisp   = r.referrer ? esc(r.referrer) : '<span style="color:var(--g400)">-</span>';
+    const noDisp    = isWait
+      ? `<span style="display:inline-flex;align-items:center;gap:4px;background:linear-gradient(135deg,rgba(201,168,76,.15),rgba(201,168,76,.08));border:1px solid rgba(201,168,76,.4);color:#a8862e;font-size:11px;font-weight:700;padding:2px 8px;border-radius:8px;">⏳ 대기 ${r.waitlist_number}</span>`
+      : `<span class="tno">No.${String(r.ticket_number).padStart(3,'0')}</span>`;
+    const rowStyle  = isWait ? ' style="background:rgba(201,168,76,.04);"' : '';
+    return `<tr${rowStyle}>
+      <td>${noDisp}</td>
       <td><span class="edit-cell" data-reg-id="${r.id}" data-field="name" data-value="${esc(r.name||'')}" data-inputmode="text"><strong>${nameDisp}</strong></span></td>
       <td><span class="edit-cell" data-reg-id="${r.id}" data-field="phone" data-value="${esc(r.phone||'')}" data-inputmode="tel">${phoneDisp}</span></td>
       <td><span class="edit-cell" data-reg-id="${r.id}" data-field="organization" data-value="${esc(r.organization||'')}" data-inputmode="text">${orgDisp}</span></td>
