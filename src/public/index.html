@@ -3,7 +3,14 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
-  <title>라스북 학부모 세미나 신청</title>
+  <title>라스북 세미나 신청</title>
+  <!-- Open Graph / KakaoTalk -->
+  <meta property="og:type" content="website" />
+  <meta property="og:site_name" content="라스북 세미나" />
+  <meta property="og:title" content="라스북 세미나 신청" />
+  <meta property="og:description" content="라스북 세미나에 신청하세요" />
+  <meta property="og:image" content="/images/1.jpg" />
+  <meta name="twitter:card" content="summary_large_image" />
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;500;600;700;900&display=swap" rel="stylesheet" />
   <style>
@@ -15,16 +22,15 @@
       --gold-light: #E8C97A;
       --gold-dark: #A8872E;
       --white: #FFFFFF;
-      --gray-100: #F8F9FC;
-      --gray-200: #EEF0F5;
+      --gray-50: #FAFBFD;
+      --gray-100: #F0F2F7;
+      --gray-200: #E2E5EF;
       --gray-400: #9AA3B2;
       --gray-600: #5A6478;
       --red: #E53E3E;
       --green: #38A169;
     }
-
     * { box-sizing: border-box; margin: 0; padding: 0; }
-
     body {
       font-family: 'Noto Sans KR', sans-serif;
       background: linear-gradient(160deg, var(--navy) 0%, var(--navy-mid) 40%, #1a3a5c 100%);
@@ -32,604 +38,1201 @@
       color: var(--white);
     }
 
-    /* ── Hero Section ── */
-    .hero {
-      position: relative;
-      padding: 48px 24px 40px;
+    /* ── Loading ── */
+    .loading-screen {
+      min-height: 100vh;
+      display: flex; flex-direction: column; align-items: center; justify-content: center;
+      gap: 16px;
+    }
+    .spin { width: 48px; height: 48px; border: 4px solid rgba(201,168,76,.2); border-top-color: var(--gold); border-radius: 50%; animation: spin 1s linear infinite; }
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    /* ── Event List View ── */
+    .ev-list-view { min-height: 100vh; }
+
+    .ev-hero {
+      padding: 44px 24px 32px;
       text-align: center;
+      position: relative;
       overflow: hidden;
     }
-    .hero::before {
-      content: '';
-      position: absolute;
-      top: -60px; left: -60px;
-      width: 220px; height: 220px;
-      background: radial-gradient(circle, rgba(201,168,76,0.15) 0%, transparent 70%);
+    .ev-hero::before {
+      content: ''; position: absolute; top: -60px; left: -60px;
+      width: 200px; height: 200px;
+      background: radial-gradient(circle, rgba(201,168,76,.12) 0%, transparent 70%);
       border-radius: 50%;
     }
-    .hero::after {
-      content: '';
-      position: absolute;
-      bottom: -40px; right: -40px;
-      width: 180px; height: 180px;
-      background: radial-gradient(circle, rgba(201,168,76,0.1) 0%, transparent 70%);
+    .ev-hero::after {
+      content: ''; position: absolute; bottom: -40px; right: -40px;
+      width: 160px; height: 160px;
+      background: radial-gradient(circle, rgba(201,168,76,.08) 0%, transparent 70%);
       border-radius: 50%;
     }
+    .ev-hero-logo { font-size: 12px; font-weight: 700; letter-spacing: 3px; color: var(--gold); margin-bottom: 12px; }
+    .ev-hero-title { font-size: 26px; font-weight: 900; line-height: 1.3; margin-bottom: 8px; }
+    .ev-hero-title span { color: var(--gold-light); }
+    .ev-hero-sub { font-size: 13px; color: rgba(255,255,255,.65); line-height: 1.6; }
+
+    /* Category filter */
+    .cat-filter {
+      display: flex; gap: 8px; padding: 0 20px 16px;
+      overflow-x: auto; -webkit-overflow-scrolling: touch;
+    }
+    .cat-filter::-webkit-scrollbar { display: none; }
+    .cat-btn {
+      flex-shrink: 0; padding: 7px 16px; border-radius: 20px;
+      font-size: 12px; font-weight: 700; font-family: inherit;
+      cursor: pointer; border: 1.5px solid rgba(255,255,255,.2);
+      background: rgba(255,255,255,.07); color: rgba(255,255,255,.7);
+      transition: all .2s; white-space: nowrap;
+    }
+    .cat-btn.active {
+      background: linear-gradient(135deg, var(--gold-dark), var(--gold));
+      color: var(--navy); border-color: transparent;
+    }
+    .cat-btn-ended {
+      border-color: rgba(100,100,100,.4);
+      color: rgba(255,255,255,.45);
+    }
+    .cat-btn-ended.active {
+      background: rgba(100,100,100,.25);
+      color: rgba(255,255,255,.7);
+      border-color: rgba(150,150,150,.4);
+    }
+
+    /* Event cards */
+    .ev-cards { padding: 0 16px 32px; display: flex; flex-direction: column; gap: 12px; }
+
+    .ev-card {
+      background: rgba(255,255,255,.09);
+      border: 1px solid rgba(255,255,255,.12);
+      border-radius: 20px;
+      padding: 20px;
+      cursor: pointer;
+      transition: all .2s;
+      position: relative;
+      overflow: hidden;
+    }
+    .ev-card::before {
+      content: ''; position: absolute; left: 0; top: 0; bottom: 0; width: 4px;
+      background: var(--ev-color, #C9A84C);
+      border-radius: 4px 0 0 4px;
+    }
+    .ev-card:hover { background: rgba(255,255,255,.13); transform: translateY(-2px); box-shadow: 0 8px 24px rgba(0,0,0,.3); }
+    .ev-card-top { display: flex; align-items: flex-start; justify-content: space-between; gap: 10px; margin-bottom: 12px; }
+    .ev-card-badges { display: flex; gap: 6px; flex-wrap: wrap; }
+    .badge-cat  { font-size: 10px; font-weight: 700; padding: 3px 10px; border-radius: 10px; background: rgba(255,255,255,.15); color: rgba(255,255,255,.85); }
+    .badge-full { font-size: 10px; font-weight: 700; padding: 3px 10px; border-radius: 10px; background: rgba(229,62,62,.2); color: #FC8181; border: 1px solid rgba(229,62,62,.3); }
+    .badge-open { font-size: 10px; font-weight: 700; padding: 3px 10px; border-radius: 10px; background: rgba(56,161,105,.2); color: #68D391; border: 1px solid rgba(56,161,105,.3); }
+    .ev-card-arrow { color: rgba(255,255,255,.4); font-size: 18px; flex-shrink: 0; }
+    .ev-card-title { font-size: 17px; font-weight: 800; color: #fff; margin-bottom: 10px; line-height: 1.3; }
+    .ev-card-meta { display: flex; flex-direction: column; gap: 5px; }
+    .ev-meta-row { display: flex; align-items: center; gap: 8px; font-size: 12px; color: rgba(255,255,255,.65); }
+    .ev-meta-icon { width: 16px; text-align: center; font-size: 12px; }
+
+
+    .ev-empty { text-align: center; padding: 60px 24px; color: rgba(255,255,255,.5); }
+    .ev-empty .ei { font-size: 48px; margin-bottom: 12px; }
+
+    /* ══════════════════════════════════════
+       REGISTRATION VIEW
+    ══════════════════════════════════════ */
+    .reg-view { display: none; min-height: 100vh; }
+
+    /* Back button */
+    .back-btn {
+      display: flex; align-items: center; gap: 8px;
+      padding: 16px 20px 0;
+      font-size: 13px; font-weight: 600; color: rgba(255,255,255,.7);
+      cursor: pointer; background: none; border: none; font-family: inherit;
+    }
+    .back-btn:hover { color: #fff; }
+
+    /* 포스터 슬라이더 섹션 */
+    .poster-section {
+      display: none;
+      width: 100%;
+      position: relative;
+      overflow: hidden;
+      touch-action: pan-y;
+    }
+    .poster-slider-track {
+      display: flex;
+      will-change: transform;
+      transition: transform 0.45s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+    }
+    .poster-slider-track.no-transition {
+      transition: none !important;
+    }
+    .poster-slide {
+      min-width: 100%;
+      flex-shrink: 0;
+      position: relative;
+    }
+    .poster-slide img {
+      width: 100%;
+      display: block;
+      height: auto;
+      max-height: 80vh;
+      object-fit: contain;
+      background: var(--navy);
+    }
+    .poster-section::after {
+      content: '';
+      position: absolute;
+      left: 0; right: 0; bottom: 0;
+      height: 100px;
+      background: linear-gradient(to bottom, transparent, var(--navy));
+      pointer-events: none;
+      z-index: 2;
+    }
+    /* 슬라이더 인디케이터 */
+    .slider-dots {
+      position: absolute;
+      bottom: 12px;
+      left: 50%;
+      transform: translateX(-50%);
+      display: flex;
+      gap: 6px;
+      z-index: 3;
+    }
+    .slider-dot {
+      width: 6px; height: 6px;
+      border-radius: 50%;
+      background: rgba(255,255,255,0.4);
+      transition: all 0.3s;
+      cursor: pointer;
+    }
+    .slider-dot.active {
+      background: var(--gold);
+      width: 18px;
+      border-radius: 3px;
+    }
+    /* 슬라이더 화살표 (태블릿/PC) */
+    .slider-arrow {
+      display: none;
+      position: absolute;
+      top: 50%;
+      transform: translateY(-50%);
+      z-index: 4;
+      background: rgba(0,0,0,0.45);
+      color: #fff;
+      border: none;
+      border-radius: 50%;
+      width: 38px; height: 38px;
+      font-size: 18px;
+      cursor: pointer;
+      align-items: center;
+      justify-content: center;
+      transition: background 0.2s;
+    }
+    .slider-arrow:hover { background: rgba(0,0,0,0.7); }
+    .slider-arrow-prev { left: 10px; }
+    .slider-arrow-next { right: 10px; }
+    @media (min-width: 500px) { .slider-arrow { display: flex; } }
+
+    /* Hero */
+    .hero {
+      padding: 20px 24px 28px;
+      text-align: center;
+      position: relative;
+      overflow: hidden;
+    }
+    .hero.no-poster {
+      padding-top: 20px;
+    }
+    .hero::before { content: ''; position: absolute; top: -60px; left: -60px; width: 220px; height: 220px; background: radial-gradient(circle, rgba(201,168,76,.15) 0%, transparent 70%); border-radius: 50%; }
+    .hero::after  { content: ''; position: absolute; bottom: -40px; right: -40px; width: 180px; height: 180px; background: radial-gradient(circle, rgba(201,168,76,.1) 0%, transparent 70%); border-radius: 50%; }
+
     .hero-badge {
       display: inline-block;
       background: linear-gradient(135deg, var(--gold-dark), var(--gold));
-      color: var(--navy);
-      font-size: 11px;
-      font-weight: 700;
-      letter-spacing: 2px;
-      padding: 6px 16px;
-      border-radius: 20px;
-      margin-bottom: 20px;
-      text-transform: uppercase;
+      color: var(--navy); font-size: 11px; font-weight: 700;
+      letter-spacing: 2px; padding: 6px 16px; border-radius: 20px;
+      margin-bottom: 16px; text-transform: uppercase;
     }
-    .hero-logo {
-      font-size: 13px;
-      font-weight: 700;
-      letter-spacing: 3px;
-      color: var(--gold);
-      margin-bottom: 10px;
-      opacity: 0.9;
-    }
-    .hero-title {
-      font-size: 28px;
-      font-weight: 900;
-      line-height: 1.3;
-      margin-bottom: 8px;
-      text-shadow: 0 2px 10px rgba(0,0,0,0.3);
-    }
-    .hero-title span {
-      color: var(--gold-light);
-    }
-    .hero-subtitle {
-      font-size: 14px;
-      color: rgba(255,255,255,0.65);
-      margin-bottom: 30px;
-      line-height: 1.6;
-    }
+    .hero-logo { font-size: 12px; font-weight: 700; letter-spacing: 3px; color: var(--gold); margin-bottom: 8px; opacity: .9; }
+    .hero-title { font-size: 26px; font-weight: 900; line-height: 1.3; margin-bottom: 8px; text-shadow: 0 2px 10px rgba(0,0,0,.3); }
+    .hero-title span { color: var(--gold-light); }
+    .hero-subtitle { font-size: 13px; color: rgba(255,255,255,.65); margin-bottom: 24px; line-height: 1.6; white-space: pre-line; }
 
     /* Info Cards */
-    .info-cards {
-      display: flex;
-      flex-direction: column;
-      gap: 10px;
-      margin-bottom: 8px;
-    }
+    .info-cards { display: flex; flex-direction: column; gap: 8px; margin-bottom: 6px; }
     .info-card {
-      background: rgba(255,255,255,0.08);
-      border: 1px solid rgba(201,168,76,0.25);
-      border-radius: 14px;
-      padding: 14px 18px;
-      display: flex;
-      align-items: center;
-      gap: 14px;
-      text-align: left;
-      backdrop-filter: blur(10px);
+      background: rgba(255,255,255,.08);
+      border: 1px solid rgba(201,168,76,.25);
+      border-radius: 12px; padding: 12px 16px;
+      display: flex; align-items: center; gap: 12px; text-align: left;
     }
     .info-card-icon {
-      width: 40px; height: 40px;
-      background: linear-gradient(135deg, rgba(201,168,76,0.2), rgba(201,168,76,0.05));
-      border: 1px solid rgba(201,168,76,0.3);
-      border-radius: 10px;
+      width: 36px; height: 36px;
+      background: linear-gradient(135deg, rgba(201,168,76,.2), rgba(201,168,76,.05));
+      border: 1px solid rgba(201,168,76,.3);
+      border-radius: 9px;
       display: flex; align-items: center; justify-content: center;
-      font-size: 18px;
-      flex-shrink: 0;
+      font-size: 16px; flex-shrink: 0;
     }
-    .info-card-label {
-      font-size: 11px;
-      color: var(--gold);
-      font-weight: 600;
-      letter-spacing: 1px;
-      margin-bottom: 2px;
-    }
-    .info-card-value {
-      font-size: 14px;
-      font-weight: 600;
-      color: var(--white);
-      line-height: 1.4;
-    }
+    .info-card-label { font-size: 10px; color: var(--gold); font-weight: 600; letter-spacing: 1px; margin-bottom: 2px; }
+    .info-card-value { font-size: 13px; font-weight: 600; color: var(--white); line-height: 1.4; }
 
-    /* Capacity Bar */
-    .capacity-section {
-      margin: 20px 0 0;
-    }
-    .capacity-header {
+    /* Share Section */
+    .share-section {
+      padding: 20px 24px 0;
       display: flex;
-      justify-content: space-between;
-      align-items: center;
-      margin-bottom: 8px;
+      gap: 10px;
     }
-    .capacity-label {
-      font-size: 12px;
-      color: rgba(255,255,255,0.65);
+    .share-btn {
+      flex: 1;
+      display: flex; align-items: center; justify-content: center;
+      gap: 10px;
+      padding: 13px 12px;
+      border-radius: 14px;
+      border: none;
+      cursor: pointer;
+      font-family: 'Noto Sans KR', sans-serif;
+      font-size: 13px; font-weight: 700;
+      transition: all .2s;
     }
-    .capacity-count {
-      font-size: 15px;
-      font-weight: 700;
-      color: var(--gold-light);
+    .share-btn:active { transform: scale(0.97); }
+    .share-btn-image {
+      background: linear-gradient(135deg, var(--gold-dark), var(--gold));
+      color: var(--navy);
+      box-shadow: 0 4px 16px rgba(201,168,76,.3);
     }
-    .capacity-bar-bg {
-      height: 8px;
-      background: rgba(255,255,255,0.12);
-      border-radius: 4px;
-      overflow: hidden;
+    .share-btn-image:hover { transform: translateY(-1px); box-shadow: 0 6px 20px rgba(201,168,76,.4); }
+    .share-btn-image .btn-icon-wrap {
+      width: 28px; height: 28px;
+      background: rgba(10,22,40,.15);
+      border-radius: 8px;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 14px; flex-shrink: 0;
     }
-    .capacity-bar-fill {
-      height: 100%;
-      background: linear-gradient(90deg, var(--gold-dark), var(--gold-light));
-      border-radius: 4px;
-      transition: width 0.8s ease;
+    .share-btn-image .btn-label { font-size: 12px; font-weight: 800; }
+    .share-btn-image .btn-sub   { font-size: 10px; opacity: .7; }
+    .share-btn-link {
+      background: rgba(255,255,255,.1);
+      border: 1px solid rgba(255,255,255,.2);
+      color: rgba(255,255,255,.9);
     }
-    .capacity-remaining {
-      font-size: 12px;
-      color: rgba(255,255,255,0.5);
-      margin-top: 6px;
-      text-align: right;
+    .share-btn-link:hover { background: rgba(255,255,255,.16); }
+    .share-btn-link .btn-icon-wrap {
+      width: 28px; height: 28px;
+      background: linear-gradient(135deg, rgba(201,168,76,.3), rgba(201,168,76,.15));
+      border-radius: 8px;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 14px; flex-shrink: 0;
     }
+    .share-btn-link .btn-label { font-size: 12px; font-weight: 800; }
+    .share-btn-link .btn-sub   { font-size: 10px; opacity: .6; }
+    .share-btn-link.copied .btn-icon-wrap { background: linear-gradient(135deg, #276749, #2f855a); }
+    .share-btn-link.copied .btn-label { color: #9AE6B4; }
+    .share-btn-link.copied .btn-sub { color: rgba(154,230,180,0.7); }
 
-    /* ── Form Section ── */
+    /* QR Modal */
+    .qr-modal {
+      display: none; position: fixed; inset: 0; z-index: 9998;
+      background: rgba(0,0,0,.8); align-items: center; justify-content: center;
+      padding: 24px; backdrop-filter: blur(8px);
+    }
+    .qr-modal.show { display: flex; }
+    .qr-modal-card {
+      background: #fff; border-radius: 24px; padding: 30px 24px 24px;
+      max-width: 320px; width: 100%; text-align: center;
+      animation: popUp .3s cubic-bezier(0.34,1.56,0.64,1); position: relative;
+    }
+    @keyframes popUp {
+      from { transform: scale(.8) translateY(20px); opacity: 0; }
+      to   { transform: scale(1) translateY(0);     opacity: 1; }
+    }
+    .qr-modal-close {
+      position: absolute; top: 12px; right: 14px;
+      background: var(--gray-100); border: none; width: 30px; height: 30px;
+      border-radius: 50%; font-size: 15px; cursor: pointer; color: var(--gray-600);
+      display: flex; align-items: center; justify-content: center;
+    }
+    .qr-modal-title { font-size: 16px; font-weight: 900; color: var(--navy); margin-bottom: 4px; }
+    .qr-modal-sub   { font-size: 12px; color: var(--gray-400); margin-bottom: 18px; }
+    #qr-modal-canvas { display: block; margin: 0 auto 16px; border-radius: 10px; border: 1px solid var(--gray-200); }
+    .qr-url { font-size: 10px; color: var(--gray-400); background: var(--gray-100); border-radius: 6px; padding: 7px 10px; word-break: break-all; margin-bottom: 14px; font-family: monospace; }
+    .qr-dl {
+      width: 100%; padding: 13px;
+      background: linear-gradient(135deg, var(--gold-dark), var(--gold));
+      color: var(--navy); border: none; border-radius: 12px;
+      font-size: 14px; font-weight: 800; font-family: inherit;
+      cursor: pointer; margin-bottom: 8px; transition: all .2s;
+    }
+    .qr-dl:hover { transform: translateY(-1px); }
+    .qr-cancel { width: 100%; padding: 10px; background: none; border: none; font-size: 12px; color: var(--gray-400); cursor: pointer; font-family: inherit; }
+
+    /* Form */
     .form-section {
       background: var(--white);
       border-radius: 28px 28px 0 0;
-      padding: 32px 24px 40px;
-      margin-top: 24px;
-    }
-    .form-title {
-      font-size: 20px;
-      font-weight: 800;
+      padding: 32px 24px 48px;
+      margin-top: 20px;
       color: var(--navy);
-      margin-bottom: 6px;
     }
-    .form-subtitle {
-      font-size: 13px;
-      color: var(--gray-600);
-      margin-bottom: 28px;
-      line-height: 1.5;
-    }
-    .form-group {
-      margin-bottom: 20px;
-    }
-    .form-label {
-      display: block;
-      font-size: 13px;
-      font-weight: 700;
-      color: var(--navy);
-      margin-bottom: 8px;
-      letter-spacing: 0.3px;
-    }
-    .form-label .required {
-      color: var(--gold-dark);
-      margin-left: 3px;
-    }
+    .form-title { font-size: 20px; font-weight: 800; color: var(--navy); margin-bottom: 6px; }
+    .form-subtitle { font-size: 13px; color: var(--gray-600); margin-bottom: 28px; line-height: 1.5; }
+    .form-group { margin-bottom: 20px; }
+    .form-label { display: block; font-size: 13px; font-weight: 700; color: var(--navy); margin-bottom: 8px; }
+    .form-label .required { color: var(--gold-dark); margin-left: 3px; }
     .form-input {
-      width: 100%;
-      padding: 15px 18px;
-      border: 2px solid var(--gray-200);
-      border-radius: 14px;
-      font-size: 16px;
-      font-family: 'Noto Sans KR', sans-serif;
-      color: var(--navy);
-      background: var(--gray-100);
-      transition: all 0.2s ease;
-      outline: none;
-      -webkit-appearance: none;
+      width: 100%; padding: 15px 18px;
+      border: 2px solid var(--gray-200); border-radius: 14px;
+      font-size: 16px; font-family: 'Noto Sans KR', sans-serif;
+      color: var(--navy); background: var(--gray-100);
+      outline: none; transition: all .2s; -webkit-appearance: none;
     }
-    .form-input:focus {
-      border-color: var(--navy-mid);
-      background: var(--white);
-      box-shadow: 0 0 0 4px rgba(27,43,75,0.08);
-    }
-    .form-input::placeholder {
-      color: var(--gray-400);
-      font-size: 14px;
-    }
-    .form-input.error {
-      border-color: var(--red);
-      background: #fff8f8;
-    }
-    .form-error {
-      font-size: 12px;
-      color: var(--red);
-      margin-top: 6px;
-      display: none;
-    }
-    .form-hint {
-      font-size: 12px;
-      color: var(--gray-400);
-      margin-top: 5px;
-    }
+    .form-input:focus { border-color: var(--navy-mid); background: var(--white); box-shadow: 0 0 0 4px rgba(27,43,75,.08); }
+    .form-input::placeholder { color: var(--gray-400); font-size: 14px; }
+    .form-input.error { border-color: var(--red); background: #fff8f8; }
+    .form-error { font-size: 12px; color: var(--red); margin-top: 6px; display: none; }
+    .form-hint  { font-size: 12px; color: var(--gray-400); margin-top: 5px; }
+    .optional-badge { display: inline-block; background: var(--gray-200); color: var(--gray-600); font-size: 10px; font-weight: 600; padding: 2px 8px; border-radius: 10px; margin-left: 6px; vertical-align: middle; }
 
-    /* Optional badge */
-    .optional-badge {
-      display: inline-block;
-      background: var(--gray-200);
-      color: var(--gray-600);
-      font-size: 10px;
-      font-weight: 600;
-      padding: 2px 8px;
-      border-radius: 10px;
-      margin-left: 6px;
-      vertical-align: middle;
-    }
+    /* Privacy */
+    .privacy-box { background: var(--gray-100); border-radius: 14px; padding: 16px; margin: 20px 0; }
+    .privacy-title { font-size: 12px; font-weight: 700; color: var(--navy); margin-bottom: 8px; display: flex; align-items: center; gap: 6px; }
+    .privacy-text { font-size: 11px; color: var(--gray-600); line-height: 1.7; white-space: pre-line; }
 
-    /* Submit Button */
+    /* Submit */
     .btn-submit {
-      width: 100%;
-      padding: 18px;
+      width: 100%; padding: 18px;
       background: linear-gradient(135deg, var(--navy), var(--navy-mid));
-      color: var(--white);
-      border: none;
-      border-radius: 16px;
-      font-size: 17px;
-      font-weight: 800;
+      color: var(--white); border: none; border-radius: 16px;
+      font-size: 17px; font-weight: 800;
       font-family: 'Noto Sans KR', sans-serif;
-      cursor: pointer;
-      position: relative;
-      overflow: hidden;
-      transition: all 0.2s ease;
-      margin-top: 10px;
-      letter-spacing: 0.5px;
+      cursor: pointer; position: relative; overflow: hidden;
+      transition: all .2s; margin-top: 10px;
     }
-    .btn-submit::before {
-      content: '';
-      position: absolute;
-      top: 0; left: 0; right: 0;
-      height: 1px;
-      background: linear-gradient(90deg, transparent, rgba(201,168,76,0.5), transparent);
-    }
-    .btn-submit:hover:not(:disabled) {
-      transform: translateY(-1px);
-      box-shadow: 0 8px 25px rgba(10,22,40,0.4);
-    }
-    .btn-submit:active:not(:disabled) {
-      transform: translateY(0);
-    }
-    .btn-submit:disabled {
-      background: linear-gradient(135deg, #a0a0a0, #c0c0c0);
-      cursor: not-allowed;
-      opacity: 0.7;
-    }
-    .btn-submit .btn-icon {
-      margin-right: 8px;
-    }
+    .btn-submit::before { content: ''; position: absolute; top: 0; left: 0; right: 0; height: 1px; background: linear-gradient(90deg, transparent, rgba(201,168,76,.5), transparent); }
+    .btn-submit:hover:not(:disabled) { transform: translateY(-1px); box-shadow: 0 8px 25px rgba(10,22,40,.4); }
+    .btn-submit:disabled { background: linear-gradient(135deg, #a0a0a0, #c0c0c0); cursor: not-allowed; opacity: .7; }
+    .full-badge { display: inline-block; background: rgba(229,62,62,.12); color: var(--red); border: 1px solid rgba(229,62,62,.3); border-radius: 12px; padding: 12px 20px; text-align: center; font-size: 14px; font-weight: 700; margin-top: 14px; width: 100%; }
 
-    /* Full message */
-    .full-message {
-      display: none;
-      text-align: center;
-      padding: 24px;
-      background: linear-gradient(135deg, #fff8ee, #fff3e0);
-      border: 2px solid #f6ad55;
-      border-radius: 16px;
-      margin-top: 10px;
-    }
-    .full-message .full-icon { font-size: 40px; margin-bottom: 10px; }
-    .full-message h3 { color: #c05621; font-size: 18px; margin-bottom: 6px; }
-    .full-message p { color: #744210; font-size: 14px; line-height: 1.6; }
+    .btn-spinner { display: none; }
+    .btn-spinner.show { display: inline-block; width: 16px; height: 16px; border: 2px solid rgba(255,255,255,.4); border-top-color: #fff; border-radius: 50%; animation: spin 1s linear infinite; vertical-align: middle; margin-right: 8px; }
 
-    /* Loading spinner */
-    .spinner {
-      display: none;
-      width: 20px; height: 20px;
-      border: 3px solid rgba(255,255,255,0.3);
-      border-top-color: white;
-      border-radius: 50%;
-      animation: spin 0.8s linear infinite;
-      margin: 0 auto;
-    }
-    @keyframes spin { to { transform: rotate(360deg); } }
-
-    /* Notice Box */
-    .notice-box {
-      background: linear-gradient(135deg, rgba(201,168,76,0.08), rgba(201,168,76,0.03));
-      border: 1px solid rgba(201,168,76,0.3);
-      border-radius: 14px;
-      padding: 16px;
-      margin-bottom: 24px;
-    }
-    .notice-box p {
-      font-size: 12.5px;
-      color: var(--gray-600);
-      line-height: 1.7;
-    }
-    .notice-box p:first-child {
-      font-weight: 700;
-      color: var(--navy);
-      margin-bottom: 4px;
-    }
-    .notice-box p::before { content: '• '; color: var(--gold-dark); }
-
-    /* Closed Banner */
-    #closed-banner {
-      display: none;
-      background: linear-gradient(135deg, #1a0000, #3d0000);
-      color: white;
-      text-align: center;
-      padding: 20px;
-      border-radius: 16px;
-      margin-bottom: 20px;
-    }
-    #closed-banner h3 { font-size: 20px; margin-bottom: 8px; }
-    #closed-banner p { font-size: 14px; opacity: 0.8; line-height: 1.6; }
+    /* Notice */
+    .notice-box { background: var(--gray-100); border-radius: 14px; padding: 16px; margin: 20px 0; }
+    .notice-title { font-size: 12px; font-weight: 700; color: var(--navy); margin-bottom: 8px; display: flex; align-items: center; gap: 6px; }
+    .notice-text-el { font-size: 11px; color: var(--gray-600); line-height: 1.7; white-space: pre-line; }
 
     /* Toast */
     .toast {
-      position: fixed;
-      bottom: 24px; left: 50%;
+      position: fixed; bottom: 24px; left: 50%;
       transform: translateX(-50%) translateY(100px);
-      background: var(--navy);
-      color: white;
-      padding: 14px 24px;
-      border-radius: 12px;
-      font-size: 14px;
-      font-weight: 600;
-      z-index: 9999;
-      transition: transform 0.3s ease;
-      max-width: 320px;
-      text-align: center;
-      box-shadow: 0 8px 30px rgba(0,0,0,0.3);
+      background: var(--navy); color: #fff;
+      padding: 14px 24px; border-radius: 12px;
+      font-size: 14px; font-weight: 600; z-index: 9000;
+      transition: transform .3s; max-width: 320px; text-align: center;
+      box-shadow: 0 8px 30px rgba(0,0,0,.3);
     }
     .toast.show { transform: translateX(-50%) translateY(0); }
-    .toast.error { background: var(--red); }
+    .toast.ok  { background: var(--green); }
+    .toast.err { background: var(--red); }
 
-    /* Divider */
-    .divider {
-      height: 1px;
-      background: var(--gray-200);
-      margin: 20px 0;
+    /* Responsive */
+    @media (min-width: 600px) {
+      .share-section { padding: 20px 40px 0; }
+      .hero { padding: 24px 40px 32px; }
+      .form-section { padding: 36px 40px 60px; }
+    }
+    @media (min-width: 1024px) {
+      .reg-view { max-width: 640px; margin: 0 auto; }
+      .poster-section { border-radius: 0; }
     }
   </style>
 </head>
 <body>
 
-  <!-- HERO SECTION -->
-  <div class="hero">
-    <div class="hero-badge">📚 선착순 무료 신청</div>
-    <div class="hero-logo">LASBOOK</div>
-    <h1 class="hero-title">라스북 <span>학부모 세미나</span></h1>
-    <p class="hero-subtitle">아이의 미래를 위한 교육 인사이트<br>학부모님을 초대합니다</p>
+<!-- LOADING -->
+<div id="loading-screen" class="loading-screen">
+  <div class="spin"></div>
+  <p style="color:rgba(255,255,255,.7);font-size:14px;">불러오는 중...</p>
+</div>
 
-    <div class="info-cards">
-      <div class="info-card">
-        <div class="info-card-icon">📅</div>
-        <div>
-          <div class="info-card-label">DATE</div>
-          <div class="info-card-value" id="info-date">로딩 중...</div>
-        </div>
-      </div>
-      <div class="info-card">
-        <div class="info-card-icon">📍</div>
-        <div>
-          <div class="info-card-label">VENUE</div>
-          <div class="info-card-value" id="info-venue">로딩 중...</div>
-        </div>
-      </div>
-    </div>
-
-    <div class="capacity-section">
-      <div class="capacity-header">
-        <span class="capacity-label">신청 현황</span>
-        <span class="capacity-count" id="capacity-count">-- / --</span>
-      </div>
-      <div class="capacity-bar-bg">
-        <div class="capacity-bar-fill" id="capacity-bar" style="width:0%"></div>
-      </div>
-      <div class="capacity-remaining" id="capacity-remaining">잔여 -- 석</div>
-    </div>
+<!-- EVENT LIST VIEW -->
+<div id="ev-list-view" class="ev-list-view" style="display:none;">
+  <div class="ev-hero">
+    <div class="ev-hero-logo">LASBOOK</div>
+    <h1 class="ev-hero-title">교육 프로그램 <span>신청</span></h1>
+    <p class="ev-hero-sub" id="ev-hero-sub">신청하실 프로그램을 선택해주세요</p>
   </div>
 
-  <!-- FORM SECTION -->
+  <div class="cat-filter" id="cat-filter">
+    <!-- 카테고리 버튼은 JS에서 동적 렌더링 -->
+  </div>
+
+  <div class="ev-cards" id="ev-cards">
+    <div class="ev-empty"><div class="ei">📋</div><p>등록된 프로그램이 없습니다</p></div>
+  </div>
+</div>
+
+<!-- REGISTRATION VIEW -->
+<div id="reg-view" class="reg-view">
+
+  <button class="back-btn" onclick="goBack()">
+    <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path d="M15 18l-6-6 6-6"/></svg>
+    목록으로
+  </button>
+
+  <!-- 포스터 슬라이더 (있을 때만 표시) -->
+  <div class="poster-section" id="poster-section">
+    <div class="poster-slider-track" id="poster-track">
+      <!-- slides injected by JS -->
+    </div>
+    <button class="slider-arrow slider-arrow-prev" id="slider-prev" onclick="sliderMove(-1)">&#8249;</button>
+    <button class="slider-arrow slider-arrow-next" id="slider-next" onclick="sliderMove(1)">&#8250;</button>
+    <div class="slider-dots" id="slider-dots"></div>
+  </div>
+
+  <!-- Hero -->
+  <div class="hero" id="reg-hero">
+    <div class="hero-badge" id="hero-badge">선착순 무료 신청</div>
+    <div class="hero-logo" id="hero-logo">LASBOOK</div>
+    <h1 class="hero-title" id="hero-title">라스북 세미나</h1>
+    <p class="hero-subtitle" id="hero-subtitle" style="display:none;"></p>
+
+    <div class="info-cards" id="info-cards"></div>
+
+
+  </div>
+
+  <!-- Share Section -->
+  <div class="share-section">
+    <button class="share-btn share-btn-link" id="copy-link-btn" onclick="copyLink()" style="flex:1;">
+      <div class="btn-icon-wrap">🔗</div>
+      <div>
+        <div class="btn-label">링크 복사</div>
+        <div class="btn-sub">신청 링크 공유</div>
+      </div>
+    </button>
+  </div>
+
+  <!-- Form Section -->
   <div class="form-section">
-    <!-- Closed banner (shown when full) -->
-    <div id="closed-banner">
-      <h3>🚫 신청이 마감되었습니다</h3>
-      <p>많은 관심에 감사드립니다.<br>정원이 모두 마감되었습니다.</p>
+    <div class="form-title">신청서 작성</div>
+    <div class="form-subtitle" id="form-subtitle">아래 정보를 입력하고 신청 버튼을 눌러주세요</div>
+
+    <div id="dynamic-form"></div>
+
+    <div id="notice-box" class="notice-box" style="display:none;">
+      <div class="notice-title">📋 안내사항</div>
+      <div class="notice-text-el" id="notice-text"></div>
     </div>
 
-    <h2 class="form-title">참가 신청서</h2>
-    <p class="form-subtitle">아래 정보를 정확히 입력해주세요.<br>신청 완료 후 모바일 티켓이 발급됩니다.</p>
+    <div class="privacy-box">
+      <div class="privacy-title">🔒 개인정보 수집 동의</div>
+      <div class="privacy-text">수집 항목: 이름, 연락처, 소속 등 신청 정보
+수집 목적: 행사 운영 및 출결 관리
+보유 기간: 행사 종료 후 1년
+※ 신청 완료 시 개인정보 수집에 동의한 것으로 간주합니다.</div>
+    </div>
 
-    <form id="registration-form" novalidate>
-      <div class="form-group">
-        <label class="form-label" for="name">
-          이름 <span class="required">*</span>
-        </label>
-        <input type="text" id="name" class="form-input" placeholder="홍길동" maxlength="20" autocomplete="name" />
-        <div class="form-error" id="name-error">이름을 입력해주세요.</div>
-      </div>
-
-      <div class="form-group">
-        <label class="form-label" for="phone">
-          연락처 <span class="required">*</span>
-        </label>
-        <input type="tel" id="phone" class="form-input" placeholder="010-1234-5678" maxlength="13" autocomplete="tel" />
-        <div class="form-error" id="phone-error">올바른 연락처를 입력해주세요.</div>
-        <p class="form-hint">중복 신청 방지를 위해 본인 연락처를 입력해주세요.</p>
-      </div>
-
-      <div class="form-group">
-        <label class="form-label" for="organization">
-          소속 <span class="required">*</span>
-        </label>
-        <input type="text" id="organization" class="form-input" placeholder="예) ○○초등학교, ○○유치원" maxlength="50" />
-        <div class="form-error" id="organization-error">소속을 입력해주세요.</div>
-      </div>
-
-      <div class="form-group">
-        <label class="form-label" for="referrer">
-          추천인 <span class="optional-badge">선택</span>
-        </label>
-        <input type="text" id="referrer" class="form-input" placeholder="추천해주신 분의 성함을 입력해주세요" maxlength="30" />
-      </div>
-
-      <div class="divider"></div>
-
-      <div class="notice-box">
-        <p>개인정보 수집 안내</p>
-        <p>수집 항목: 이름, 연락처, 소속</p>
-        <p>수집 목적: 세미나 참가 확인 및 출석 관리</p>
-        <p>보유 기간: 행사 종료 후 30일</p>
-      </div>
-
-      <button type="submit" class="btn-submit" id="submit-btn">
-        <span id="btn-text"><span class="btn-icon">✅</span>신청 완료하기</span>
-        <div class="spinner" id="btn-spinner"></div>
+    <div id="submit-area">
+      <button class="btn-submit" id="btn-submit" onclick="submitForm()">
+        <span class="btn-spinner" id="btn-spinner"></span>
+        <span id="btn-text">🎫 신청하기</span>
       </button>
-    </form>
+      <button class="btn-submit" id="btn-waitlist" onclick="submitForm()" style="display:none;background:linear-gradient(135deg,#C9A84C,#a8862e);">
+        <span class="btn-spinner" id="btn-spinner-wl"></span>
+        <span id="btn-text-wl">⏳ 대기 신청하기</span>
+      </button>
+    </div>
+    <div id="full-msg" class="full-badge" style="display:none;">⚠️ 정원 및 대기 인원이 마감되었습니다</div>
+    <div id="waitlist-notice" style="display:none;margin-top:8px;padding:10px 14px;background:linear-gradient(135deg,rgba(201,168,76,.12),rgba(201,168,76,.06));border:1.5px solid rgba(201,168,76,.4);border-radius:12px;font-size:13px;color:#7a5c1e;font-weight:600;text-align:center;">⏳ 정원이 마감되었습니다. 대기 신청이 가능합니다.</div>
   </div>
+</div>
 
-  <div class="toast" id="toast"></div>
+<!-- QR Modal (hidden, kept for admin poster editor compatibility) -->
+<div id="qr-modal-canvas" style="display:none;"></div>
+
+<div class="toast" id="toast"></div>
 
 <script>
-  const API_BASE = '/api';
-  let seminarStatus = null;
+const API = '/api';
+let allEvents   = [];
+let currentEvent = null;
+let currentCat  = '';
+let urlReferrer = '';
+let shareUrl    = location.origin + '/';
 
-  // ── 전화번호 자동 포맷 ─────────────────────────────────────────────────────
-  document.getElementById('phone').addEventListener('input', function(e) {
-    let val = this.value.replace(/[^0-9]/g, '');
-    if (val.length <= 3) this.value = val;
-    else if (val.length <= 7) this.value = val.slice(0,3) + '-' + val.slice(3);
-    else this.value = val.slice(0,3) + '-' + val.slice(3,7) + '-' + val.slice(7,11);
-  });
+// ── Init ──────────────────────────────────────────────────────────────────────
+async function init() {
+  const params = new URLSearchParams(location.search);
+  urlReferrer = params.get('ref') || '';
+  await loadEvents();
 
-  // ── 현황 로드 ─────────────────────────────────────────────────────────────
-  async function loadStatus() {
-    try {
-      const res = await fetch(`${API_BASE}/status`);
-      const data = await res.json();
-      if (!data.success) return;
+  const urlEventId = params.get('event');
+  if (urlEventId) {
+    const ev = allEvents.find(e => String(e.id) === String(urlEventId));
+    if (ev) { openEvent(ev); return; }
+  }
+  const activeEvs = allEvents.filter(e => e.is_active);
+  if (activeEvs.length === 1) { openEvent(activeEvs[0]); return; }
+  showEventList();
+}
 
-      seminarStatus = data.data;
+async function loadEvents() {
+  try {
+    const [evR, catR] = await Promise.all([
+      fetch(`${API}/events`),
+      fetch(`${API}/categories`)
+    ]);
+    const evD  = await evR.json();
+    const catD = await catR.json();
+    allEvents = (evD.data || []).filter(e => e.is_active);
+    renderCatFilter(catD.data || []);
+  } catch(e) { allEvents = []; }
+}
 
-      document.getElementById('info-date').textContent = data.data.date;
-      document.getElementById('info-venue').textContent = data.data.venue;
+function renderCatFilter(cats) {
+  const el = document.getElementById('cat-filter');
+  if (!el) return;
+  // 실제 이벤트에 존재하는 카테고리만 버튼 표시
+  const usedCats = cats.filter(c => allEvents.some(e => e.category === c));
+  el.innerHTML =
+    `<button class="cat-btn${currentCat===''?' active':''}" onclick="filterCat('',this)">전체</button>` +
+    usedCats.map(c =>
+      `<button class="cat-btn${currentCat===c?' active':''}" onclick="filterCat('${c.replace(/'/g,"\\'")}",this)">${esc(c)}</button>`
+    ).join('') +
+    `<button class="cat-btn cat-btn-ended${currentCat==='__ended__'?' active':''}" onclick="filterCat('__ended__',this)">종료된 이벤트</button>`;
+}
 
-      const pct = Math.min(100, (data.data.currentCount / data.data.maxCapacity) * 100);
-      document.getElementById('capacity-count').textContent = `${data.data.currentCount} / ${data.data.maxCapacity}명`;
-      document.getElementById('capacity-bar').style.width = pct + '%';
-      document.getElementById('capacity-remaining').textContent = data.data.isFull
-        ? '마감'
-        : `잔여 ${data.data.remaining}석`;
+// ── Event List ────────────────────────────────────────────────────────────────
+function showEventList() {
+  document.getElementById('loading-screen').style.display = 'none';
+  document.getElementById('ev-list-view').style.display   = 'block';
+  document.getElementById('reg-view').style.display       = 'none';
 
-      if (data.data.isFull) {
-        document.getElementById('closed-banner').style.display = 'block';
-        document.getElementById('submit-btn').disabled = true;
-        document.getElementById('submit-btn').textContent = '🚫 신청이 마감되었습니다';
-      }
-    } catch (e) {
-      console.error('Status load error:', e);
-    }
+  const _td = new Date();
+  const today = `${_td.getFullYear()}-${String(_td.getMonth()+1).padStart(2,'0')}-${String(_td.getDate()).padStart(2,'0')}`;
+  // 진행중 이벤트만 카운트
+  const activeEvs = allEvents.filter(e => e.event_date >= today);
+  const subEl = document.getElementById('ev-hero-sub');
+  subEl.textContent = activeEvs.length > 0
+    ? `현재 ${activeEvs.length}개의 프로그램이 신청 가능합니다`
+    : '현재 신청 가능한 프로그램이 없습니다';
+
+  // 종료 탭이 선택되었으면 유지, 아니면 전체(진행중만) 보여주기
+  if (currentCat !== '__ended__') renderEventCards(allEvents);
+  else renderEventCards(allEvents, '__ended__');
+}
+
+function filterCat(cat, el) {
+  currentCat = cat;
+  document.querySelectorAll('.cat-btn').forEach(b => b.classList.remove('active'));
+  el.classList.add('active');
+  if (cat === '__ended__') {
+    renderEventCards(allEvents, '__ended__');
+  } else {
+    renderEventCards(cat ? allEvents.filter(e => e.category === cat) : allEvents);
+  }
+}
+
+function renderEventCards(evs, mode) {
+  const el = document.getElementById('ev-cards');
+  const _td = new Date();
+  const today = `${_td.getFullYear()}-${String(_td.getMonth()+1).padStart(2,'0')}-${String(_td.getDate()).padStart(2,'0')}`;
+
+  // mode === '__ended__': 종료된 이벤트만
+  // mode 없음: 진행중(오늘 포함) 이벤트만
+  let filtered;
+  if (mode === '__ended__') {
+    filtered = evs.filter(e => e.event_date < today);
+  } else {
+    filtered = evs.filter(e => e.event_date >= today);
   }
 
-  // ── 폼 검증 ───────────────────────────────────────────────────────────────
-  function validateForm() {
-    let valid = true;
-    const name = document.getElementById('name').value.trim();
-    const phone = document.getElementById('phone').value.trim();
-    const org = document.getElementById('organization').value.trim();
-
-    // Name
-    const nameErr = document.getElementById('name-error');
-    if (!name || name.length < 2) {
-      document.getElementById('name').classList.add('error');
-      nameErr.style.display = 'block';
-      valid = false;
-    } else {
-      document.getElementById('name').classList.remove('error');
-      nameErr.style.display = 'none';
-    }
-
-    // Phone
-    const phoneClean = phone.replace(/[^0-9]/g, '');
-    const phoneErr = document.getElementById('phone-error');
-    if (!phoneClean || phoneClean.length < 10 || phoneClean.length > 11) {
-      document.getElementById('phone').classList.add('error');
-      phoneErr.style.display = 'block';
-      valid = false;
-    } else {
-      document.getElementById('phone').classList.remove('error');
-      phoneErr.style.display = 'none';
-    }
-
-    // Organization
-    const orgErr = document.getElementById('organization-error');
-    if (!org) {
-      document.getElementById('organization').classList.add('error');
-      orgErr.style.display = 'block';
-      valid = false;
-    } else {
-      document.getElementById('organization').classList.remove('error');
-      orgErr.style.display = 'none';
-    }
-
-    return valid;
+  if (!filtered.length) {
+    const msg = mode === '__ended__' ? '종료된 이벤트가 없습니다' : '해당 카테고리의 프로그램이 없습니다';
+    el.innerHTML = `<div class="ev-empty"><div class="ei">📋</div><p>${msg}</p></div>`;
+    return;
   }
 
-  // ── 폼 제출 ───────────────────────────────────────────────────────────────
-  document.getElementById('registration-form').addEventListener('submit', async function(e) {
-    e.preventDefault();
-    if (!validateForm()) return;
+  el.innerHTML = filtered.map(ev => {
+    const isFull = ev.current_count >= ev.max_capacity;
+    const isPast = ev.event_date < today;
+    return `
+      <div class="ev-card" style="--ev-color:${ev.color||'#C9A84C'}${isPast ? ';opacity:0.75' : ''}" onclick="openEventById(${ev.id})">
+        <div class="ev-card-top">
+          <div class="ev-card-badges">
+            <span class="badge-cat">${ev.category}</span>
+            ${isPast ? '<span class="badge-cat" style="background:rgba(100,100,100,.35);color:rgba(255,255,255,.6);">종료</span>' : (isFull ? '<span class="badge-full">마감</span>' : '<span class="badge-open">신청중</span>')}
+          </div>
+          <span class="ev-card-arrow">›</span>
+        </div>
+        <div class="ev-card-title">${esc(ev.title)}</div>
+        <div class="ev-card-meta">
+          <div class="ev-meta-row"><span class="ev-meta-icon">📅</span>${formatDate(ev.event_date)}</div>
+          ${ev.venue ? `<div class="ev-meta-row"><span class="ev-meta-icon">📍</span>${esc(ev.venue)}</div>` : ''}
+        </div>
 
-    const btn = document.getElementById('submit-btn');
-    const btnText = document.getElementById('btn-text');
-    const spinner = document.getElementById('btn-spinner');
+      </div>`;
+  }).join('');
+}
 
-    btn.disabled = true;
-    btnText.style.display = 'none';
-    spinner.style.display = 'block';
+async function openEventById(id) {
+  const ev = allEvents.find(e => e.id === id);
+  if (ev) openEvent(ev);
+}
 
-    const body = {
-      name: document.getElementById('name').value.trim(),
-      phone: document.getElementById('phone').value.trim(),
-      organization: document.getElementById('organization').value.trim(),
-      referrer: document.getElementById('referrer').value.trim(),
-    };
+async function openEvent(ev) {
+  try {
+    const r = await fetch(`${API}/events/${ev.id}`);
+    const d = await r.json();
+    if (d.success) ev = d.data;
+  } catch(e) {}
 
-    try {
-      const res = await fetch(`${API_BASE}/register`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(body)
-      });
-      const data = await res.json();
+  currentEvent = ev;
+  document.getElementById('loading-screen').style.display = 'none';
+  document.getElementById('ev-list-view').style.display   = 'none';
+  document.getElementById('reg-view').style.display       = 'block';
+  window.scrollTo(0, 0);
 
-      if (data.success) {
-        // 티켓 페이지로 이동
-        window.location.href = `/ticket?code=${data.data.ticketCode}`;
+  renderRegView(ev);
+  // ref 파라미터가 있으면 URL에도 포함하여 주소창 복사 시에도 추천인 유지
+  const pushUrl = '/?event=' + ev.id + (urlReferrer ? '&ref=' + encodeURIComponent(urlReferrer) : '');
+  history.pushState({ eventId: ev.id }, '', pushUrl);
+}
+
+function goBack() {
+  currentEvent = null;
+  clearInterval(sliderAutoTimer);
+  history.pushState({}, '', '/');
+  loadEvents().then(() => {
+    showEventList();
+    if (currentCat) {
+      let btn;
+      if (currentCat === '__ended__') {
+        btn = document.querySelector('.cat-btn-ended');
       } else {
-        showToast(data.message, true);
-        btn.disabled = false;
-        btnText.style.display = 'block';
-        spinner.style.display = 'none';
-
-        if (res.status === 400 && data.message.includes('정원')) {
-          loadStatus(); // 현황 갱신
-        }
+        btn = document.querySelector(`.cat-btn[onclick*="'${currentCat}'"]`);
       }
-    } catch (err) {
-      showToast('네트워크 오류가 발생했습니다. 다시 시도해주세요.', true);
-      btn.disabled = false;
-      btnText.style.display = 'block';
-      spinner.style.display = 'none';
+      if (btn) filterCat(currentCat, btn);
     }
   });
+}
+window.onpopstate = function(e) {
+  if (!e.state?.eventId) { currentEvent = null; loadEvents().then(showEventList); }
+};
 
-  function showToast(msg, isError = false) {
-    const toast = document.getElementById('toast');
-    toast.textContent = msg;
-    toast.className = 'toast' + (isError ? ' error' : '');
-    toast.classList.add('show');
-    setTimeout(() => toast.classList.remove('show'), 4000);
+// ── Poster Slider ──────────────────────────────────────────────────────────────
+let sliderImages  = [];   // 실제 이미지 URL 배열
+let sliderCurrent = 0;    // 현재 슬라이드 인덱스 (클론 제외, 1부터 시작)
+let sliderTotal   = 0;    // 실제 슬라이드 수
+let sliderAnimating = false;
+let sliderAutoTimer = null;
+
+// 터치/드래그 상태
+let sliderTouchStart = 0;
+let sliderTouchDiff  = 0;
+let sliderDragging   = false;
+
+function initSlider(images) {
+  sliderImages = images;
+  sliderTotal  = images.length;
+  sliderCurrent = 1; // 클론 슬라이드 1개 앞에 배치하므로 index 1이 첫 번째 실제 슬라이드
+  sliderAnimating = false;
+  clearInterval(sliderAutoTimer);
+
+  const track  = document.getElementById('poster-track');
+  const dots   = document.getElementById('slider-dots');
+  const sec    = document.getElementById('poster-section');
+
+  if (!images.length) {
+    sec.style.display = 'none';
+    document.getElementById('reg-hero').classList.add('no-poster');
+    return;
   }
 
-  // Init
-  loadStatus();
-  // Poll every 30 seconds
-  setInterval(loadStatus, 30000);
+  sec.style.display = 'block';
+  document.getElementById('reg-hero').classList.remove('no-poster');
+
+  // 무한 루프를 위해 앞뒤에 클론 추가
+  // [마지막 클론, 1, 2, ..., N, 첫번째 클론]
+  const allSlides = [images[images.length - 1], ...images, images[0]];
+  track.innerHTML = allSlides.map((url, i) => `
+    <div class="poster-slide">
+      <img src="${url}" alt="포스터 ${i}" loading="${i === 1 ? 'eager' : 'lazy'}" onerror="this.src='/images/1.jpg'"/>
+    </div>
+  `).join('');
+
+  // 초기 위치 (클론 없이 첫 번째 실제 슬라이드)
+  track.classList.add('no-transition');
+  track.style.transform = `translateX(-${sliderCurrent * 100}%)`;
+  setTimeout(() => track.classList.remove('no-transition'), 50);
+
+  // 인디케이터
+  if (images.length > 1) {
+    dots.innerHTML = images.map((_, i) =>
+      `<div class="slider-dot ${i === 0 ? 'active' : ''}" onclick="sliderGoTo(${i + 1})"></div>`
+    ).join('');
+  } else {
+    dots.innerHTML = '';
+  }
+
+  // 화살표 표시
+  document.getElementById('slider-prev').style.display = images.length > 1 ? 'flex' : 'none';
+  document.getElementById('slider-next').style.display = images.length > 1 ? 'flex' : 'none';
+
+  // 자동 슬라이드 (3장 이상일 때)
+  if (images.length >= 2) {
+    sliderAutoTimer = setInterval(() => sliderMove(1), 4000);
+  }
+
+  // 터치/드래그 이벤트
+  track.addEventListener('touchstart',  sliderTouchStartFn, { passive: true });
+  track.addEventListener('touchmove',   sliderTouchMoveFn,  { passive: true });
+  track.addEventListener('touchend',    sliderTouchEndFn);
+  track.addEventListener('mousedown',   sliderMouseDownFn);
+  track.addEventListener('mousemove',   sliderMouseMoveFn);
+  track.addEventListener('mouseup',     sliderMouseUpFn);
+  track.addEventListener('mouseleave',  sliderMouseUpFn);
+
+  // 트랜지션 끝 이벤트 (무한 루프 처리)
+  track.addEventListener('transitionend', sliderTransitionEnd);
+}
+
+function sliderTransitionEnd() {
+  const track = document.getElementById('poster-track');
+  // 마지막 클론에서 실제 마지막으로
+  if (sliderCurrent === sliderTotal + 1) {
+    sliderCurrent = 1;
+    track.classList.add('no-transition');
+    track.style.transform = `translateX(-${sliderCurrent * 100}%)`;
+    setTimeout(() => track.classList.remove('no-transition'), 30);
+  }
+  // 첫 번째 클론에서 실제 첫 번째로
+  if (sliderCurrent === 0) {
+    sliderCurrent = sliderTotal;
+    track.classList.add('no-transition');
+    track.style.transform = `translateX(-${sliderCurrent * 100}%)`;
+    setTimeout(() => track.classList.remove('no-transition'), 30);
+  }
+  sliderAnimating = false;
+  updateSliderDots();
+}
+
+function sliderMove(dir) {
+  if (sliderAnimating || sliderTotal <= 1) return;
+  sliderAnimating = true;
+  clearInterval(sliderAutoTimer);
+  sliderCurrent += dir;
+  const track = document.getElementById('poster-track');
+  track.classList.remove('no-transition');
+  track.style.transform = `translateX(-${sliderCurrent * 100}%)`;
+  updateSliderDots();
+  // 자동 재시작
+  sliderAutoTimer = setInterval(() => sliderMove(1), 4000);
+}
+
+function sliderGoTo(realIdx) {
+  if (sliderAnimating) return;
+  sliderAnimating = true;
+  sliderCurrent = realIdx;
+  const track = document.getElementById('poster-track');
+  track.classList.remove('no-transition');
+  track.style.transform = `translateX(-${sliderCurrent * 100}%)`;
+  updateSliderDots();
+}
+
+function updateSliderDots() {
+  const realIdx = ((sliderCurrent - 1 + sliderTotal) % sliderTotal);
+  document.querySelectorAll('.slider-dot').forEach((d, i) => {
+    d.classList.toggle('active', i === realIdx);
+  });
+}
+
+function sliderTouchStartFn(e) {
+  sliderTouchStart = e.touches[0].clientX;
+  sliderTouchDiff  = 0;
+  sliderDragging   = true;
+  clearInterval(sliderAutoTimer);
+}
+function sliderTouchMoveFn(e) {
+  if (!sliderDragging) return;
+  sliderTouchDiff = e.touches[0].clientX - sliderTouchStart;
+  const track = document.getElementById('poster-track');
+  track.classList.add('no-transition');
+  track.style.transform = `translateX(calc(-${sliderCurrent * 100}% + ${sliderTouchDiff}px))`;
+}
+function sliderTouchEndFn() {
+  sliderDragging = false;
+  const track = document.getElementById('poster-track');
+  track.classList.remove('no-transition');
+  if (Math.abs(sliderTouchDiff) > 50) {
+    sliderMove(sliderTouchDiff < 0 ? 1 : -1);
+  } else {
+    track.style.transform = `translateX(-${sliderCurrent * 100}%)`;
+    sliderAutoTimer = setInterval(() => sliderMove(1), 4000);
+  }
+  sliderTouchDiff = 0;
+}
+function sliderMouseDownFn(e) {
+  sliderTouchStart = e.clientX;
+  sliderTouchDiff  = 0;
+  sliderDragging   = true;
+  clearInterval(sliderAutoTimer);
+  e.preventDefault();
+}
+function sliderMouseMoveFn(e) {
+  if (!sliderDragging) return;
+  sliderTouchDiff = e.clientX - sliderTouchStart;
+  const track = document.getElementById('poster-track');
+  track.classList.add('no-transition');
+  track.style.transform = `translateX(calc(-${sliderCurrent * 100}% + ${sliderTouchDiff}px))`;
+}
+function sliderMouseUpFn(e) {
+  if (!sliderDragging) return;
+  sliderDragging = false;
+  const track = document.getElementById('poster-track');
+  track.classList.remove('no-transition');
+  if (Math.abs(sliderTouchDiff) > 60) {
+    sliderMove(sliderTouchDiff < 0 ? 1 : -1);
+  } else {
+    track.style.transform = `translateX(-${sliderCurrent * 100}%)`;
+    sliderAutoTimer = setInterval(() => sliderMove(1), 4000);
+  }
+  sliderTouchDiff = 0;
+}
+
+// ── Render Registration View ──────────────────────────────────────────────────
+function renderRegView(ev) {
+  // 포스터 슬라이더 초기화
+  clearInterval(sliderAutoTimer);
+  const track = document.getElementById('poster-track');
+  // 기존 이벤트 리스너 제거를 위해 track을 교체
+  const newTrack = track.cloneNode(false);
+  track.parentNode.replaceChild(newTrack, track);
+
+  // poster_images(다중) 우선, 없으면 poster_image(단일) 폴백
+  let posterImgs = [];
+  try { posterImgs = JSON.parse(ev.poster_images || '[]'); } catch(e) { posterImgs = []; }
+  if (posterImgs.length === 0 && ev.poster_image && ev.poster_image.trim()) {
+    posterImgs = [ev.poster_image];
+  }
+  initSlider(posterImgs);
+
+  // Hero
+  document.getElementById('hero-badge').textContent = ev.hero_badge || '선착순 무료 신청';
+  document.getElementById('hero-logo').textContent  = 'LASBOOK';
+  document.getElementById('hero-title').innerHTML   = esc(ev.hero_title || ev.title);
+  const subEl = document.getElementById('hero-subtitle');
+  const sub = ev.hero_subtitle || '';
+  subEl.textContent = sub;
+  subEl.style.display = sub ? 'block' : 'none';
+
+  // Info cards
+  const cards = document.getElementById('info-cards');
+  const rows = [];
+  if (ev.event_date) rows.push(`<div class="info-card"><div class="info-card-icon">📅</div><div><div class="info-card-label">DATE</div><div class="info-card-value">${formatDate(ev.event_date)}</div></div></div>`);
+  if (ev.venue)      rows.push(`<div class="info-card"><div class="info-card-icon">📍</div><div><div class="info-card-label">VENUE</div><div class="info-card-value">${esc(ev.venue)}</div></div></div>`);
+  cards.innerHTML = rows.join('');
+
+  // Share URL (ref 파라미터가 있으면 포함하여 추천인 고정 링크 유지)
+  shareUrl = location.origin + '/?event=' + ev.id + (urlReferrer ? '&ref=' + encodeURIComponent(urlReferrer) : '');
+
+  // Form
+  buildForm(ev);
+
+  // Notice
+  const noticeBox = document.getElementById('notice-box');
+  if (ev.notice_text?.trim()) {
+    document.getElementById('notice-text').textContent = ev.notice_text;
+    noticeBox.style.display = 'block';
+  } else { noticeBox.style.display = 'none'; }
+
+  // Full / Waitlist state
+  const confirmedCount = ev.current_count || 0;
+  const waitlistCount  = ev.waitlist_count || 0;
+  const maxCap   = ev.max_capacity || 0;
+  const waitCap  = ev.waitlist_capacity || 0;
+  const isFull       = confirmedCount >= maxCap;
+  const isWaitFull   = waitlistCount  >= waitCap;
+  const hasWaitlist  = waitCap > 0;
+
+  const btnSubmit   = document.getElementById('btn-submit');
+  const btnWaitlist = document.getElementById('btn-waitlist');
+  const fullMsg     = document.getElementById('full-msg');
+  const waitNotice  = document.getElementById('waitlist-notice');
+
+  if (!isFull) {
+    // 정원 남음 → 일반 신청
+    btnSubmit.style.display   = 'block';
+    btnWaitlist.style.display = 'none';
+    fullMsg.style.display     = 'none';
+    waitNotice.style.display  = 'none';
+  } else if (isFull && hasWaitlist && !isWaitFull) {
+    // 정원 마감 + 대기 가능
+    btnSubmit.style.display   = 'none';
+    btnWaitlist.style.display = 'block';
+    fullMsg.style.display     = 'none';
+    waitNotice.style.display  = 'block';
+    waitNotice.textContent    = `⏳ 정원(${maxCap}명)이 마감되었습니다. 대기 신청 가능 (대기 ${waitlistCount}/${waitCap}명)`;
+  } else {
+    // 전부 마감
+    btnSubmit.style.display   = 'none';
+    btnWaitlist.style.display = 'none';
+    fullMsg.style.display     = 'block';
+    waitNotice.style.display  = 'none';
+  }
+
+  document.title = (ev.hero_title || ev.title) + ' - 라스북';
+}
+
+// ── Dynamic Form Builder ──────────────────────────────────────────────────────
+const FIELD_DEFAULTS = {
+  name:         { label: '이름',   placeholder: '홍길동',              type: 'text' },
+  phone:        { label: '연락처', placeholder: '010-1234-5678',        type: 'text' },
+  organization: { label: '소속',   placeholder: '○○초등학교 / ○○회사', type: 'text' },
+  referrer:     { label: '추천인', placeholder: '추천인 성함 (선택)',    type: 'text' },
+};
+
+function buildForm(ev) {
+  const fields       = JSON.parse(ev.form_fields       || '["name","phone","organization","referrer"]');
+  const labels       = JSON.parse(ev.form_labels       || '{}');
+  const required     = JSON.parse(ev.form_required     || '["name","phone","organization"]');
+  const placeholders = JSON.parse(ev.form_placeholders || '{}');
+
+  const container = document.getElementById('dynamic-form');
+  container.innerHTML = '';
+
+  fields.forEach(key => {
+    const def    = FIELD_DEFAULTS[key] || { label: key, placeholder: '', type: 'text', inputmode: 'text' };
+    const lbl    = labels[key]       || def.label;
+    const ph     = placeholders[key] || def.placeholder;
+    const isReq  = required.includes(key);
+    const refLocked = key === 'referrer' && urlReferrer;
+
+    const group = document.createElement('div');
+    group.className = 'form-group';
+    group.id = `fg-${key}`;
+
+    // phone 필드는 innerHTML로, 나머지는 DOM API로 직접 생성
+    // → iOS Safari가 innerHTML의 라벨/placeholder 텍스트를 파싱해 키보드 추론하는 것을 차단
+    const labelEl = document.createElement('label');
+    labelEl.className = 'form-label';
+    labelEl.htmlFor = `f-${key}`;
+    labelEl.innerHTML = esc(lbl) + (isReq ? '<span class="required">*</span>' : '<span class="optional-badge">선택</span>');
+    group.appendChild(labelEl);
+
+    if (refLocked) {
+      const lockDiv = document.createElement('div');
+      lockDiv.style.cssText = 'padding:12px 16px;background:linear-gradient(135deg,rgba(56,161,105,.08),rgba(56,161,105,.04));border:1.5px solid rgba(56,161,105,.3);border-radius:12px;display:flex;align-items:center;gap:8px;';
+      lockDiv.innerHTML = `<span style="font-size:16px;">👤</span><span style="font-size:14px;font-weight:700;color:var(--navy);">${esc(urlReferrer)}</span><span style="font-size:11px;color:var(--green);margin-left:auto;">자동 입력됨</span>`;
+      group.appendChild(lockDiv);
+      const hiddenEl = document.createElement('input');
+      hiddenEl.type = 'hidden';
+      hiddenEl.id = `f-${key}`;
+      hiddenEl.value = urlReferrer;
+      group.appendChild(hiddenEl);
+    } else {
+      const inputEl = document.createElement('input');
+      inputEl.type = 'text';
+      inputEl.id = `f-${key}`;
+      inputEl.className = 'form-input';
+      inputEl.placeholder = ph;
+      inputEl.autocomplete = 'off';
+      inputEl.setAttribute('autocorrect', 'off');
+      inputEl.setAttribute('autocapitalize', 'off');
+      inputEl.setAttribute('spellcheck', 'false');
+      inputEl.setAttribute('enterkeyhint', 'next');
+      if (key === 'phone') {
+        inputEl.inputMode = 'numeric';
+        inputEl.setAttribute('pattern', '[0-9]*');
+        // 숫자 외 입력 차단
+        inputEl.addEventListener('input', () => {
+          const cleaned = inputEl.value.replace(/[^0-9]/g, '');
+          if (inputEl.value !== cleaned) inputEl.value = cleaned;
+        });
+        inputEl.addEventListener('keypress', (e) => {
+          if (!/[0-9]/.test(e.key) && !['Backspace','Delete','ArrowLeft','ArrowRight','Tab'].includes(e.key)) e.preventDefault();
+        });
+      } else {
+        inputEl.inputMode = 'text';
+      }
+      group.appendChild(inputEl);
+    }
+
+    const errEl = document.createElement('p');
+    errEl.className = 'form-error';
+    errEl.id = `fe-${key}`;
+    group.appendChild(errEl);
+
+    container.appendChild(group);
+
+
+  });
+}
+
+// ── Submit ────────────────────────────────────────────────────────────────────
+async function submitForm() {
+  const ev = currentEvent; if (!ev) return;
+  clearErrors();
+
+  const fields   = JSON.parse(ev.form_fields   || '["name","phone","organization","referrer"]');
+  const labels   = JSON.parse(ev.form_labels   || '{}');
+  const required = JSON.parse(ev.form_required || '["name","phone","organization"]');
+
+  const body = {}; let valid = true;
+
+  for (const key of fields) {
+    const inp = document.getElementById(`f-${key}`); if (!inp) continue;
+    let val = inp.value.trim();
+    if (required.includes(key) && !val) {
+      const lbl = labels[key] || FIELD_DEFAULTS[key]?.label || key;
+      showError(key, `${lbl}을(를) 입력해주세요.`);
+      if (valid) inp.focus(); valid = false;
+    }
+    // 연락처: 숫자만 허용 검증
+    if (key === 'phone' && val && /[^0-9]/.test(val)) {
+      showError(key, '숫자만 입력해주세요.');
+      if (valid) inp.focus(); valid = false;
+    }
+
+    const std = ['name','phone','organization','referrer'];
+    if (std.includes(key)) body[key] = val;
+    else { if (!body.extra_data) body.extra_data = {}; body.extra_data[key] = val; }
+  }
+  if (!valid) return;
+
+  // 어떤 버튼이 보이는지 확인해서 둘 다 처리
+  const btn   = document.getElementById('btn-submit').style.display !== 'none'
+                  ? document.getElementById('btn-submit')
+                  : document.getElementById('btn-waitlist');
+  const sp    = btn.id === 'btn-submit' ? document.getElementById('btn-spinner') : document.getElementById('btn-spinner-wl');
+  const bt    = btn.id === 'btn-submit' ? document.getElementById('btn-text')    : document.getElementById('btn-text-wl');
+  const origText = bt.textContent;
+  btn.disabled = true; sp.classList.add('show'); bt.textContent = '신청 중...';
+
+  try {
+    const r = await fetch(`${API}/events/${ev.id}/register`, {
+      method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body)
+    });
+    const d = await r.json();
+    if (d.success) {
+      if (d.status === 'waitlist') {
+        // 대기 신청 성공 → 대기 티켓 페이지
+        window.location.href = `/ticket?code=${d.data.ticketCode}`;
+      } else {
+        // 일반 신청 성공
+        window.location.href = `/ticket?code=${d.data.ticketCode}`;
+      }
+      return;
+    }
+    showToast(d.message || '신청 중 오류가 발생했습니다.', 'err');
+    if (d.message && (d.message.includes('정원') || d.message.includes('대기 인원'))) {
+      // 마감 상태면 페이지 새로고침하여 버튼 상태 최신화
+      setTimeout(() => location.reload(), 1500);
+    }
+  } catch(e) {
+    showToast('네트워크 오류가 발생했습니다. 다시 시도해주세요.', 'err');
+  } finally {
+    btn.disabled = false; sp.classList.remove('show'); bt.textContent = origText;
+  }
+}
+
+// ── QR & Share ────────────────────────────────────────────────────────────────
+function openQRModal() {
+  document.getElementById('qr-url-text').textContent = shareUrl;
+  document.getElementById('qr-modal').classList.add('show');
+  if (typeof QRCode !== 'undefined') renderQR();
+  else loadQRLib(renderQR);
+}
+function renderQR() {
+  QRCode.toCanvas(document.getElementById('qr-modal-canvas'), shareUrl, {
+    width: 200, margin: 2, color: { dark: '#0A1628', light: '#FFFFFF' }
+  });
+}
+function closeQRModal(e) {
+  if (e && e.target !== document.getElementById('qr-modal')) return;
+  document.getElementById('qr-modal').classList.remove('show');
+}
+function downloadQRImage() {
+  const canvas = document.getElementById('qr-modal-canvas');
+  const title  = currentEvent ? (currentEvent.hero_title || currentEvent.title) : '라스북 세미나';
+  const off = document.createElement('canvas');
+  off.width = 480; off.height = 560;
+  const ctx = off.getContext('2d');
+  ctx.fillStyle = '#0A1628'; ctx.fillRect(0,0,480,560);
+  const g = ctx.createLinearGradient(0,0,480,0);
+  g.addColorStop(0,'transparent'); g.addColorStop(.3,'#C9A84C'); g.addColorStop(.7,'#E8C97A'); g.addColorStop(1,'transparent');
+  ctx.fillStyle = g; ctx.fillRect(0,0,480,3);
+  ctx.fillStyle = '#C9A84C'; ctx.font = 'bold 14px sans-serif'; ctx.textAlign = 'center'; ctx.fillText('LASBOOK', 240, 38);
+  ctx.fillStyle = '#fff';    ctx.font = 'bold 20px sans-serif'; ctx.fillText(title, 240, 68);
+  const qs = 260, qx = (480-qs)/2, qy = 90;
+  ctx.fillStyle = '#fff'; ctx.beginPath(); ctx.roundRect(qx-14, qy-14, qs+28, qs+28, 16); ctx.fill();
+  ctx.drawImage(canvas, qx, qy, qs, qs);
+  ctx.fillStyle = 'rgba(255,255,255,.5)'; ctx.font = '12px sans-serif'; ctx.fillText('QR을 스캔하여 신청하세요', 240, qy+qs+28);
+  ctx.fillStyle = 'rgba(201,168,76,.7)';  ctx.font = '10px monospace'; ctx.fillText(shareUrl, 240, qy+qs+48);
+  ctx.fillStyle = g; ctx.fillRect(0,557,480,3);
+  const a = document.createElement('a'); a.download = 'lasbook_qr.png'; a.href = off.toDataURL('image/png'); a.click();
+  showToast('✅ QR 이미지가 저장되었습니다!', 'ok');
+}
+async function copyLink() {
+  const btn = document.getElementById('copy-link-btn');
+  // shareUrl에 ref가 없으면 urlReferrer를 직접 합산하여 보장
+  let urlToCopy = shareUrl;
+  if (urlReferrer && !urlToCopy.includes('ref=')) {
+    urlToCopy += (urlToCopy.includes('?') ? '&' : '?') + 'ref=' + encodeURIComponent(urlReferrer);
+  }
+  try { await navigator.clipboard.writeText(urlToCopy); }
+  catch(e) {
+    const t = document.createElement('textarea'); t.value = urlToCopy;
+    t.style.cssText = 'position:fixed;opacity:0;'; document.body.appendChild(t);
+    t.select(); document.execCommand('copy'); document.body.removeChild(t);
+  }
+  btn.classList.add('copied');
+  btn.querySelector('.btn-label').textContent = '복사됨!';
+  btn.querySelector('.btn-sub').textContent = '링크가 복사되었습니다';
+  showToast('✅ 링크가 복사되었습니다!', 'ok');
+  setTimeout(() => {
+    btn.classList.remove('copied');
+    btn.querySelector('.btn-label').textContent = '링크 복사';
+    btn.querySelector('.btn-sub').textContent = '신청 링크 공유';
+  }, 2500);
+}
+function loadQRLib(cb) {
+  if (typeof QRCode !== 'undefined') { cb && cb(); return; }
+  const s = document.createElement('script'); s.src = '/js/qrcode.min.js';
+  s.onload = () => { cb && cb(); };
+  s.onerror = () => {
+    const s2 = document.createElement('script');
+    s2.src = 'https://cdn.jsdelivr.net/npm/qrcode@1.5.3/build/qrcode.min.js';
+    s2.onload = () => { cb && cb(); };
+    document.head.appendChild(s2);
+  };
+  document.head.appendChild(s);
+}
+
+// ── Utils ─────────────────────────────────────────────────────────────────────
+function clearErrors() {
+  document.querySelectorAll('.form-error').forEach(e => { e.style.display='none'; e.textContent=''; });
+  document.querySelectorAll('.form-input.error').forEach(e => e.classList.remove('error'));
+}
+function showError(key, msg) {
+  const errEl = document.getElementById(`fe-${key}`);
+  const inp   = document.getElementById(`f-${key}`);
+  if (errEl) { errEl.textContent = msg; errEl.style.display = 'block'; }
+  if (inp)   inp.classList.add('error');
+}
+function formatDate(d) {
+  if (!d) return '--';
+  const [y, m, day] = d.split('-');
+  return `${y}년 ${parseInt(m)}월 ${parseInt(day)}일 (${['일','월','화','수','목','금','토'][new Date(d).getDay()]})`;
+}
+function esc(s) { return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
+function showToast(msg, type='') {
+  const t = document.getElementById('toast');
+  t.textContent = msg; t.className = 'toast ' + type;
+  t.classList.add('show');
+  setTimeout(() => t.classList.remove('show'), 4000);
+}
+
+init();
 </script>
 </body>
 </html>

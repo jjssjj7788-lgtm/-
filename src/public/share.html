@@ -1,0 +1,485 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width,initial-scale=1.0"/>
+  <title>추천인 링크 만들기 - 라스북</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com"/>
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;600;700;800;900&display=swap" rel="stylesheet"/>
+  <style>
+    :root {
+      --navy:     #0A1628;
+      --navy-mid: #1B2B4B;
+      --gold:     #C9A84C;
+      --gold-d:   #A8872E;
+      --green:    #38A169;
+      --g50:      #F8F9FC;
+      --g100:     #F0F2F7;
+      --g200:     #E2E6EF;
+      --g300:     #C8CEDE;
+      --g400:     #8A95A8;
+      --g500:     #6B7688;
+      --g600:     #4A5568;
+      --g700:     #2D3748;
+    }
+    *{box-sizing:border-box;margin:0;padding:0;}
+    body{font-family:'Noto Sans KR',sans-serif;background:var(--g100);min-height:100vh;color:var(--g700);}
+
+    /* ── TOP BAR ── */
+    .topbar{background:linear-gradient(135deg,var(--navy),var(--navy-mid));padding:16px 20px 14px;}
+    .topbar-logo{font-size:18px;font-weight:900;color:#fff;letter-spacing:-.5px;}
+    .topbar-logo span{color:var(--gold);}
+    .topbar-sub{font-size:12px;color:rgba(255,255,255,.55);margin-top:3px;}
+
+    /* ── STEPPER ── */
+    .stepper{display:flex;align-items:center;gap:0;padding:18px 20px 0;max-width:520px;margin:0 auto;}
+    .step{display:flex;flex-direction:column;align-items:center;gap:4px;flex:1;}
+    .step-circle{width:28px;height:28px;border-radius:50%;border:2px solid var(--g300);background:#fff;font-size:12px;font-weight:800;color:var(--g400);display:flex;align-items:center;justify-content:center;transition:all .25s;}
+    .step-circle.active{border-color:var(--gold-d);background:var(--gold-d);color:#fff;}
+    .step-circle.done{border-color:var(--green);background:var(--green);color:#fff;}
+    .step-label{font-size:10px;font-weight:600;color:var(--g400);white-space:nowrap;}
+    .step-label.active{color:var(--gold-d);}
+    .step-label.done{color:var(--green);}
+    .step-line{flex:1;height:2px;background:var(--g200);margin-bottom:18px;transition:background .25s;}
+    .step-line.done{background:var(--green);}
+
+    /* ── LAYOUT ── */
+    .page{max-width:520px;margin:0 auto;padding:16px 16px 60px;}
+
+    /* ── CARD ── */
+    .card{background:#fff;border-radius:16px;box-shadow:0 2px 12px rgba(0,0,0,.06);margin-bottom:14px;overflow:hidden;}
+    .card-head{padding:14px 18px 10px;border-bottom:1px solid var(--g100);display:flex;align-items:center;gap:10px;}
+    .card-icon{font-size:18px;}
+    .card-title{font-size:14px;font-weight:800;color:var(--navy);}
+    .card-sub{font-size:11px;color:var(--g400);margin-top:1px;}
+    .card-body{padding:16px 18px;}
+
+    /* ── CALENDAR ── */
+    .cal-nav-row{display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;}
+    .cal-month-label{font-size:16px;font-weight:800;color:var(--navy);}
+    .cal-nav-btns{display:flex;gap:5px;}
+    .cal-nav-btn{width:32px;height:32px;border:1.5px solid var(--g200);border-radius:8px;background:#fff;cursor:pointer;font-size:15px;color:var(--g600);display:flex;align-items:center;justify-content:center;transition:all .15s;}
+    .cal-nav-btn:hover{background:var(--g100);border-color:var(--navy-mid);}
+    .cal-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:3px;}
+    .cal-dow{text-align:center;font-size:10px;font-weight:700;color:var(--g400);padding:5px 0;}
+    .cal-dow:first-child{color:#E53E3E;}
+    .cal-dow:last-child{color:#3182CE;}
+    .cal-day{min-height:52px;border-radius:9px;border:1.5px solid var(--g100);padding:5px 4px;cursor:pointer;background:#fff;transition:all .15s;position:relative;}
+    .cal-day:hover{border-color:var(--gold);background:#fffbf0;}
+    .cal-day.other{opacity:.3;pointer-events:none;}
+    .cal-day.today{border-color:var(--navy-mid);background:#f0f4ff;}
+    .cal-day.has-event{border-color:rgba(201,168,76,.4);background:#fffdf5;}
+    .cal-day.selected{border-color:var(--gold-d)!important;background:#fffbf0!important;box-shadow:0 0 0 3px rgba(201,168,76,.25)!important;}
+    .cal-day-num{font-size:11px;font-weight:700;color:var(--g600);margin-bottom:2px;}
+    .cal-day.sun .cal-day-num{color:#E53E3E;}
+    .cal-day.sat .cal-day-num{color:#3182CE;}
+    .cal-day.today .cal-day-num{color:var(--navy);}
+    .cal-dot{width:6px;height:6px;border-radius:50%;display:inline-block;margin:1px 1px 0;}
+
+    /* ── EVENT LIST ── */
+    .ev-list{display:flex;flex-direction:column;gap:8px;}
+    .ev-item{display:flex;align-items:center;gap:12px;padding:12px 14px;border:1.5px solid var(--g200);border-radius:12px;cursor:pointer;background:#fff;transition:all .15s;}
+    .ev-item:hover{border-color:var(--gold);background:#fffbf0;}
+    .ev-item.selected{border-color:var(--gold-d);background:#fffbf0;box-shadow:0 0 0 3px rgba(201,168,76,.2);}
+    .ev-dot{width:11px;height:11px;border-radius:50%;flex-shrink:0;}
+    .ev-name{flex:1;font-size:14px;font-weight:700;color:var(--navy);}
+    .ev-meta{font-size:11px;color:var(--g400);margin-top:1px;}
+
+    /* ── NAME INPUT ── */
+    .name-input-wrap{position:relative;}
+    .name-inp{width:100%;padding:14px 16px;border:2px solid var(--g200);border-radius:12px;font-size:16px;font-family:inherit;color:var(--navy);background:var(--g50);outline:none;transition:all .2s;}
+    .name-inp:focus{border-color:var(--gold-d);background:#fff;box-shadow:0 0 0 3px rgba(201,168,76,.12);}
+    .name-inp.filled{border-color:var(--green);background:#f0fff4;}
+    .name-hint{font-size:11px;color:var(--g400);margin-top:6px;}
+
+    /* ── RESULT BOX ── */
+    .result-box{background:linear-gradient(135deg,#f0fff4,#e6ffed);border:2px solid #9AE6B4;border-radius:14px;padding:18px;}
+    .result-title{font-size:12px;font-weight:800;color:var(--green);margin-bottom:6px;display:flex;align-items:center;gap:5px;}
+    .result-url{word-break:break-all;font-size:12px;color:var(--g600);background:#fff;border-radius:8px;padding:10px 12px;border:1px solid #9AE6B4;font-family:monospace;margin-bottom:12px;line-height:1.5;}
+
+    /* ── BUTTONS ── */
+    .btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;padding:12px 18px;border-radius:11px;border:none;cursor:pointer;font-family:inherit;font-weight:700;font-size:14px;transition:all .18s;}
+    .btn-gold{background:linear-gradient(135deg,var(--gold-d),var(--gold));color:var(--navy);width:100%;box-shadow:0 4px 14px rgba(201,168,76,.3);}
+    .btn-gold:hover{transform:translateY(-1px);box-shadow:0 6px 18px rgba(201,168,76,.4);}
+    .btn-gold:disabled{opacity:.45;cursor:not-allowed;transform:none;}
+    .btn-copy{background:var(--navy);color:#fff;width:100%;font-size:14px;}
+    .btn-copy:hover{background:var(--navy-mid);}
+    .btn-copy.copied{background:var(--green);}
+    .btn-outline{background:#fff;color:var(--navy);border:2px solid var(--g200);width:100%;}
+    .btn-outline:hover{border-color:var(--navy-mid);background:var(--g50);}
+
+    /* ── EMPTY / LOADING ── */
+    .empty{text-align:center;padding:28px 12px;color:var(--g400);}
+    .empty-icon{font-size:30px;margin-bottom:8px;}
+    .empty-msg{font-size:13px;}
+
+    /* ── INFO CHIP ── */
+    .info-chip{display:inline-flex;align-items:center;gap:5px;padding:5px 10px;background:var(--g100);border-radius:20px;font-size:11px;font-weight:600;color:var(--g600);margin-right:5px;margin-bottom:4px;}
+
+    /* ── TOAST ── */
+    .toast{position:fixed;bottom:24px;left:50%;transform:translateX(-50%) translateY(80px);background:var(--navy);color:#fff;padding:11px 20px;border-radius:10px;font-size:13px;font-weight:600;box-shadow:0 4px 20px rgba(0,0,0,.2);transition:transform .3s;z-index:9999;white-space:nowrap;}
+    .toast.show{transform:translateX(-50%) translateY(0);}
+    .toast.ok{background:var(--green);}
+
+    /* ── STEP PANELS ── */
+    .step-panel{display:none;}
+    .step-panel.active{display:block;}
+
+    /* ── SELECTED BADGE ── */
+    .sel-badge{display:inline-flex;align-items:center;gap:6px;padding:6px 12px;background:linear-gradient(135deg,rgba(168,135,46,.1),rgba(201,168,76,.06));border:1.5px solid rgba(201,168,76,.4);border-radius:20px;font-size:12px;font-weight:700;color:var(--gold-d);}
+  </style>
+</head>
+<body>
+
+<div class="topbar">
+  <div class="topbar-logo">LAS<span>BOOK</span></div>
+  <div class="topbar-sub">추천인 링크 만들기</div>
+</div>
+
+<!-- Stepper -->
+<div class="stepper" id="stepper">
+  <div class="step">
+    <div class="step-circle active" id="sc-1">1</div>
+    <div class="step-label active" id="sl-1">날짜</div>
+  </div>
+  <div class="step-line" id="sline-1"></div>
+  <div class="step">
+    <div class="step-circle" id="sc-2">2</div>
+    <div class="step-label" id="sl-2">이벤트</div>
+  </div>
+  <div class="step-line" id="sline-2"></div>
+  <div class="step">
+    <div class="step-circle" id="sc-3">3</div>
+    <div class="step-label" id="sl-3">이름 입력</div>
+  </div>
+  <div class="step-line" id="sline-3"></div>
+  <div class="step">
+    <div class="step-circle" id="sc-4">4</div>
+    <div class="step-label" id="sl-4">링크 복사</div>
+  </div>
+</div>
+
+<div class="page">
+
+  <!-- STEP 1: 달력 -->
+  <div class="step-panel active" id="panel-1">
+    <div class="card">
+      <div class="card-head">
+        <div class="card-icon">📅</div>
+        <div>
+          <div class="card-title">날짜 선택</div>
+          <div class="card-sub">이벤트가 있는 날짜를 선택하세요</div>
+        </div>
+      </div>
+      <div class="card-body">
+        <div class="cal-nav-row">
+          <div class="cal-month-label" id="cal-label">2026년 4월</div>
+          <div class="cal-nav-btns">
+            <button class="cal-nav-btn" onclick="changeMonth(-1)">‹</button>
+            <button class="cal-nav-btn" onclick="goToday()">오늘</button>
+            <button class="cal-nav-btn" onclick="changeMonth(1)">›</button>
+          </div>
+        </div>
+        <div class="cal-grid" id="cal-grid">
+          <div class="cal-dow">일</div><div class="cal-dow">월</div><div class="cal-dow">화</div>
+          <div class="cal-dow">수</div><div class="cal-dow">목</div><div class="cal-dow">금</div><div class="cal-dow">토</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- STEP 2: 이벤트 선택 -->
+  <div class="step-panel" id="panel-2">
+    <div class="card">
+      <div class="card-head">
+        <div class="card-icon">🎪</div>
+        <div>
+          <div class="card-title">이벤트 선택</div>
+          <div class="card-sub" id="step2-date-label"></div>
+        </div>
+      </div>
+      <div class="card-body">
+        <div class="ev-list" id="ev-list"></div>
+        <button class="btn btn-outline" style="margin-top:12px;" onclick="goStep(1)">← 날짜 다시 선택</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- STEP 3: 이름 입력 -->
+  <div class="step-panel" id="panel-3">
+    <div class="card">
+      <div class="card-head">
+        <div class="card-icon">✍️</div>
+        <div>
+          <div class="card-title">추천인 이름 입력</div>
+          <div class="card-sub" id="step3-ev-label"></div>
+        </div>
+      </div>
+      <div class="card-body">
+        <div style="margin-bottom:14px;">
+          <div id="step3-chips" style="margin-bottom:12px;"></div>
+          <div class="name-input-wrap">
+            <input class="name-inp" id="name-inp" type="text" placeholder="내 이름을 입력하세요" maxlength="30" oninput="onNameInput()"/>
+          </div>
+          <div class="name-hint">입력한 이름이 신청서의 추천인 칸에 고정됩니다.</div>
+        </div>
+        <button class="btn btn-gold" id="btn-gen" onclick="generateLink()" disabled>🔗 내 추천 링크 만들기</button>
+        <button class="btn btn-outline" style="margin-top:8px;" onclick="goStep(2)">← 이벤트 다시 선택</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- STEP 4: 링크 복사 -->
+  <div class="step-panel" id="panel-4">
+    <div class="card">
+      <div class="card-head">
+        <div class="card-icon">🎉</div>
+        <div>
+          <div class="card-title">링크가 완성됐어요!</div>
+          <div class="card-sub">아래 링크를 복사해서 공유하세요</div>
+        </div>
+      </div>
+      <div class="card-body">
+        <div class="result-box">
+          <div class="result-title">✅ 추천인 고정 링크</div>
+          <div class="result-url" id="result-url"></div>
+          <button class="btn btn-copy" id="btn-copy" onclick="copyResult()">📋 링크 복사</button>
+        </div>
+        <div style="margin-top:14px;padding:12px 14px;background:var(--g50);border-radius:10px;border:1px solid var(--g200);">
+          <div style="font-size:11px;font-weight:800;color:var(--g600);margin-bottom:6px;">📌 이 링크의 특징</div>
+          <div style="font-size:12px;color:var(--g500);line-height:1.7;">
+            • 링크를 받은 사람이 신청하면 추천인 칸이 <strong id="name-preview" style="color:var(--navy);"></strong>로 자동 입력됩니다<br>
+            • 추천인 칸은 수정할 수 없어요<br>
+            • 이 링크를 다시 공유해도 추천인은 계속 유지됩니다
+          </div>
+        </div>
+        <button class="btn btn-outline" style="margin-top:12px;" onclick="goStep(1)">🔄 다른 링크 만들기</button>
+      </div>
+    </div>
+  </div>
+
+</div><!-- /page -->
+
+<div class="toast" id="toast"></div>
+
+<script>
+const API = '/api';
+let calYear, calMonth, calSelectedDate = null;
+let allEvents = [];
+let selectedEvent = null;
+let generatedUrl = '';
+
+// ── 초기화 ────────────────────────────────────────────────────────────────
+(async function init() {
+  const t = new Date();
+  calYear = t.getFullYear();
+  calMonth = t.getMonth();
+  await loadEvents();
+  renderCalendar();
+})();
+
+async function loadEvents() {
+  try {
+    const r = await fetch(`${API}/public/events`);
+    const j = await r.json();
+    if (j.success) allEvents = j.data;
+  } catch(e) {}
+}
+
+// ── 스텝 이동 ─────────────────────────────────────────────────────────────
+function goStep(n) {
+  document.querySelectorAll('.step-panel').forEach((p,i) => {
+    p.classList.toggle('active', i + 1 === n);
+  });
+  [1,2,3,4].forEach(i => {
+    const circle = document.getElementById(`sc-${i}`);
+    const label  = document.getElementById(`sl-${i}`);
+    const line   = document.getElementById(`sline-${i}`);
+    if (i < n)  { circle.className='step-circle done'; circle.textContent='✓'; label.className='step-label done'; if(line) line.className='step-line done'; }
+    else if (i===n) { circle.className='step-circle active'; circle.textContent=i; label.className='step-label active'; }
+    else        { circle.className='step-circle'; circle.textContent=i; label.className='step-label'; if(line) line.className='step-line'; }
+  });
+  window.scrollTo({top:0, behavior:'smooth'});
+}
+
+// ── 달력 ──────────────────────────────────────────────────────────────────
+function renderCalendar() {
+  const MONTHS = ['1월','2월','3월','4월','5월','6월','7월','8월','9월','10월','11월','12월'];
+  document.getElementById('cal-label').textContent = `${calYear}년 ${MONTHS[calMonth]}`;
+  const grid = document.getElementById('cal-grid');
+  while (grid.children.length > 7) grid.removeChild(grid.lastChild);
+
+  const today    = new Date();
+  const firstDay = new Date(calYear, calMonth, 1).getDay();
+  const lastDate = new Date(calYear, calMonth + 1, 0).getDate();
+  const prevLast = new Date(calYear, calMonth, 0).getDate();
+  const frag     = document.createDocumentFragment();
+
+  for (let i = 0; i < firstDay; i++) {
+    const d = document.createElement('div');
+    d.className = 'cal-day other';
+    d.innerHTML = `<div class="cal-day-num">${prevLast - firstDay + 1 + i}</div>`;
+    frag.appendChild(d);
+  }
+  for (let date = 1; date <= lastDate; date++) {
+    const iso = `${calYear}-${String(calMonth+1).padStart(2,'0')}-${String(date).padStart(2,'0')}`;
+    const dow  = new Date(calYear, calMonth, date).getDay();
+    const evs  = allEvents.filter(e => e.event_date === iso);
+    const isToday = today.getFullYear()===calYear && today.getMonth()===calMonth && today.getDate()===date;
+    let cls = 'cal-day';
+    if (dow===0) cls+=' sun';
+    if (dow===6) cls+=' sat';
+    if (isToday) cls+=' today';
+    if (evs.length) cls+=' has-event';
+    if (calSelectedDate===iso) cls+=' selected';
+    const d = document.createElement('div');
+    d.className = cls;
+    d.dataset.iso = iso;
+    d.innerHTML = `<div class="cal-day-num">${date}</div>` +
+      evs.slice(0,2).map(e=>`<div class="cal-dot" style="background:${e.color||'#1B2B4B'};"></div>`).join('');
+    d.addEventListener('click', () => onDayClick(iso));
+    frag.appendChild(d);
+  }
+  const total  = firstDay + lastDate;
+  const remain = (Math.ceil(total/7)*7) - total;
+  for (let i = 1; i <= remain; i++) {
+    const d = document.createElement('div');
+    d.className = 'cal-day other';
+    d.innerHTML = `<div class="cal-day-num">${i}</div>`;
+    frag.appendChild(d);
+  }
+  grid.appendChild(frag);
+}
+
+function changeMonth(dir) {
+  calMonth += dir;
+  if (calMonth < 0)  { calMonth = 11; calYear--; }
+  if (calMonth > 11) { calMonth = 0;  calYear++; }
+  renderCalendar();
+}
+function goToday() {
+  const t = new Date();
+  calYear = t.getFullYear(); calMonth = t.getMonth();
+  renderCalendar();
+}
+
+function onDayClick(iso) {
+  calSelectedDate = iso;
+  renderCalendar();
+
+  const evs = allEvents.filter(e => e.event_date === iso);
+  if (!evs.length) {
+    showToast('이 날짜에는 이벤트가 없습니다');
+    return;
+  }
+
+  const [y,m,d] = iso.split('-');
+  const DOW = ['일','월','화','수','목','금','토'];
+  const dowStr = DOW[new Date(+y,+m-1,+d).getDay()];
+  document.getElementById('step2-date-label').textContent = `${+m}월 ${+d}일 (${dowStr})`;
+
+  const listEl = document.getElementById('ev-list');
+  listEl.innerHTML = evs.map(e => `
+    <div class="ev-item" id="evitem-${e.id}" onclick="selectEvent(${e.id})">
+      <div class="ev-dot" style="background:${e.color||'#1B2B4B'};"></div>
+      <div>
+        <div class="ev-name">${escHtml(e.title)}</div>
+        <div class="ev-meta">📍 ${escHtml(e.venue||'-')} &nbsp;·&nbsp; 신청 ${e.current_count}명</div>
+      </div>
+    </div>
+  `).join('');
+
+  goStep(2);
+
+  // 이벤트 1개면 자동 선택
+  if (evs.length === 1) selectEvent(evs[0].id);
+}
+
+// ── 이벤트 선택 ───────────────────────────────────────────────────────────
+function selectEvent(id) {
+  selectedEvent = allEvents.find(e => e.id === id);
+  if (!selectedEvent) return;
+
+  document.querySelectorAll('.ev-item').forEach(el => el.classList.remove('selected'));
+  document.getElementById(`evitem-${id}`)?.classList.add('selected');
+
+  // step 3 설정
+  document.getElementById('step3-ev-label').textContent = selectedEvent.title;
+
+  // 기존 추천인 칩 표시 (referrer 통계는 별도 API에서)
+  document.getElementById('step3-chips').innerHTML =
+    `<div class="sel-badge">🎪 ${escHtml(selectedEvent.title)}</div>`;
+
+  // 입력창 초기화
+  const inp = document.getElementById('name-inp');
+  inp.value = '';
+  inp.classList.remove('filled');
+  document.getElementById('btn-gen').disabled = true;
+
+  goStep(3);
+  setTimeout(() => inp.focus(), 300);
+}
+
+// ── 이름 입력 ─────────────────────────────────────────────────────────────
+function onNameInput() {
+  const v = document.getElementById('name-inp').value.trim();
+  document.getElementById('name-inp').classList.toggle('filled', v.length > 0);
+  document.getElementById('btn-gen').disabled = v.length === 0;
+}
+
+// ── 링크 생성 ─────────────────────────────────────────────────────────────
+function generateLink() {
+  const name = document.getElementById('name-inp').value.trim();
+  if (!name || !selectedEvent) return;
+
+  const base = `${location.origin}/?event=${selectedEvent.id}&ref=${encodeURIComponent(name)}`;
+  generatedUrl = base;
+
+  document.getElementById('result-url').textContent = base;
+  document.getElementById('name-preview').textContent = name;
+
+  // 복사 버튼 초기화
+  const btn = document.getElementById('btn-copy');
+  btn.className = 'btn btn-copy';
+  btn.textContent = '📋 링크 복사';
+
+  goStep(4);
+}
+
+// ── 링크 복사 ─────────────────────────────────────────────────────────────
+async function copyResult() {
+  if (!generatedUrl) return;
+  try { await navigator.clipboard.writeText(generatedUrl); }
+  catch(e) {
+    const t = document.createElement('textarea');
+    t.value = generatedUrl;
+    t.style.cssText = 'position:fixed;opacity:0;';
+    document.body.appendChild(t);
+    t.select();
+    document.execCommand('copy');
+    document.body.removeChild(t);
+  }
+  const btn = document.getElementById('btn-copy');
+  btn.className = 'btn btn-copy copied';
+  btn.textContent = '✅ 복사됐어요!';
+  showToast('링크가 복사되었습니다!', 'ok');
+  setTimeout(() => {
+    btn.className = 'btn btn-copy';
+    btn.textContent = '📋 링크 복사';
+  }, 2500);
+}
+
+// ── 유틸 ──────────────────────────────────────────────────────────────────
+function escHtml(s) {
+  return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+function showToast(msg, type='') {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.className = 'toast ' + type;
+  t.classList.add('show');
+  setTimeout(() => t.classList.remove('show'), 2800);
+}
+</script>
+</body>
+</html>

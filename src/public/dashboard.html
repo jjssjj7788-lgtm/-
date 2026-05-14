@@ -6,450 +6,296 @@
   <title>대시보드 - 라스북 세미나 관리</title>
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet" />
-  <!-- Barcode Scanner -->
   <script src="https://cdn.jsdelivr.net/npm/html5-qrcode@2.3.8/html5-qrcode.min.js"></script>
-
   <style>
     :root {
-      --navy: #0A1628;
-      --navy-mid: #1B2B4B;
-      --navy-light: #243657;
-      --gold: #C9A84C;
-      --gold-light: #E8C97A;
-      --gold-dark: #A8872E;
-      --white: #FFFFFF;
-      --gray-50: #FAFBFD;
-      --gray-100: #F0F2F7;
-      --gray-200: #E2E5EF;
-      --gray-400: #9AA3B2;
-      --gray-600: #5A6478;
-      --gray-700: #3D4A5C;
-      --red: #E53E3E;
-      --red-light: #FFF5F5;
-      --green: #38A169;
-      --green-light: #F0FFF4;
-      --blue: #3182CE;
-      --orange: #D69E2E;
+      --navy:#0A1628;--navy-mid:#1B2B4B;--navy-light:#243657;
+      --gold:#C9A84C;--gold-light:#E8C97A;--gold-dark:#A8872E;
+      --white:#FFFFFF;
+      --g50:#FAFBFD;--g100:#F0F2F7;--g200:#E2E5EF;--g400:#9AA3B2;--g600:#5A6478;--g700:#3D4A5C;
+      --red:#E53E3E;--green:#38A169;--blue:#3182CE;--orange:#D69E2E;
     }
+    *{box-sizing:border-box;margin:0;padding:0;}
+    body{font-family:'Noto Sans KR',sans-serif;background:var(--g100);color:var(--navy);}
 
-    * { box-sizing: border-box; margin: 0; padding: 0; }
+    /* Login */
+    .login-screen{min-height:100vh;background:linear-gradient(160deg,var(--navy) 0%,var(--navy-mid) 60%,#1a3a5c 100%);display:flex;align-items:center;justify-content:center;padding:24px;}
+    .login-card{background:#fff;border-radius:24px;padding:40px 32px;width:100%;max-width:400px;box-shadow:0 20px 60px rgba(0,0,0,.4);}
+    .login-logo{text-align:center;margin-bottom:32px;}
+    .login-logo-t{font-size:24px;font-weight:900;color:var(--navy);letter-spacing:2px;}
+    .login-logo-t span{color:var(--gold-dark);}
+    .login-logo p{font-size:13px;color:var(--g400);margin-top:6px;}
+    .login-lbl{display:block;font-size:13px;font-weight:700;color:var(--g700);margin-bottom:8px;}
+    .login-inp{width:100%;padding:14px 18px;border:2px solid var(--g200);border-radius:12px;font-size:16px;font-family:inherit;color:var(--navy);background:var(--g50);outline:none;transition:all .2s;}
+    .login-inp:focus{border-color:var(--navy-mid);background:#fff;}
+    .btn-login{width:100%;margin-top:20px;padding:16px;background:linear-gradient(135deg,var(--navy),var(--navy-mid));color:#fff;border:none;border-radius:12px;font-size:16px;font-weight:800;font-family:inherit;cursor:pointer;}
+    .login-err{color:var(--red);font-size:13px;margin-top:10px;text-align:center;display:none;}
 
-    body {
-      font-family: 'Noto Sans KR', sans-serif;
-      background: var(--gray-100);
-      color: var(--navy);
-    }
+    /* App */
+    .app{display:none;}
 
-    /* ── Login Screen ── */
-    .login-screen {
-      min-height: 100vh;
-      background: linear-gradient(160deg, var(--navy) 0%, var(--navy-mid) 60%, #1a3a5c 100%);
-      display: flex; align-items: center; justify-content: center;
-      padding: 24px;
-    }
-    .login-card {
-      background: white; border-radius: 24px; padding: 40px 32px;
-      width: 100%; max-width: 400px; box-shadow: 0 20px 60px rgba(0,0,0,0.4);
-    }
-    .login-logo { text-align: center; margin-bottom: 32px; }
-    .login-logo-text { font-size: 24px; font-weight: 900; color: var(--navy); letter-spacing: 2px; }
-    .login-logo-text span { color: var(--gold-dark); }
-    .login-logo p { font-size: 13px; color: var(--gray-400); margin-top: 6px; }
-    .login-label { display: block; font-size: 13px; font-weight: 700; color: var(--gray-700); margin-bottom: 8px; }
-    .login-input {
-      width: 100%; padding: 14px 18px; border: 2px solid var(--gray-200); border-radius: 12px;
-      font-size: 16px; font-family: inherit; color: var(--navy); background: var(--gray-50); outline: none; transition: all 0.2s;
-    }
-    .login-input:focus { border-color: var(--navy-mid); background: white; }
-    .btn-login {
-      width: 100%; margin-top: 20px; padding: 16px;
-      background: linear-gradient(135deg, var(--navy), var(--navy-mid));
-      color: white; border: none; border-radius: 12px;
-      font-size: 16px; font-weight: 800; font-family: inherit; cursor: pointer;
-    }
-    .login-error { color: var(--red); font-size: 13px; margin-top: 10px; text-align: center; display: none; }
+    /* Topbar */
+    .topbar{background:linear-gradient(135deg,var(--navy),var(--navy-mid));padding:0 20px;display:flex;align-items:center;justify-content:space-between;height:56px;position:sticky;top:0;z-index:100;box-shadow:0 2px 10px rgba(0,0,0,.2);}
+    .tb-brand{display:flex;align-items:center;gap:10px;}
+    .tb-brand h1{font-size:15px;font-weight:900;color:#fff;}
+    .tb-brand span{font-size:10px;color:var(--gold);background:rgba(201,168,76,.15);padding:3px 10px;border-radius:10px;}
+    .tb-actions{display:flex;align-items:center;gap:8px;}
+    .tb-btn{padding:7px 13px;border-radius:8px;font-size:12px;font-weight:700;font-family:inherit;cursor:pointer;border:none;display:flex;align-items:center;gap:5px;white-space:nowrap;}
+    .tb-btn-outline{background:rgba(255,255,255,.1);color:rgba(255,255,255,.8);border:1px solid rgba(255,255,255,.2);}
+    .tb-btn-gold{background:linear-gradient(135deg,var(--gold-dark),var(--gold));color:var(--navy);}
 
-    /* ── App ── */
-    .app { display: none; }
+    /* Event Selector Bar */
+    .ev-selector-bar{background:#fff;border-bottom:1px solid var(--g200);padding:10px 20px;display:flex;align-items:center;gap:10px;flex-wrap:wrap;}
+    .ev-selector-label{font-size:12px;font-weight:700;color:var(--g600);white-space:nowrap;}
+    .ev-select{padding:8px 12px;border:2px solid var(--g200);border-radius:9px;font-size:13px;font-family:inherit;color:var(--navy);background:var(--g50);outline:none;flex:1;min-width:180px;max-width:340px;cursor:pointer;}
+    .ev-select:focus{border-color:var(--navy-mid);}
+    .ev-date-select{padding:8px 12px;border:2px solid var(--g200);border-radius:9px;font-size:13px;font-family:inherit;color:var(--navy);background:var(--g50);outline:none;min-width:160px;max-width:220px;cursor:pointer;}
+    .ev-date-select:focus{border-color:var(--navy-mid);}
+    .ev-sel-arrow{font-size:16px;color:var(--g400);flex-shrink:0;}
+    .ev-session-tabs{display:flex;gap:6px;flex-wrap:wrap;margin-left:auto;}
+    .ses-tab{padding:6px 14px;border-radius:20px;font-size:12px;font-weight:700;font-family:inherit;cursor:pointer;border:1.5px solid var(--g200);background:#fff;color:var(--g600);transition:all .15s;white-space:nowrap;}
+    .ses-tab.active{background:var(--navy);color:#fff;border-color:var(--navy);}
+    .ses-tab .ses-cnt{font-size:10px;background:rgba(255,255,255,.2);padding:1px 5px;border-radius:8px;margin-left:3px;}
+    .ses-tab:not(.active) .ses-cnt{background:var(--g200);color:var(--g600);}
 
-    /* Top Bar */
-    .topbar {
-      background: linear-gradient(135deg, var(--navy), var(--navy-mid));
-      padding: 0 24px;
-      display: flex; align-items: center; justify-content: space-between;
-      height: 60px;
-      position: sticky; top: 0; z-index: 100;
-      box-shadow: 0 2px 10px rgba(0,0,0,0.2);
-    }
-    .topbar-brand {
-      display: flex; align-items: center; gap: 12px;
-    }
-    .topbar-brand h1 { font-size: 16px; font-weight: 900; color: white; letter-spacing: 1px; }
-    .topbar-brand span { font-size: 11px; color: var(--gold); background: rgba(201,168,76,0.15); padding: 3px 10px; border-radius: 10px; }
-    .topbar-actions { display: flex; align-items: center; gap: 10px; }
-    .topbar-btn {
-      padding: 7px 14px; border-radius: 8px; font-size: 12px; font-weight: 700;
-      font-family: inherit; cursor: pointer; border: none; display: flex; align-items: center; gap: 6px;
-    }
-    .topbar-btn-outline {
-      background: rgba(255,255,255,0.1); color: rgba(255,255,255,0.8);
-      border: 1px solid rgba(255,255,255,0.2);
-    }
-    .topbar-btn-gold {
-      background: linear-gradient(135deg, var(--gold-dark), var(--gold)); color: var(--navy);
-    }
+    /* Main */
+    .main{padding:20px;max-width:1200px;}
 
-    /* Main Content */
-    .main { padding: 24px; }
+    /* Stats */
+    .stats-row{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin-bottom:20px;}
+    .stat-card{background:#fff;border-radius:14px;padding:18px;box-shadow:0 2px 8px rgba(0,0,0,.06);position:relative;overflow:hidden;}
+    .stat-card::before{content:'';position:absolute;top:0;left:0;right:0;height:3px;}
+    .stat-card.blue::before{background:linear-gradient(90deg,#3182CE,#63B3ED);}
+    .stat-card.green::before{background:linear-gradient(90deg,var(--green),#68D391);}
+    .stat-card.gold::before{background:linear-gradient(90deg,var(--gold-dark),var(--gold-light));}
+    .stat-card.navy::before{background:linear-gradient(90deg,var(--navy),var(--navy-mid));}
+    .stat-lbl{font-size:11px;font-weight:700;letter-spacing:1px;color:var(--g400);text-transform:uppercase;margin-bottom:8px;}
+    .stat-val{font-size:28px;font-weight:900;color:var(--navy);line-height:1;margin-bottom:2px;}
+    .stat-sub{font-size:11px;color:var(--g400);}
+    .stat-icon{position:absolute;top:14px;right:14px;font-size:22px;opacity:.12;}
 
-    /* Stats Row */
-    .stats-row {
-      display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; margin-bottom: 24px;
-    }
-    .stat-card {
-      background: white; border-radius: 16px; padding: 20px;
-      box-shadow: 0 2px 8px rgba(0,0,0,0.06);
-      position: relative; overflow: hidden;
-    }
-    .stat-card::before {
-      content: '';
-      position: absolute;
-      top: 0; left: 0; right: 0;
-      height: 3px;
-    }
-    .stat-card.blue::before { background: linear-gradient(90deg, #3182CE, #63B3ED); }
-    .stat-card.green::before { background: linear-gradient(90deg, #38A169, #68D391); }
-    .stat-card.gold::before { background: linear-gradient(90deg, var(--gold-dark), var(--gold-light)); }
-    .stat-card.navy::before { background: linear-gradient(90deg, var(--navy), var(--navy-mid)); }
+    /* Progress */
+    .prog-section{background:#fff;border-radius:14px;padding:18px 22px;margin-bottom:20px;box-shadow:0 2px 8px rgba(0,0,0,.06);}
+    .prog-head{display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;}
+    .prog-title{font-size:13px;font-weight:700;color:var(--navy);}
+    .prog-val{font-size:13px;font-weight:700;color:var(--gold-dark);}
+    .prog-bg{height:9px;background:var(--g100);border-radius:5px;overflow:hidden;margin-bottom:4px;}
+    .prog-fill{height:100%;background:linear-gradient(90deg,var(--gold-dark),var(--gold-light));border-radius:5px;transition:width .8s ease;}
+    .prog-fill.att{background:linear-gradient(90deg,var(--green),#9AE6B4);}
+    .prog-desc{font-size:11px;color:var(--g400);}
 
-    .stat-label {
-      font-size: 11px; font-weight: 700; letter-spacing: 1px;
-      color: var(--gray-400); text-transform: uppercase; margin-bottom: 10px;
-    }
-    .stat-value {
-      font-size: 32px; font-weight: 900; color: var(--navy); line-height: 1;
-      margin-bottom: 4px;
-    }
-    .stat-sub { font-size: 12px; color: var(--gray-400); }
-    .stat-icon {
-      position: absolute; top: 16px; right: 16px;
-      font-size: 24px; opacity: 0.15;
-    }
+    /* Session stats row */
+    .ses-stats-row{display:flex;gap:10px;flex-wrap:wrap;margin-bottom:20px;}
+    .ses-stat-card{background:#fff;border-radius:12px;padding:14px 18px;box-shadow:0 2px 8px rgba(0,0,0,.06);display:flex;align-items:center;gap:12px;flex:1;min-width:160px;}
+    .ses-stat-color{width:10px;height:10px;border-radius:50%;flex-shrink:0;}
+    .ses-stat-name{font-size:12px;font-weight:700;color:var(--navy);flex:1;}
+    .ses-stat-count{font-size:20px;font-weight:900;color:var(--navy);}
+    .ses-stat-total{font-size:11px;color:var(--g400);}
 
-    /* Progress Bar */
-    .progress-section {
-      background: white; border-radius: 16px; padding: 20px 24px;
-      margin-bottom: 24px; box-shadow: 0 2px 8px rgba(0,0,0,0.06);
-    }
-    .progress-header {
-      display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;
-    }
-    .progress-title { font-size: 14px; font-weight: 700; color: var(--navy); }
-    .progress-val { font-size: 14px; font-weight: 700; color: var(--gold-dark); }
-    .progress-bg {
-      height: 10px; background: var(--gray-100); border-radius: 5px; overflow: hidden; margin-bottom: 6px;
-    }
-    .progress-fill {
-      height: 100%;
-      background: linear-gradient(90deg, var(--gold-dark), var(--gold-light));
-      border-radius: 5px; transition: width 0.8s ease;
-    }
-    .progress-fill.attendance {
-      background: linear-gradient(90deg, var(--green), #9AE6B4);
-    }
-    .progress-desc { font-size: 11px; color: var(--gray-400); }
+    /* Section */
+    .section{background:#fff;border-radius:14px;box-shadow:0 2px 8px rgba(0,0,0,.06);margin-bottom:20px;overflow:hidden;}
+    .sec-head{padding:16px 20px;border-bottom:1px solid var(--g100);display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:10px;}
+    .sec-title{display:flex;align-items:center;gap:9px;font-size:15px;font-weight:800;color:var(--navy);}
+    .sec-title-icon{width:32px;height:32px;background:linear-gradient(135deg,var(--navy),var(--navy-mid));border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:14px;}
+    .sec-actions{display:flex;gap:7px;flex-wrap:wrap;}
 
-    /* Section Card */
-    .section {
-      background: white; border-radius: 16px;
-      box-shadow: 0 2px 8px rgba(0,0,0,0.06);
-      margin-bottom: 24px; overflow: hidden;
-    }
-    .section-header {
-      padding: 18px 24px;
-      border-bottom: 1px solid var(--gray-100);
-      display: flex; align-items: center; justify-content: space-between;
-    }
-    .section-title {
-      display: flex; align-items: center; gap: 10px;
-      font-size: 16px; font-weight: 800; color: var(--navy);
-    }
-    .section-title-icon {
-      width: 36px; height: 36px;
-      background: linear-gradient(135deg, var(--navy), var(--navy-mid));
-      border-radius: 8px; display: flex; align-items: center; justify-content: center;
-      font-size: 16px;
-    }
-    .section-actions { display: flex; gap: 8px; flex-wrap: wrap; }
+    /* Buttons */
+    .btn{padding:8px 16px;border:none;border-radius:8px;font-size:12px;font-weight:700;font-family:inherit;cursor:pointer;display:inline-flex;align-items:center;gap:6px;transition:all .15s;white-space:nowrap;}
+    .btn:hover:not(:disabled){transform:translateY(-1px);box-shadow:0 3px 8px rgba(0,0,0,.12);}
+    .btn:disabled{opacity:.5;cursor:not-allowed;}
+    .btn-primary{background:linear-gradient(135deg,var(--navy),var(--navy-mid));color:#fff;}
+    .btn-gold{background:linear-gradient(135deg,var(--gold-dark),var(--gold));color:var(--navy);}
+    .btn-green{background:var(--green);color:#fff;}
+    .btn-red{background:var(--red);color:#fff;}
+    .btn-outline{background:#fff;color:var(--navy);border:2px solid var(--g200);}
+    .btn-sm{padding:5px 11px;font-size:11px;border-radius:6px;}
 
-    /* Button */
-    .btn {
-      padding: 9px 18px; border: none; border-radius: 8px;
-      font-size: 13px; font-weight: 700; font-family: inherit;
-      cursor: pointer; display: inline-flex; align-items: center; gap: 7px;
-      transition: all 0.15s; white-space: nowrap;
-    }
-    .btn-primary { background: linear-gradient(135deg, var(--navy), var(--navy-mid)); color: white; }
-    .btn-gold { background: linear-gradient(135deg, var(--gold-dark), var(--gold)); color: var(--navy); }
-    .btn-green { background: var(--green); color: white; }
-    .btn-red { background: var(--red); color: white; }
-    .btn-outline { background: white; color: var(--navy); border: 2px solid var(--gray-200); }
-    .btn:hover:not(:disabled) { transform: translateY(-1px); box-shadow: 0 4px 10px rgba(0,0,0,0.15); }
-    .btn:disabled { opacity: 0.5; cursor: not-allowed; }
-    .btn-sm { padding: 6px 12px; font-size: 11px; border-radius: 6px; }
-
-    /* Search Bar */
-    .search-bar {
-      display: flex; align-items: center; gap: 10px; padding: 16px 24px;
-      border-bottom: 1px solid var(--gray-100);
-    }
-    .search-input {
-      flex: 1; padding: 10px 14px; border: 2px solid var(--gray-200); border-radius: 10px;
-      font-size: 14px; font-family: inherit; outline: none;
-    }
-    .search-input:focus { border-color: var(--navy-mid); }
-
-    /* Filter Tabs */
-    .filter-tabs {
-      display: flex; gap: 8px; padding: 0 24px 16px;
-    }
-    .filter-tab {
-      padding: 6px 14px; border-radius: 20px; font-size: 12px; font-weight: 700;
-      cursor: pointer; border: none; font-family: inherit; transition: all 0.15s;
-      background: var(--gray-100); color: var(--gray-600);
-    }
-    .filter-tab.active { background: var(--navy); color: white; }
+    /* Search */
+    .search-bar{display:flex;align-items:center;gap:8px;padding:14px 20px;border-bottom:1px solid var(--g100);}
+    .search-inp{flex:1;padding:9px 13px;border:2px solid var(--g200);border-radius:9px;font-size:13px;font-family:inherit;outline:none;}
+    .search-inp:focus{border-color:var(--navy-mid);}
+    .filter-tabs{display:flex;gap:7px;padding:0 20px 14px;flex-wrap:wrap;}
+    .ftab{padding:5px 13px;border-radius:18px;font-size:12px;font-weight:700;font-family:inherit;cursor:pointer;border:none;background:var(--g100);color:var(--g600);transition:all .15s;}
+    .ftab.active{background:var(--navy);color:#fff;}
 
     /* Table */
-    .table-container { overflow-x: auto; }
-    table {
-      width: 100%; border-collapse: collapse; font-size: 13px;
-    }
-    th {
-      padding: 10px 16px; text-align: left;
-      font-size: 11px; font-weight: 700; letter-spacing: 0.5px;
-      color: var(--gray-400); background: var(--gray-50);
-      border-bottom: 1px solid var(--gray-200);
-      white-space: nowrap;
-    }
-    td {
-      padding: 12px 16px; border-bottom: 1px solid var(--gray-100);
-      color: var(--navy); vertical-align: middle;
-    }
-    tr:last-child td { border-bottom: none; }
-    tr:hover td { background: var(--gray-50); }
-    .ticket-no {
-      font-weight: 900; color: var(--gold-dark);
-      background: rgba(168,135,46,0.08); padding: 3px 8px;
-      border-radius: 6px; font-size: 12px;
-    }
-    .badge-attended {
-      display: inline-flex; align-items: center; gap: 4px;
-      background: var(--green-light); color: var(--green);
-      border: 1px solid #9AE6B4; padding: 4px 10px;
-      border-radius: 20px; font-size: 11px; font-weight: 700;
-    }
-    .badge-absent {
-      display: inline-flex; align-items: center; gap: 4px;
-      background: var(--gray-100); color: var(--gray-400);
-      border: 1px solid var(--gray-200); padding: 4px 10px;
-      border-radius: 20px; font-size: 11px; font-weight: 700;
-    }
-    .table-actions { display: flex; gap: 4px; }
-    .empty-state {
-      padding: 60px; text-align: center; color: var(--gray-400);
-    }
-    .empty-state .empty-icon { font-size: 48px; margin-bottom: 12px; }
-    .empty-state p { font-size: 14px; }
+    .tbl-wrap{overflow-x:auto;}
+    table{width:100%;border-collapse:collapse;font-size:12px;}
+    th{padding:9px 14px;text-align:left;font-size:10px;font-weight:700;letter-spacing:.5px;color:var(--g400);background:var(--g50);border-bottom:1px solid var(--g200);white-space:nowrap;}
+    td{padding:11px 14px;border-bottom:1px solid var(--g100);color:var(--navy);vertical-align:middle;}
+    tr:last-child td{border-bottom:none;}
+    tr:hover td{background:var(--g50);}
+    .tno{font-weight:900;color:var(--gold-dark);background:rgba(168,135,46,.08);padding:2px 7px;border-radius:5px;font-size:11px;}
+    .b-att{display:inline-flex;align-items:center;gap:3px;background:#f0fff4;color:var(--green);border:1px solid #9AE6B4;padding:3px 9px;border-radius:18px;font-size:10px;font-weight:700;}
+    .b-abs{display:inline-flex;align-items:center;gap:3px;background:var(--g100);color:var(--g400);border:1px solid var(--g200);padding:3px 9px;border-radius:18px;font-size:10px;font-weight:700;}
+    .tbl-acts{display:flex;gap:3px;flex-wrap:wrap;}
+    /* 인라인 편집 공통 */
+    .edit-cell{cursor:pointer;display:inline-flex;align-items:center;gap:4px;padding:2px 6px;border-radius:6px;border:1px solid transparent;transition:all .15s;white-space:nowrap;max-width:160px;overflow:hidden;text-overflow:ellipsis;}
+    .edit-cell:hover{background:#fffbf0;border-color:var(--gold);color:var(--navy);}
+    .edit-cell::after{content:'✏️';font-size:9px;opacity:0;transition:opacity .15s;flex-shrink:0;}
+    .edit-cell:hover::after{opacity:1;}
+    .edit-wrap{display:inline-flex;align-items:center;gap:4px;}
+    .edit-inp{padding:3px 7px;border:1.5px solid var(--gold);border-radius:6px;font-size:12px;font-family:inherit;color:var(--navy);background:#fff;outline:none;width:110px;}
+    .edit-inp.wide{width:140px;}
+    .edit-save-btn{padding:3px 8px;background:var(--gold-dark);color:#fff;border:none;border-radius:5px;font-size:11px;font-weight:700;cursor:pointer;white-space:nowrap;}
+    .edit-cancel-btn{padding:3px 7px;background:var(--g200);color:var(--g600);border:none;border-radius:5px;font-size:11px;cursor:pointer;}
+    .empty-st{padding:50px;text-align:center;color:var(--g400);}
+    .empty-st .ei{font-size:40px;margin-bottom:10px;}
+    .tbl-foot{padding:11px 20px;border-top:1px solid var(--g100);display:flex;align-items:center;justify-content:space-between;}
+    .tbl-foot-info{font-size:11px;color:var(--g400);}
+    .live-dot{width:7px;height:7px;background:var(--green);border-radius:50%;animation:pulse 2s ease-in-out infinite;}
+    @keyframes pulse{0%,100%{opacity:1;transform:scale(1);}50%{opacity:.5;transform:scale(.8);}}
 
-    /* Pagination info */
-    .table-footer {
-      padding: 12px 24px; border-top: 1px solid var(--gray-100);
-      display: flex; align-items: center; justify-content: space-between;
-    }
-    .table-footer-info { font-size: 12px; color: var(--gray-400); }
+    /* Scanner Overlay */
+    .scan-ov{display:none;position:fixed;inset:0;z-index:200;background:rgba(0,0,0,.97);flex-direction:column;align-items:center;justify-content:flex-start;}
+    .scan-ov.active{display:flex;}
+    .scan-hd{width:100%;padding:16px 20px;display:flex;align-items:center;justify-content:space-between;color:#fff;}
+    .scan-hd h2{font-size:17px;font-weight:800;}
+    .scan-close{width:38px;height:38px;background:rgba(255,255,255,.1);border:none;border-radius:50%;color:#fff;font-size:18px;cursor:pointer;display:flex;align-items:center;justify-content:center;}
 
-    /* ── SCANNER ── */
-    .scanner-overlay {
-      display: none;
-      position: fixed; inset: 0; z-index: 200;
-      background: rgba(0,0,0,0.97);
-      flex-direction: column;
-      align-items: center; justify-content: flex-start;
-    }
-    .scanner-overlay.active { display: flex; }
-    .scanner-header {
-      width: 100%; padding: 20px 24px;
-      display: flex; align-items: center; justify-content: space-between;
-      color: white;
-    }
-    .scanner-header h2 { font-size: 18px; font-weight: 800; }
-    .scanner-close {
-      width: 40px; height: 40px;
-      background: rgba(255,255,255,0.1);
-      border: none; border-radius: 50%; color: white; font-size: 20px;
-      cursor: pointer; display: flex; align-items: center; justify-content: center;
-    }
+    /* Session selector in scanner */
+    .scan-ses-sel{width:100%;max-width:400px;padding:0 20px 12px;}
+    .scan-ses-sel select{width:100%;padding:11px 14px;border:2px solid rgba(255,255,255,.2);border-radius:10px;background:rgba(255,255,255,.1);color:#fff;font-size:14px;font-family:inherit;outline:none;}
+    .scan-ses-sel select option{background:#1B2B4B;color:#fff;}
 
-    #scanner-viewport {
-      width: 100%; max-width: 400px;
-      position: relative;
-    }
-    #reader {
-      width: 100%;
-      border-radius: 16px; overflow: hidden;
-    }
-
-    /* Scan frame overlay */
-    .scan-frame {
-      position: absolute; top: 50%; left: 50%;
-      transform: translate(-50%, -50%);
-      width: 200px; height: 200px;
-      pointer-events: none; z-index: 10;
-    }
-    .scan-frame::before, .scan-frame::after {
-      content: '';
-      position: absolute;
-      width: 40px; height: 40px;
-      border-color: var(--gold);
-      border-style: solid;
-    }
-    .scan-frame::before {
-      top: 0; left: 0;
-      border-width: 3px 0 0 3px;
-    }
-    .scan-frame::after {
-      bottom: 0; right: 0;
-      border-width: 0 3px 3px 0;
-    }
-    .scan-line {
-      position: absolute;
-      top: 0; left: 0; right: 0;
-      height: 2px;
-      background: var(--gold);
-      box-shadow: 0 0 8px var(--gold);
-      animation: scanLine 2s ease-in-out infinite;
-    }
-    @keyframes scanLine {
-      0% { top: 0; }
-      100% { top: calc(100% - 2px); }
-    }
-
-    .scan-guide {
-      color: rgba(255,255,255,0.7);
-      font-size: 13px; text-align: center;
-      padding: 12px 24px;
-    }
-    .scan-guide strong { color: var(--gold-light); }
+    #scan-vp{width:100%;max-width:400px;position:relative;}
+    #reader{width:100%;border-radius:14px;overflow:hidden;}
+    .scan-frame{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);width:190px;height:190px;pointer-events:none;z-index:10;}
+    .scan-frame::before,.scan-frame::after{content:'';position:absolute;width:38px;height:38px;border-color:var(--gold);border-style:solid;}
+    .scan-frame::before{top:0;left:0;border-width:3px 0 0 3px;}
+    .scan-frame::after{bottom:0;right:0;border-width:0 3px 3px 0;}
+    .scan-line{position:absolute;top:0;left:0;right:0;height:2px;background:var(--gold);box-shadow:0 0 6px var(--gold);animation:scanLine 2s ease-in-out infinite;}
+    @keyframes scanLine{0%{top:0;}100%{top:calc(100% - 2px);}}
+    .scan-guide{color:rgba(255,255,255,.65);font-size:12px;text-align:center;padding:10px 20px;}
+    .scan-guide strong{color:var(--gold-light);}
+    .scan-manual{width:100%;max-width:400px;padding:12px 20px;}
+    .scan-manual p{color:rgba(255,255,255,.4);font-size:11px;text-align:center;margin-bottom:7px;}
+    .scan-manual-row{display:flex;gap:7px;}
+    .scan-manual-inp{flex:1;padding:11px 14px;border:2px solid rgba(255,255,255,.2);border-radius:9px;background:rgba(255,255,255,.1);color:#fff;font-size:13px;font-family:inherit;outline:none;}
+    .scan-manual-inp::placeholder{color:rgba(255,255,255,.35);}
+    .scan-manual-inp:focus{border-color:var(--gold);}
 
     /* Scan Result Popup */
-    .scan-result-popup {
-      display: none;
-      position: fixed; inset: 0; z-index: 300;
-      background: rgba(0,0,0,0.7);
-      align-items: center; justify-content: center;
-      padding: 24px;
-    }
-    .scan-result-popup.show { display: flex; }
-    .scan-result-card {
-      background: white; border-radius: 24px; padding: 32px;
-      width: 100%; max-width: 380px;
-      text-align: center;
-      animation: popIn 0.3s ease;
-    }
-    @keyframes popIn {
-      from { transform: scale(0.85); opacity: 0; }
-      to { transform: scale(1); opacity: 1; }
-    }
-    .scan-result-icon { font-size: 60px; margin-bottom: 16px; display: block; }
-    .scan-result-status {
-      font-size: 20px; font-weight: 900; margin-bottom: 8px;
-    }
-    .scan-result-status.success { color: var(--green); }
-    .scan-result-status.duplicate { color: var(--orange); }
-    .scan-result-status.error { color: var(--red); }
-    .scan-result-name {
-      font-size: 28px; font-weight: 900; color: var(--navy); margin-bottom: 4px;
-    }
-    .scan-result-org {
-      font-size: 15px; color: var(--gray-600); margin-bottom: 20px;
-    }
-    .scan-result-no {
-      display: inline-block;
-      background: linear-gradient(135deg, rgba(168,135,46,0.1), rgba(201,168,76,0.1));
-      border: 1px solid rgba(168,135,46,0.3);
-      color: var(--gold-dark);
-      font-size: 13px; font-weight: 700;
-      padding: 6px 16px; border-radius: 20px; margin-bottom: 20px;
-    }
-    .scan-result-time {
-      font-size: 12px; color: var(--gray-400); margin-bottom: 20px;
-    }
-    .scan-result-btn {
-      width: 100%; padding: 14px; border: none; border-radius: 12px;
-      font-size: 15px; font-weight: 800; font-family: inherit; cursor: pointer;
-      margin-bottom: 8px;
-    }
-    .scan-result-btn.continue { background: linear-gradient(135deg, var(--navy), var(--navy-mid)); color: white; }
-    .scan-result-btn.close-scan { background: var(--gray-100); color: var(--gray-600); }
-
-    /* Manual Input */
-    .manual-input-section {
-      width: 100%; max-width: 400px;
-      padding: 16px 24px;
-    }
-    .manual-input-row {
-      display: flex; gap: 8px;
-    }
-    .manual-input {
-      flex: 1; padding: 12px 16px; border: 2px solid rgba(255,255,255,0.2);
-      border-radius: 10px; background: rgba(255,255,255,0.1);
-      color: white; font-size: 13px; font-family: inherit; outline: none;
-    }
-    .manual-input::placeholder { color: rgba(255,255,255,0.4); }
-    .manual-input:focus { border-color: var(--gold); }
-
-    /* Refresh indicator */
-    .live-dot {
-      width: 8px; height: 8px;
-      background: var(--green);
-      border-radius: 50%;
-      animation: pulse 2s ease-in-out infinite;
-    }
-    @keyframes pulse {
-      0%, 100% { opacity: 1; transform: scale(1); }
-      50% { opacity: 0.5; transform: scale(0.8); }
-    }
-    .live-badge {
-      display: flex; align-items: center; gap: 6px;
-      font-size: 11px; color: var(--green); font-weight: 700;
-    }
-
-    /* Mobile */
-    @media (max-width: 768px) {
-      .stats-row { grid-template-columns: 1fr 1fr; }
-      .main { padding: 16px; }
-      .topbar { padding: 0 16px; }
-      .stat-value { font-size: 24px; }
-    }
-    @media (max-width: 480px) {
-      .stats-row { grid-template-columns: 1fr 1fr; gap: 10px; }
-      .stat-card { padding: 14px; }
-    }
+    .scan-result-bg{display:none;position:fixed;inset:0;z-index:300;background:rgba(0,0,0,.7);align-items:center;justify-content:center;padding:24px;}
+    .scan-result-bg.show{display:flex;}
+    .scan-result-card{background:#fff;border-radius:22px;padding:28px;width:100%;max-width:360px;text-align:center;animation:popIn .3s ease;}
+    @keyframes popIn{from{transform:scale(.85);opacity:0;}to{transform:scale(1);opacity:1;}}
+    .sr-icon{font-size:56px;margin-bottom:14px;display:block;}
+    .sr-status{font-size:19px;font-weight:900;margin-bottom:6px;}
+    .sr-status.ok{color:var(--green);}
+    .sr-status.dup{color:var(--orange);}
+    .sr-status.err{color:var(--red);}
+    .sr-name{font-size:26px;font-weight:900;color:var(--navy);margin-bottom:3px;}
+    .sr-org{font-size:14px;color:var(--g600);margin-bottom:6px;}
+    .sr-session{font-size:12px;color:var(--g400);margin-bottom:14px;background:var(--g100);padding:5px 12px;border-radius:8px;display:inline-block;}
+    .sr-no{display:inline-block;background:linear-gradient(135deg,rgba(168,135,46,.1),rgba(201,168,76,.1));border:1px solid rgba(168,135,46,.3);color:var(--gold-dark);font-size:12px;font-weight:700;padding:5px 14px;border-radius:18px;margin-bottom:16px;}
+    .sr-time{font-size:11px;color:var(--g400);margin-bottom:18px;}
+    .sr-btn{width:100%;padding:13px;border:none;border-radius:11px;font-size:14px;font-weight:800;font-family:inherit;cursor:pointer;margin-bottom:7px;}
+    .sr-btn.cont{background:linear-gradient(135deg,var(--navy),var(--navy-mid));color:#fff;}
+    .sr-btn.cls{background:var(--g100);color:var(--g600);}
 
     /* Toast */
-    .toast {
-      position: fixed; bottom: 24px; right: 24px;
-      background: var(--navy); color: white;
-      padding: 12px 20px; border-radius: 10px;
-      font-size: 13px; font-weight: 600;
-      box-shadow: 0 4px 20px rgba(0,0,0,0.2);
-      transform: translateY(80px); transition: transform 0.3s;
-      z-index: 500; max-width: 320px;
+    .toast{position:fixed;bottom:22px;right:22px;background:var(--navy);color:#fff;padding:11px 18px;border-radius:9px;font-size:13px;font-weight:600;box-shadow:0 4px 18px rgba(0,0,0,.2);transform:translateY(80px);transition:transform .3s;z-index:500;max-width:300px;}
+    .toast.show{transform:translateY(0);}
+    .toast.ok{background:var(--green);}
+    .toast.err{background:var(--red);}
+
+    @media(max-width:768px){
+      .stats-row{grid-template-columns:1fr 1fr;}
+      .main{padding:14px;}
+      .topbar{padding:0 14px;}
+      .stat-val{font-size:22px;}
+      .ses-stats-row{display:none;}
     }
-    .toast.show { transform: translateY(0); }
-    .toast.success { background: var(--green); }
-    .toast.error { background: var(--red); }
+
+    /* ── Calendar Picker ─────────────────────────── */
+    .cal-bar{
+      background:#fff;border-bottom:1px solid var(--g200);
+      padding:8px 20px;
+      display:flex;align-items:flex-start;gap:14px;
+    }
+    /* 왼쪽: 달력 */
+    .cal-wrap{ flex-shrink:0; width:220px; }
+    .cal-header{
+      display:flex;align-items:center;gap:6px;margin-bottom:6px;
+    }
+    .cal-nav{
+      width:22px;height:22px;border:1.5px solid var(--g200);background:#fff;
+      border-radius:6px;cursor:pointer;font-size:12px;display:flex;
+      align-items:center;justify-content:center;flex-shrink:0;
+      color:var(--navy);transition:all .15s;
+    }
+    .cal-nav:hover{background:var(--g100);border-color:var(--navy-mid);}
+    .cal-month-label{
+      flex:1;text-align:center;font-size:12px;font-weight:800;color:var(--navy);
+    }
+    .cal-grid{
+      display:grid;grid-template-columns:repeat(7,1fr);gap:2px;
+    }
+    .cal-dow{
+      text-align:center;font-size:9px;font-weight:700;color:var(--g400);
+      padding:2px 0;
+    }
+    .cal-day{
+      aspect-ratio:1;display:flex;align-items:center;justify-content:center;
+      font-size:11px;font-weight:600;border-radius:5px;cursor:default;
+      position:relative;color:var(--g400);
+    }
+    .cal-day.cur-month{color:var(--navy);cursor:pointer;}
+    .cal-day.cur-month:hover{background:var(--g100);}
+    .cal-day.has-event{
+      background:rgba(201,168,76,.13);
+      color:var(--navy);font-weight:800;
+    }
+    .cal-day.has-event:hover{background:rgba(201,168,76,.26);}
+    .cal-day.selected{
+      background:var(--navy)!important;color:#fff!important;
+      box-shadow:0 2px 6px rgba(10,22,40,.25);
+    }
+    .cal-day.today::after{
+      content:'';position:absolute;bottom:2px;left:50%;transform:translateX(-50%);
+      width:3px;height:3px;border-radius:50%;background:var(--gold);
+    }
+    .cal-day.selected.today::after{background:var(--gold-light);}
+    .cal-event-dot{
+      position:absolute;top:2px;right:2px;
+      width:4px;height:4px;border-radius:50%;background:var(--gold);
+    }
+    .cal-day.selected .cal-event-dot{background:var(--gold-light);}
+    /* 오른쪽: 이벤트 피커 */
+    .cal-ev-picker{
+      flex:1;display:none;align-self:center;
+      background:var(--g50);border-radius:8px;padding:8px 10px;
+      border:1.5px solid var(--g200);min-width:0;
+    }
+    .cal-ev-picker.show{display:block;}
+    .cal-ev-picker-label{
+      font-size:10px;font-weight:700;color:var(--g600);
+      margin-bottom:6px;letter-spacing:.3px;
+    }
+    .cal-ev-list{display:flex;flex-direction:column;gap:5px;}
+    .cal-ev-item{
+      display:flex;align-items:center;gap:8px;padding:7px 10px;
+      background:#fff;border-radius:7px;border:1.5px solid var(--g200);
+      cursor:pointer;transition:all .15s;
+    }
+    .cal-ev-item:hover{border-color:var(--navy-mid);background:var(--g50);}
+    .cal-ev-item.active{border-color:var(--navy);background:rgba(10,22,40,.04);}
+    .cal-ev-item-dot{
+      width:7px;height:7px;border-radius:50%;background:var(--gold);flex-shrink:0;
+    }
+    .cal-ev-item-title{flex:1;font-size:12px;font-weight:700;color:var(--navy);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+    .cal-ev-item-cat{
+      font-size:9px;font-weight:700;color:var(--g400);
+      background:var(--g100);padding:2px 6px;border-radius:8px;flex-shrink:0;
+    }
+    .cal-ev-item-cnt{
+      font-size:10px;font-weight:700;color:var(--gold-dark);flex-shrink:0;
+    }
+    @media(max-width:600px){
+      .cal-bar{flex-direction:column;}
+      .cal-wrap{width:100%;}
+    }
   </style>
 </head>
 <body>
@@ -458,122 +304,114 @@
 <div class="login-screen" id="login-screen">
   <div class="login-card">
     <div class="login-logo">
-      <div class="login-logo-text">LAS<span>BOOK</span></div>
+      <div class="login-logo-t">LAS<span>BOOK</span></div>
       <p>대시보드 로그인</p>
     </div>
-    <label class="login-label" for="login-pw">관리자 비밀번호</label>
-    <input type="password" id="login-pw" class="login-input" placeholder="비밀번호 입력" />
-    <div class="login-error" id="login-error">비밀번호가 올바르지 않습니다.</div>
+    <label class="login-lbl">관리자 비밀번호</label>
+    <input type="password" id="login-pw" class="login-inp" placeholder="비밀번호 입력" />
+    <div class="login-err" id="login-err">비밀번호가 올바르지 않습니다.</div>
     <button class="btn-login" onclick="doLogin()">로그인</button>
-    <div style="text-align:center;margin-top:16px;">
-      <a href="/admin" style="font-size:12px;color:#9AA3B2;text-decoration:none;">← 설정 페이지로</a>
+    <div style="text-align:center;margin-top:14px;">
+      <a href="/admin" style="font-size:12px;color:var(--g400);text-decoration:none;">← 설정 페이지로</a>
     </div>
   </div>
 </div>
 
 <!-- APP -->
 <div class="app" id="app">
-  <!-- Top Bar -->
+
+  <!-- Topbar -->
   <div class="topbar">
-    <div class="topbar-brand">
+    <div class="tb-brand">
       <h1>LASBOOK 대시보드</h1>
-      <span id="live-label">LIVE</span>
+      <span id="live-lbl">LIVE</span>
     </div>
-    <div class="topbar-actions">
-      <button class="topbar-btn topbar-btn-gold" onclick="openScanner()">📷 출석 스캔</button>
-      <button class="topbar-btn topbar-btn-outline" onclick="downloadCSV()">⬇️ CSV</button>
-      <a href="/admin" class="topbar-btn topbar-btn-outline" style="text-decoration:none;">⚙️ 설정</a>
+    <div class="tb-actions">
+      <button class="tb-btn tb-btn-gold" onclick="openScanner()">📷 출석 스캔</button>
+      <button class="tb-btn tb-btn-outline" onclick="downloadCSV()">⬇️ CSV</button>
+      <a href="/admin" class="tb-btn tb-btn-outline" style="text-decoration:none;">⚙️ 설정</a>
     </div>
   </div>
 
+  <!-- Calendar Picker -->
+  <div class="cal-bar">
+    <!-- 왼쪽: 달력 -->
+    <div class="cal-wrap">
+      <div class="cal-header">
+        <button class="cal-nav" onclick="calMove(-1)">&#8249;</button>
+        <div class="cal-month-label" id="cal-month-label">2026년 3월</div>
+        <button class="cal-nav" onclick="calMove(1)">&#8250;</button>
+      </div>
+      <div class="cal-grid">
+        <div class="cal-dow">일</div><div class="cal-dow">월</div>
+        <div class="cal-dow">화</div><div class="cal-dow">수</div>
+        <div class="cal-dow">목</div><div class="cal-dow">금</div>
+        <div class="cal-dow" style="color:#e53e3e;">토</div>
+      </div>
+      <div class="cal-grid" id="cal-days"></div>
+    </div>
+    <!-- 오른쪽: 이벤트 선택 -->
+    <div class="cal-ev-picker" id="cal-ev-picker">
+      <div class="cal-ev-picker-label" id="cal-ev-picker-label">📅 날짜의 이벤트</div>
+      <div class="cal-ev-list" id="cal-ev-list"></div>
+    </div>
+  </div>
+  <!-- Session Tabs -->
+  <div class="ev-selector-bar" style="padding:8px 20px;">
+    <div class="ev-session-tabs" id="ses-tabs" style="margin-left:0;"></div>
+  </div>
+
+  <!-- Main Content -->
   <div class="main">
 
     <!-- Stats -->
     <div class="stats-row">
-      <div class="stat-card blue">
-        <div class="stat-icon">📋</div>
-        <div class="stat-label">총 신청</div>
-        <div class="stat-value" id="stat-total">--</div>
-        <div class="stat-sub">명 신청 완료</div>
-      </div>
-      <div class="stat-card gold">
-        <div class="stat-icon">👥</div>
-        <div class="stat-label">전체 정원</div>
-        <div class="stat-value" id="stat-capacity">--</div>
-        <div class="stat-sub">명 최대</div>
-      </div>
-      <div class="stat-card green">
-        <div class="stat-icon">✅</div>
-        <div class="stat-label">출석 완료</div>
-        <div class="stat-value" id="stat-attended">--</div>
-        <div class="stat-sub">명 입장</div>
-      </div>
-      <div class="stat-card navy">
-        <div class="stat-icon">🎫</div>
-        <div class="stat-label">잔여 좌석</div>
-        <div class="stat-value" id="stat-remaining">--</div>
-        <div class="stat-sub">석 남음</div>
-      </div>
+      <div class="stat-card blue"><div class="stat-icon">📋</div><div class="stat-lbl">총 신청</div><div class="stat-val" id="s-total">--</div><div class="stat-sub">명 신청</div></div>
+      <div class="stat-card gold"><div class="stat-icon">👥</div><div class="stat-lbl">확정 정원</div><div class="stat-val" id="s-cap">--</div><div class="stat-sub">명 최대</div></div>
+      <div class="stat-card green"><div class="stat-icon">✅</div><div class="stat-lbl" id="s-att-lbl">출석 (세션)</div><div class="stat-val" id="s-att">--</div><div class="stat-sub">명 입장</div></div>
+      <div class="stat-card navy"><div class="stat-icon">🎫</div><div class="stat-lbl">잔여 좌석</div><div class="stat-val" id="s-rem">--</div><div class="stat-sub">석 남음</div></div>
+      <div class="stat-card" style="background:linear-gradient(135deg,rgba(201,168,76,.12),rgba(201,168,76,.06));border-color:rgba(201,168,76,.3);"><div class="stat-icon">⏳</div><div class="stat-lbl">대기자</div><div class="stat-val" id="s-wait" style="color:#a8862e;">--</div><div class="stat-sub">명 대기</div></div>
     </div>
 
     <!-- Progress -->
-    <div class="progress-section">
-      <div class="progress-header">
-        <div class="progress-title">신청 진행률</div>
-        <div class="progress-val" id="reg-progress-val">0 / 0</div>
+    <div class="prog-section">
+      <div class="prog-head"><div class="prog-title">신청 진행률</div><div class="prog-val" id="p-reg-v">0/0</div></div>
+      <div class="prog-bg"><div class="prog-fill" id="p-reg-b" style="width:0%"></div></div>
+      <div class="prog-desc" id="p-reg-d">잔여 -- 석</div>
+      <div style="margin-top:14px;">
+        <div class="prog-head"><div class="prog-title" id="p-att-title">출석률 (선택 세션)</div><div class="prog-val" id="p-att-v">0/0</div></div>
+        <div class="prog-bg"><div class="prog-fill att" id="p-att-b" style="width:0%"></div></div>
+        <div class="prog-desc" id="p-att-d">출석 -- 명</div>
       </div>
-      <div class="progress-bg">
-        <div class="progress-fill" id="reg-progress-bar" style="width:0%"></div>
-      </div>
-      <div class="progress-desc" id="reg-progress-desc">잔여 -- 석</div>
-
-      <div style="margin-top:16px;">
-        <div class="progress-header">
-          <div class="progress-title">출석률</div>
-          <div class="progress-val" id="att-progress-val">0 / 0</div>
-        </div>
-        <div class="progress-bg">
-          <div class="progress-fill attendance" id="att-progress-bar" style="width:0%"></div>
-        </div>
-        <div class="progress-desc" id="att-progress-desc">출석 -- 명</div>
-      </div>
-
       <div style="display:flex;align-items:center;gap:8px;margin-top:12px;">
         <div class="live-dot"></div>
-        <span style="font-size:11px;color:var(--gray-400);">자동 갱신 중 (30초)</span>
-        <button class="btn btn-outline" style="padding:4px 10px;font-size:11px;margin-left:auto;" onclick="loadData()">🔄 새로고침</button>
+        <span style="font-size:11px;color:var(--g400);">자동 갱신 (30초)</span>
+        <button class="btn btn-outline btn-sm" style="margin-left:auto;" onclick="loadData()">🔄 새로고침</button>
       </div>
     </div>
 
+    <!-- Session Stats Cards -->
+    <div class="ses-stats-row" id="ses-stats-row"></div>
+
     <!-- Registrations Table -->
     <div class="section">
-      <div class="section-header">
-        <div class="section-title">
-          <div class="section-title-icon">📋</div>
-          신청자 명단
-        </div>
-        <div class="section-actions">
-          <button class="btn btn-gold" onclick="downloadCSV()">⬇️ CSV 다운로드</button>
-          <button class="btn btn-primary" onclick="openScanner()">📷 출석 스캔</button>
+      <div class="sec-head">
+        <div class="sec-title"><div class="sec-title-icon">📋</div>신청자 명단</div>
+        <div class="sec-actions">
+          <button class="btn btn-gold btn-sm" onclick="downloadCSV()">⬇️ CSV</button>
+          <button class="btn btn-primary btn-sm" onclick="openScanner()">📷 출석 스캔</button>
         </div>
       </div>
-
-      <!-- Search -->
       <div class="search-bar">
-        <input type="text" class="search-input" id="search-input"
-          placeholder="🔍 이름, 연락처, 소속으로 검색..."
-          oninput="filterTable()" />
+        <input type="text" class="search-inp" id="search-inp" placeholder="🔍 이름, 연락처, 소속으로 검색..." oninput="filterTable()" />
       </div>
-
-      <!-- Filter Tabs -->
       <div class="filter-tabs">
-        <button class="filter-tab active" onclick="setFilter('all', this)">전체 <span id="filter-count-all">(0)</span></button>
-        <button class="filter-tab" onclick="setFilter('attended', this)">출석 <span id="filter-count-att">(0)</span></button>
-        <button class="filter-tab" onclick="setFilter('absent', this)">미출석 <span id="filter-count-abs">(0)</span></button>
+        <button class="ftab active" onclick="setFilter('all',this)">전체 <span id="fc-all">(0)</span></button>
+        <button class="ftab" onclick="setFilter('attended',this)">출석 <span id="fc-att">(0)</span></button>
+        <button class="ftab" onclick="setFilter('absent',this)">미출석 <span id="fc-abs">(0)</span></button>
+        <button class="ftab" onclick="setFilter('waitlist',this)" style="color:#a8862e;">⏳ 대기 <span id="fc-wait">(0)</span></button>
       </div>
-
-      <!-- Table -->
-      <div class="table-container">
+      <div class="tbl-wrap">
         <table>
           <thead>
             <tr>
@@ -582,22 +420,20 @@
               <th>연락처</th>
               <th>소속</th>
               <th>추천인</th>
-              <th>신청 일시</th>
-              <th>출석</th>
+              <th>신청일시</th>
+              <th id="att-col-head">출석 현황</th>
               <th>관리</th>
             </tr>
           </thead>
-          <tbody id="reg-table-body">
-            <tr><td colspan="8" class="empty-state"><div class="empty-icon">⏳</div><p>데이터를 불러오는 중...</p></td></tr>
+          <tbody id="reg-tbody">
+            <tr><td colspan="8"><div class="empty-st"><div class="ei">📋</div><p>이벤트를 선택해주세요</p></div></td></tr>
           </tbody>
         </table>
       </div>
-
-      <div class="table-footer">
-        <span class="table-footer-info" id="table-footer-info">총 0명</span>
-        <div class="live-badge">
-          <div class="live-dot"></div>
-          실시간 업데이트
+      <div class="tbl-foot">
+        <span class="tbl-foot-info" id="tbl-info">총 0명</span>
+        <div style="display:flex;align-items:center;gap:6px;font-size:11px;color:var(--green);">
+          <div class="live-dot"></div>실시간 업데이트
         </div>
       </div>
     </div>
@@ -605,426 +441,770 @@
   </div><!-- /main -->
 </div><!-- /app -->
 
-<!-- ── SCANNER OVERLAY ── -->
-<div class="scanner-overlay" id="scanner-overlay">
-  <div class="scanner-header">
+<!-- SCANNER OVERLAY -->
+<div class="scan-ov" id="scan-ov">
+  <div class="scan-hd">
     <h2>📷 출석 바코드 스캔</h2>
-    <button class="scanner-close" onclick="closeScanner()">✕</button>
+    <button class="scan-close" onclick="closeScanner()">✕</button>
   </div>
 
-  <div id="scanner-viewport">
+  <!-- Session selector in scanner -->
+  <div class="scan-ses-sel">
+    <label style="color:rgba(255,255,255,.7);font-size:11px;font-weight:700;display:block;margin-bottom:6px;">출석 세션 선택</label>
+    <select id="scan-ses-select">
+      <option value="">-- 세션 선택 --</option>
+    </select>
+  </div>
+
+  <div id="scan-vp">
     <div id="reader"></div>
-    <div class="scan-frame">
-      <div class="scan-line"></div>
-    </div>
+    <div class="scan-frame"><div class="scan-line"></div></div>
   </div>
 
-  <p class="scan-guide">
-    학부모님의 티켓 바코드를<br>
-    <strong>화면 중앙에 맞춰</strong> 카메라에 보여주세요
-  </p>
+  <p class="scan-guide">티켓 바코드를 <strong>화면 중앙</strong>에 맞춰주세요</p>
 
-  <!-- Manual Input -->
-  <div class="manual-input-section">
-    <p style="color:rgba(255,255,255,0.5);font-size:11px;text-align:center;margin-bottom:8px;">또는 티켓 코드 직접 입력</p>
-    <div class="manual-input-row">
-      <input type="text" class="manual-input" id="manual-code-input"
-        placeholder="LASBOOK-XXXXXXXXXXXX"
-        oninput="this.value=this.value.toUpperCase()" />
-      <button class="btn btn-gold" onclick="manualAttendance()">확인</button>
+  <div class="scan-manual">
+    <p>또는 티켓 코드 직접 입력</p>
+    <div class="scan-manual-row">
+      <input type="text" class="scan-manual-inp" id="manual-inp" placeholder="LB-XXXXXXXXXXXXXX" oninput="this.value=this.value.toUpperCase()" />
+      <button class="btn btn-gold" onclick="manualAttend()">확인</button>
     </div>
   </div>
 </div>
 
-<!-- ── SCAN RESULT POPUP ── -->
-<div class="scan-result-popup" id="scan-result-popup">
+<!-- SCAN RESULT POPUP -->
+<div class="scan-result-bg" id="scan-result-bg">
   <div class="scan-result-card">
-    <span class="scan-result-icon" id="result-icon">✅</span>
-    <div class="scan-result-status" id="result-status">출석 처리 완료!</div>
-    <div class="scan-result-name" id="result-name">홍길동</div>
-    <div class="scan-result-org" id="result-org">○○초등학교</div>
-    <div class="scan-result-no" id="result-no">No.001</div>
-    <div class="scan-result-time" id="result-time"></div>
-    <button class="scan-result-btn continue" onclick="continueScanning()">계속 스캔하기</button>
-    <button class="scan-result-btn close-scan" onclick="closeScanner()">스캔 종료</button>
+    <span class="sr-icon" id="sr-icon">✅</span>
+    <div class="sr-status" id="sr-status">출석 처리 완료!</div>
+    <div class="sr-name" id="sr-name">--</div>
+    <div class="sr-org" id="sr-org">--</div>
+    <div class="sr-session" id="sr-session"></div>
+    <div class="sr-no" id="sr-no">No.001</div>
+    <div class="sr-time" id="sr-time"></div>
+    <button class="sr-btn cont" onclick="continueScanning()">계속 스캔하기</button>
+    <button class="sr-btn cls" onclick="closeScanner()">스캔 종료</button>
   </div>
 </div>
 
 <div class="toast" id="toast"></div>
 
 <script>
-  const API_BASE = '/api';
-  let adminToken = localStorage.getItem('admin_token') || '';
-  let allRegistrations = [];
-  let currentFilter = 'all';
-  let html5QrCode = null;
-  let scannerActive = false;
-  let isProcessingScan = false;
+const API = '/api';
+let token = localStorage.getItem('admin_token') || '';
+let allEvents = [];
+let currentEventId = null;
+let currentSessions = [];
+let currentSessionId = null; // null = 전체
+let allRegs = [];
+let filterMode = 'all';
+let searchTerm = '';
+let html5QrCode = null;
+let scannerActive = false;
+let scanProcessing = false;
 
-  // ── Login ─────────────────────────────────────────────────────────────────
-  async function doLogin() {
-    const pw = document.getElementById('login-pw').value;
-    if (!pw) return;
-    try {
-      const res = await fetch(`${API_BASE}/admin/login`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ password: pw })
-      });
-      const data = await res.json();
-      if (data.success) {
-        adminToken = data.token;
-        localStorage.setItem('admin_token', adminToken);
-        showApp();
-      } else {
-        document.getElementById('login-error').style.display = 'block';
-      }
-    } catch (e) {
-      document.getElementById('login-error').textContent = '서버 연결 오류';
-      document.getElementById('login-error').style.display = 'block';
+// ─── AUTH ──────────────────────────────────────────────────────────────────
+async function doLogin() {
+  const pw = document.getElementById('login-pw').value;
+  if (!pw) return;
+  try {
+    const r = await fetch(`${API}/admin/login`,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({password:pw})});
+    const d = await r.json();
+    if (d.success) { token=d.token; localStorage.setItem('admin_token',token); showApp(); }
+    else { document.getElementById('login-err').style.display='block'; }
+  } catch(e) { document.getElementById('login-err').textContent='서버 오류'; document.getElementById('login-err').style.display='block'; }
+}
+document.getElementById('login-pw').addEventListener('keydown',e=>{ if(e.key==='Enter') doLogin(); });
+
+async function showApp() {
+  try {
+    const r = await fetch(`${API}/admin/settings`,{headers:{'X-Admin-Token':token}});
+    if (!r.ok) { document.getElementById('login-screen').style.display='flex'; return; }
+  } catch(e) { return; }
+  document.getElementById('login-screen').style.display='none';
+  document.getElementById('app').style.display='block';
+  await loadEventList();
+}
+
+// ─── CALENDAR ─────────────────────────────────────────────────────────────
+let calYear, calMonth;
+let calSelectedDate = '';
+
+function calInit(autoSelectDate) {
+  const today = new Date();
+  // 이벤트가 있으면 가장 가까운 이벤트의 달로, 없으면 오늘 달
+  if (autoSelectDate) {
+    const d = new Date(autoSelectDate);
+    calYear  = d.getFullYear();
+    calMonth = d.getMonth();
+  } else {
+    calYear  = today.getFullYear();
+    calMonth = today.getMonth();
+  }
+  calRender();
+}
+
+function calMove(dir) {
+  calMonth += dir;
+  if (calMonth > 11) { calMonth = 0; calYear++; }
+  if (calMonth < 0)  { calMonth = 11; calYear--; }
+  calRender();
+}
+
+function calRender() {
+  const _t0 = new Date(); const todayStr = `${_t0.getFullYear()}-${String(_t0.getMonth()+1).padStart(2,'0')}-${String(_t0.getDate()).padStart(2,'0')}`;
+  // 이 달의 이벤트 날짜 Set
+  const eventDates = new Set(allEvents.map(e => e.event_date));
+
+  // 월 레이블
+  document.getElementById('cal-month-label').textContent =
+    `${calYear}년 ${calMonth + 1}월`;
+
+  const firstDay = new Date(calYear, calMonth, 1).getDay(); // 0=일
+  const lastDate = new Date(calYear, calMonth + 1, 0).getDate();
+  const grid = document.getElementById('cal-days');
+  let html = '';
+
+  // 앞 빈칸
+  for (let i = 0; i < firstDay; i++) html += '<div class="cal-day"></div>';
+
+  for (let d = 1; d <= lastDate; d++) {
+    const dateStr = `${calYear}-${String(calMonth+1).padStart(2,'0')}-${String(d).padStart(2,'0')}`;
+    const hasEv   = eventDates.has(dateStr);
+    const isToday = dateStr === todayStr;
+    const isSel   = dateStr === calSelectedDate;
+    const isSun   = new Date(calYear, calMonth, d).getDay() === 0;
+    const isSat   = new Date(calYear, calMonth, d).getDay() === 6;
+
+    let cls = 'cal-day cur-month';
+    if (hasEv)  cls += ' has-event';
+    if (isToday) cls += ' today';
+    if (isSel)   cls += ' selected';
+
+    const color = isSun ? 'style="color:#e53e3e;"' : isSat ? 'style="color:#3182CE;"' : '';
+    const dot   = hasEv ? '<span class="cal-event-dot"></span>' : '';
+
+    html += `<div class="${cls}" ${color} onclick="calSelectDate('${dateStr}')">${dot}${d}</div>`;
+  }
+
+  grid.innerHTML = html;
+
+  // 선택된 날짜의 이벤트 피커 업데이트
+  if (calSelectedDate) calShowEventPicker(calSelectedDate);
+}
+
+function calSelectDate(dateStr) {
+  calSelectedDate = dateStr;
+  calRender();
+  calShowEventPicker(dateStr);
+}
+
+function calShowEventPicker(dateStr) {
+  const evs = allEvents.filter(e => e.event_date === dateStr);
+  const picker = document.getElementById('cal-ev-picker');
+  const label  = document.getElementById('cal-ev-picker-label');
+  const list   = document.getElementById('cal-ev-list');
+
+  if (!evs.length) {
+    picker.classList.remove('show');
+    return;
+  }
+
+  const [y, m, d] = dateStr.split('-');
+  const days = ['일','월','화','수','목','금','토'];
+  const dow  = days[new Date(dateStr).getDay()];
+  label.textContent = `📅 ${parseInt(m)}월 ${parseInt(d)}일 (${dow}) 이벤트`;
+
+  list.innerHTML = evs.map(ev => `
+    <div class="cal-ev-item${ev.id === currentEventId ? ' active' : ''}"
+         id="cal-ev-item-${ev.id}"
+         onclick="calPickEvent(${ev.id})">
+      <span class="cal-ev-item-dot"></span>
+      <span class="cal-ev-item-title">${ev.title}</span>
+      <span class="cal-ev-item-cat">${ev.category}</span>
+      <span class="cal-ev-item-cnt">${ev.current_count||0}/${ev.max_capacity}</span>
+    </div>`).join('');
+
+  picker.classList.add('show');
+
+  // 이벤트가 1개면 자동 선택
+  if (evs.length === 1 && evs[0].id !== currentEventId) {
+    calPickEvent(evs[0].id);
+  }
+}
+
+async function calPickEvent(evId) {
+  // 기존 active 제거
+  document.querySelectorAll('.cal-ev-item').forEach(el => el.classList.remove('active'));
+  const item = document.getElementById(`cal-ev-item-${evId}`);
+  if (item) item.classList.add('active');
+
+  currentEventId = evId;
+  currentSessionId = null;
+  await loadData();
+  history.replaceState({}, '', `/admin/dashboard?event=${evId}`);
+}
+
+// ─── EVENTS ───────────────────────────────────────────────────────────────
+async function loadEventList() {
+  try {
+    const r = await fetch(`${API}/admin/events`,{headers:{'X-Admin-Token':token}});
+    const d = await r.json();
+    allEvents = d.data || [];
+
+    // URL 파라미터 또는 가장 가까운 이벤트 자동 선택
+    const urlEvId = parseInt(new URLSearchParams(location.search).get('event'));
+    let toSelect = null;
+    if (urlEvId) toSelect = allEvents.find(e => e.id === urlEvId);
+    if (!toSelect) {
+      const _t1 = new Date(); const today = `${_t1.getFullYear()}-${String(_t1.getMonth()+1).padStart(2,'0')}-${String(_t1.getDate()).padStart(2,'0')}`;
+      toSelect = allEvents.find(e => e.event_date >= today && e.is_active) || allEvents[0];
     }
-  }
-  document.getElementById('login-pw').addEventListener('keydown', e => { if (e.key === 'Enter') doLogin(); });
 
-  async function showApp() {
-    try {
-      const res = await fetch(`${API_BASE}/admin/settings`, {
-        headers: { 'X-Admin-Token': adminToken }
-      });
-      if (!res.ok) { document.getElementById('login-screen').style.display = 'flex'; return; }
-    } catch (e) { return; }
-
-    document.getElementById('login-screen').style.display = 'none';
-    document.getElementById('app').style.display = 'block';
-    loadData();
-  }
-
-  // ── Load Data ──────────────────────────────────────────────────────────────
-  async function loadData() {
-    try {
-      const [statusRes, regsRes] = await Promise.all([
-        fetch(`${API_BASE}/status`),
-        fetch(`${API_BASE}/admin/registrations`, { headers: { 'X-Admin-Token': adminToken } })
-      ]);
-      const statusData = await statusRes.json();
-      const regsData = await regsRes.json();
-
-      if (statusData.success) updateStats(statusData.data);
-      if (regsData.success) {
-        allRegistrations = regsData.data;
-        renderTable();
-      }
-    } catch (e) { console.error('Load data error:', e); }
-  }
-
-  function updateStats(s) {
-    document.getElementById('stat-total').textContent = s.currentCount;
-    document.getElementById('stat-capacity').textContent = s.maxCapacity;
-    document.getElementById('stat-attended').textContent = s.attendedCount;
-    document.getElementById('stat-remaining').textContent = s.remaining;
-
-    const regPct = s.maxCapacity > 0 ? Math.min(100, (s.currentCount / s.maxCapacity) * 100) : 0;
-    document.getElementById('reg-progress-bar').style.width = regPct + '%';
-    document.getElementById('reg-progress-val').textContent = `${s.currentCount} / ${s.maxCapacity}`;
-    document.getElementById('reg-progress-desc').textContent =
-      s.isFull ? '마감' : `잔여 ${s.remaining}석`;
-
-    const attPct = s.currentCount > 0 ? Math.min(100, (s.attendedCount / s.currentCount) * 100) : 0;
-    document.getElementById('att-progress-bar').style.width = attPct + '%';
-    document.getElementById('att-progress-val').textContent = `${s.attendedCount} / ${s.currentCount}`;
-    document.getElementById('att-progress-desc').textContent =
-      `출석 ${s.attendedCount}명 (${attPct.toFixed(0)}%)`;
-  }
-
-  // ── Render Table ──────────────────────────────────────────────────────────
-  let searchTerm = '';
-
-  function filterTable() {
-    searchTerm = document.getElementById('search-input').value.toLowerCase();
-    renderTable();
-  }
-
-  function setFilter(filter, el) {
-    currentFilter = filter;
-    document.querySelectorAll('.filter-tab').forEach(t => t.classList.remove('active'));
-    el.classList.add('active');
-    renderTable();
-  }
-
-  function renderTable() {
-    const attended = allRegistrations.filter(r => r.attended === 1);
-    const absent = allRegistrations.filter(r => r.attended === 0);
-
-    document.getElementById('filter-count-all').textContent = `(${allRegistrations.length})`;
-    document.getElementById('filter-count-att').textContent = `(${attended.length})`;
-    document.getElementById('filter-count-abs').textContent = `(${absent.length})`;
-
-    let filtered = allRegistrations;
-    if (currentFilter === 'attended') filtered = attended;
-    if (currentFilter === 'absent') filtered = absent;
-
-    if (searchTerm) {
-      filtered = filtered.filter(r =>
-        r.name.toLowerCase().includes(searchTerm) ||
-        r.phone.includes(searchTerm) ||
-        r.organization.toLowerCase().includes(searchTerm) ||
-        (r.referrer && r.referrer.toLowerCase().includes(searchTerm))
-      );
-    }
-
-    const tbody = document.getElementById('reg-table-body');
-    if (filtered.length === 0) {
-      tbody.innerHTML = `<tr><td colspan="8">
-        <div class="empty-state">
-          <div class="empty-icon">🔍</div>
-          <p>검색 결과가 없습니다</p>
-        </div>
-      </td></tr>`;
-      document.getElementById('table-footer-info').textContent = '총 0명';
-      return;
-    }
-
-    tbody.innerHTML = filtered.map(r => `
-      <tr id="row-${r.ticket_number}">
-        <td><span class="ticket-no">No.${String(r.ticket_number).padStart(3, '0')}</span></td>
-        <td><strong>${escHtml(r.name)}</strong></td>
-        <td>${formatPhone(r.phone)}</td>
-        <td>${escHtml(r.organization)}</td>
-        <td>${r.referrer ? escHtml(r.referrer) : '<span style="color:var(--gray-400)">-</span>'}</td>
-        <td style="font-size:12px;color:var(--gray-400);">${r.registered_at}</td>
-        <td>
-          ${r.attended === 1
-            ? `<span class="badge-attended">✅ 출석</span><br><span style="font-size:10px;color:var(--gray-400);">${r.attended_at || ''}</span>`
-            : `<span class="badge-absent">⬜ 미출석</span>`
-          }
-        </td>
-        <td>
-          <div class="table-actions">
-            ${r.attended === 1
-              ? `<button class="btn btn-outline btn-sm" onclick="toggleAttendance(${r.ticket_number}, false)">↩️ 취소</button>`
-              : `<button class="btn btn-green btn-sm" onclick="toggleAttendance(${r.ticket_number}, true)">✅ 출석</button>`
-            }
-            <button class="btn btn-red btn-sm" onclick="deleteRegistration(${r.ticket_number}, '${escHtml(r.name)}')">🗑️</button>
-          </div>
-        </td>
-      </tr>
-    `).join('');
-
-    document.getElementById('table-footer-info').textContent = `총 ${filtered.length}명 (전체 ${allRegistrations.length}명)`;
-  }
-
-  function escHtml(str) {
-    if (!str) return '';
-    return String(str).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
-  }
-  function formatPhone(p) {
-    if (!p) return '-';
-    const s = p.replace(/[^0-9]/g, '');
-    if (s.length === 11) return s.slice(0,3)+'-'+s.slice(3,7)+'-'+s.slice(7);
-    if (s.length === 10) return s.slice(0,3)+'-'+s.slice(3,6)+'-'+s.slice(6);
-    return p;
-  }
-
-  // ── Attendance Toggle ──────────────────────────────────────────────────────
-  async function toggleAttendance(ticketNumber, attended) {
-    try {
-      const res = await fetch(`${API_BASE}/admin/attendance/${ticketNumber}`, {
-        method: 'PUT',
-        headers: { 'Content-Type': 'application/json', 'X-Admin-Token': adminToken },
-        body: JSON.stringify({ attended })
-      });
-      const data = await res.json();
-      if (data.success) {
-        showToast(attended ? '✅ 출석 처리되었습니다.' : '출석이 취소되었습니다.', 'success');
-        loadData();
-      }
-    } catch (e) { showToast('오류가 발생했습니다.', 'error'); }
-  }
-
-  // ── Delete ────────────────────────────────────────────────────────────────
-  async function deleteRegistration(ticketNumber, name) {
-    if (!confirm(`No.${ticketNumber} ${name} 님의 신청을 삭제하시겠습니까?`)) return;
-    try {
-      const res = await fetch(`${API_BASE}/admin/registrations/${ticketNumber}`, {
-        method: 'DELETE',
-        headers: { 'X-Admin-Token': adminToken }
-      });
-      const data = await res.json();
-      if (data.success) {
-        showToast('삭제되었습니다.', 'success');
-        loadData();
-      }
-    } catch (e) { showToast('오류가 발생했습니다.', 'error'); }
-  }
-
-  // ── CSV ───────────────────────────────────────────────────────────────────
-  function downloadCSV() {
-    window.open(`${API_BASE}/admin/export-csv`, '_blank');
-  }
-
-  // ── SCANNER ───────────────────────────────────────────────────────────────
-  function openScanner() {
-    document.getElementById('scanner-overlay').classList.add('active');
-    document.getElementById('manual-code-input').value = '';
-    startScanner();
-  }
-
-  function closeScanner() {
-    stopScanner();
-    document.getElementById('scanner-overlay').classList.remove('active');
-    document.getElementById('scan-result-popup').classList.remove('show');
-    loadData(); // Refresh data after scanning session
-  }
-
-  function continueScanning() {
-    document.getElementById('scan-result-popup').classList.remove('show');
-    isProcessingScan = false;
-    // Restart scanner after short delay
-    setTimeout(() => {
-      if (document.getElementById('scanner-overlay').classList.contains('active') && !scannerActive) {
-        startScanner();
-      }
-    }, 500);
-  }
-
-  function startScanner() {
-    if (scannerActive) return;
-
-    html5QrCode = new Html5Qrcode("reader");
-    const config = {
-      fps: 10,
-      qrbox: { width: 200, height: 200 },
-      aspectRatio: 1.0
-    };
-
-    html5QrCode.start(
-      { facingMode: "environment" },
-      config,
-      onScanSuccess,
-      onScanFailure
-    ).then(() => {
-      scannerActive = true;
-    }).catch(err => {
-      console.error('Camera error:', err);
-      showToast('카메라를 열 수 없습니다. 수동 입력을 이용해주세요.', 'error');
-    });
-  }
-
-  function stopScanner() {
-    if (html5QrCode && scannerActive) {
-      html5QrCode.stop().then(() => {
-        scannerActive = false;
-        html5QrCode = null;
-      }).catch(e => { scannerActive = false; html5QrCode = null; });
-    }
-  }
-
-  function onScanSuccess(decodedText) {
-    if (isProcessingScan) return;
-    isProcessingScan = true;
-    stopScanner();
-    processAttendance(decodedText.trim());
-  }
-
-  function onScanFailure(error) { /* Silent fail */ }
-
-  async function manualAttendance() {
-    const code = document.getElementById('manual-code-input').value.trim();
-    if (!code) { showToast('티켓 코드를 입력해주세요.', 'error'); return; }
-    isProcessingScan = true;
-    stopScanner();
-    await processAttendance(code);
-  }
-
-  async function processAttendance(ticketCode) {
-    try {
-      const res = await fetch(`${API_BASE}/admin/attendance`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json', 'X-Admin-Token': adminToken },
-        body: JSON.stringify({ ticketCode })
-      });
-      const data = await res.json();
-      showScanResult(data);
-    } catch (e) {
-      showScanResult({ success: false, message: '서버 오류가 발생했습니다.', status: 'error' });
-    }
-  }
-
-  function showScanResult(data) {
-    const popup = document.getElementById('scan-result-popup');
-    const icon = document.getElementById('result-icon');
-    const status = document.getElementById('result-status');
-    const name = document.getElementById('result-name');
-    const org = document.getElementById('result-org');
-    const no = document.getElementById('result-no');
-    const time = document.getElementById('result-time');
-
-    if (data.success) {
-      icon.textContent = '✅';
-      status.className = 'scan-result-status success';
-      status.textContent = '출석 처리 완료!';
-      name.textContent = data.data.name;
-      org.textContent = data.data.organization;
-      no.textContent = `No.${String(data.data.ticketNumber).padStart(3, '0')}`;
-      time.textContent = `입장 시간: ${data.data.attendedAt}`;
-    } else if (data.status === 'duplicate') {
-      icon.textContent = '⚠️';
-      status.className = 'scan-result-status duplicate';
-      status.textContent = '이미 출석 처리된 티켓!';
-      name.textContent = data.data ? data.data.name : '-';
-      org.textContent = data.data ? data.data.organization : '';
-      no.textContent = data.data ? `No.${String(data.data.ticketNumber).padStart(3, '0')}` : '';
-      time.textContent = `최초 입장: ${data.data ? data.data.attendedAt : ''}`;
-    } else if (data.status === 'not_found') {
-      icon.textContent = '❌';
-      status.className = 'scan-result-status error';
-      status.textContent = '등록되지 않은 티켓';
-      name.textContent = '알 수 없음';
-      org.textContent = '등록 정보 없음';
-      no.textContent = '';
-      time.textContent = data.message;
+    if (toSelect) {
+      calSelectedDate = toSelect.event_date;
+      calInit(toSelect.event_date);
+      currentEventId = toSelect.id;
+      await loadData();
+      calShowEventPicker(toSelect.event_date);
     } else {
-      icon.textContent = '❌';
-      status.className = 'scan-result-status error';
-      status.textContent = '오류 발생';
-      name.textContent = '';
-      org.textContent = data.message;
-      no.textContent = '';
-      time.textContent = '';
+      calInit();
     }
+  } catch(e) { console.error(e); }
+}
 
-    popup.classList.add('show');
+async function loadData() {
+  if (!currentEventId) return;
+  try {
+    const [evR, regsR] = await Promise.all([
+      fetch(`${API}/admin/events/${currentEventId}`,{headers:{'X-Admin-Token':token}}),
+      fetch(`${API}/admin/events/${currentEventId}/registrations`,{headers:{'X-Admin-Token':token}})
+    ]);
+    const evD = await evR.json();
+    const regsD = await regsR.json();
+    if (evD.success) renderEventStats(evD.data);
+    if (regsD.success) { allRegs = regsD.data; currentSessions = regsD.sessions || []; renderAll(); }
+  } catch(e) { console.error(e); }
+}
+
+function resetStats() {
+  ['s-total','s-cap','s-att','s-rem'].forEach(id => document.getElementById(id).textContent='--');
+  document.getElementById('ses-tabs').innerHTML = '';
+  document.getElementById('ses-stats-row').innerHTML = '';
+  document.getElementById('reg-tbody').innerHTML = '<tr><td colspan="8"><div class="empty-st"><div class="ei">📋</div><p>이벤트를 선택해주세요</p></div></td></tr>';
+}
+
+function renderEventStats(ev) {
+  const confirmed  = ev.current_count || 0;
+  const waitlisted = ev.waitlist_count || 0;
+  const cap   = ev.max_capacity;
+  const waitCap = ev.waitlist_capacity || 0;
+  const remaining = Math.max(0, cap - confirmed);
+  document.getElementById('s-total').textContent = confirmed;
+  document.getElementById('s-cap').textContent   = cap;
+  document.getElementById('s-rem').textContent   = remaining;
+  document.getElementById('s-wait').textContent  = waitlisted;
+  // 대기 카드: 대기 인원 설정 없으면 흐리게
+  const waitCard = document.getElementById('s-wait').closest('.stat-card');
+  if (waitCard) waitCard.style.opacity = waitCap > 0 ? '1' : '0.4';
+
+  // Progress: registration
+  const regPct = cap > 0 ? Math.min(100, confirmed/cap*100) : 0;
+  document.getElementById('p-reg-b').style.width = regPct+'%';
+  document.getElementById('p-reg-v').textContent = `${confirmed}/${cap}`;
+  document.getElementById('p-reg-d').textContent = confirmed >= cap
+    ? `마감 (대기 ${waitlisted}${waitCap>0?'/'+waitCap:''}명)`
+    : `잔여 ${remaining}석`;
+
+  // Sessions tabs
+  const sessions = ev.sessions || [];
+  renderSessionTabs(sessions, confirmed);
+  renderSessionStatCards(sessions, confirmed);
+}
+
+function renderSessionTabs(sessions, totalRegs) {
+  const tabEl = document.getElementById('ses-tabs');
+  if (!sessions.length) { tabEl.innerHTML=''; return; }
+
+  const tabs = [{ id: null, name: '전체' }, ...sessions];
+  tabEl.innerHTML = tabs.map(s => {
+    const cnt = s.id === null ? totalRegs : (s.attended_count || 0);
+    const isActive = s.id === currentSessionId;
+    return `<button class="ses-tab${isActive?' active':''}" onclick="selectSession(${s.id===null?'null':s.id})">
+      ${esc(s.name)}<span class="ses-cnt">${cnt}</span>
+    </button>`;
+  }).join('');
+
+  // update scanner session select
+  const scanSel = document.getElementById('scan-ses-select');
+  scanSel.innerHTML = sessions.map(s=>`<option value="${s.id}">${esc(s.name)}</option>`).join('');
+  if (!scanSel.value && sessions.length) scanSel.value = sessions[0].id;
+}
+
+function renderSessionStatCards(sessions, totalRegs) {
+  const el = document.getElementById('ses-stats-row');
+  if (!sessions.length) { el.innerHTML=''; return; }
+  const colors = ['#3182CE','#38A169','#C9A84C','#E53E3E','#805AD5','#DD6B20'];
+  el.innerHTML = sessions.map((s,i)=>`
+    <div class="ses-stat-card">
+      <div class="ses-stat-color" style="background:${colors[i%colors.length]};"></div>
+      <div class="ses-stat-name">${esc(s.name)}</div>
+      <div>
+        <div class="ses-stat-count">${s.attended_count||0}</div>
+        <div class="ses-stat-total">/ ${totalRegs}명</div>
+      </div>
+    </div>`).join('');
+}
+
+function selectSession(sesId) {
+  currentSessionId = sesId === null ? null : parseInt(sesId);
+  // update tab highlight
+  document.querySelectorAll('.ses-tab').forEach((t,i)=>{
+    const isAll = currentSessionId === null;
+    if (i===0 && isAll) t.classList.add('active');
+    else if (i===0) t.classList.remove('active');
+    else {
+      const s = currentSessions[i-1];
+      if (s && s.id === currentSessionId) t.classList.add('active');
+      else t.classList.remove('active');
+    }
+  });
+  // update attendance col header
+  if (currentSessionId === null) {
+    document.getElementById('att-col-head').textContent = '출석 현황 (전체)';
+    document.getElementById('p-att-title').textContent = '출석률 (전체 합산)';
+  } else {
+    const ses = currentSessions.find(s=>s.id===currentSessionId);
+    document.getElementById('att-col-head').textContent = `출석 - ${ses?.name||''}`;
+    document.getElementById('p-att-title').textContent = `출석률 - ${ses?.name||''}`;
+  }
+  // update attendance stats
+  const total = allRegs.length;
+  let attCount;
+  if (currentSessionId === null) {
+    const ses0 = currentSessions[0];
+    attCount = ses0 ? allRegs.filter(r=>r.attendance?.find(a=>a.session_id===ses0.id&&a.attended)).length : 0;
+    // show total attended any session
+    const attAny = allRegs.filter(r=>r.attendance?.some(a=>a.attended)).length;
+    document.getElementById('s-att').textContent = attAny;
+    document.getElementById('s-att-lbl').textContent = '출석 (전체)';
+  } else {
+    attCount = allRegs.filter(r=>r.attendance?.find(a=>a.session_id===currentSessionId&&a.attended)).length;
+    document.getElementById('s-att').textContent = attCount;
+    const ses = currentSessions.find(s=>s.id===currentSessionId);
+    document.getElementById('s-att-lbl').textContent = `출석 (${ses?.name||''})`;
   }
 
-  // ── Toast ─────────────────────────────────────────────────────────────────
-  function showToast(msg, type = '') {
-    const t = document.getElementById('toast');
-    t.textContent = msg;
-    t.className = 'toast ' + type;
-    t.classList.add('show');
-    setTimeout(() => t.classList.remove('show'), 3000);
+  const attPct = total > 0 ? Math.min(100, attCount/total*100) : 0;
+  document.getElementById('p-att-b').style.width = attPct+'%';
+  document.getElementById('p-att-v').textContent = `${attCount}/${total}`;
+  document.getElementById('p-att-d').textContent = `출석 ${attCount}명 (${attPct.toFixed(0)}%)`;
+
+  filterTable();
+}
+
+// ─── TABLE ─────────────────────────────────────────────────────────────────
+function renderAll() {
+  // confirmed만 출석 통계 계산
+  const confirmedRegs = allRegs.filter(r => r.status !== 'waitlist');
+  const ses0id = currentSessions[0]?.id;
+  const checkId = currentSessionId !== null ? currentSessionId : ses0id;
+  const attAny = confirmedRegs.filter(r=>r.attendance?.some(a=>a.attended)).length;
+  const attSel = checkId ? confirmedRegs.filter(r=>r.attendance?.find(a=>a.session_id===checkId&&a.attended)).length : attAny;
+
+  document.getElementById('s-total').textContent = confirmedRegs.length;
+  document.getElementById('s-att').textContent = currentSessionId !== null ? attSel : attAny;
+
+  const waitRegs = allRegs.filter(r => r.status === 'waitlist');
+  document.getElementById('s-wait').textContent = waitRegs.length;
+
+  const pct = confirmedRegs.length > 0 ? Math.min(100, attSel/confirmedRegs.length*100) : 0;
+  document.getElementById('p-att-b').style.width = pct+'%';
+  document.getElementById('p-att-v').textContent = `${attSel}/${confirmedRegs.length}`;
+  document.getElementById('p-att-d').textContent = `출석 ${attSel}명 (${pct.toFixed(0)}%)`;
+
+  filterTable();
+}
+
+function filterTable() {
+  searchTerm = document.getElementById('search-inp').value.toLowerCase();
+
+  const confirmedRegs = allRegs.filter(r => r.status !== 'waitlist');
+  const waitRegs      = allRegs.filter(r => r.status === 'waitlist');
+
+  const isAttended = (reg) => {
+    if (currentSessionId !== null) {
+      return reg.attendance?.find(a=>a.session_id===currentSessionId&&a.attended);
+    }
+    return reg.attendance?.some(a=>a.attended);
+  };
+
+  const attended = confirmedRegs.filter(r=>isAttended(r));
+  const absent   = confirmedRegs.filter(r=>!isAttended(r));
+
+  document.getElementById('fc-all').textContent  = `(${confirmedRegs.length})`;
+  document.getElementById('fc-att').textContent  = `(${attended.length})`;
+  document.getElementById('fc-abs').textContent  = `(${absent.length})`;
+  document.getElementById('fc-wait').textContent = `(${waitRegs.length})`;
+
+  let filtered;
+  if (filterMode === 'waitlist')  filtered = waitRegs;
+  else if (filterMode === 'attended') filtered = attended;
+  else if (filterMode === 'absent')   filtered = absent;
+  else filtered = filterMode === 'all' ? confirmedRegs : confirmedRegs;
+
+  if (searchTerm) {
+    filtered = filtered.filter(r=>
+      r.name.toLowerCase().includes(searchTerm) ||
+      r.phone.includes(searchTerm) ||
+      r.organization.toLowerCase().includes(searchTerm) ||
+      (r.referrer&&r.referrer.toLowerCase().includes(searchTerm))
+    );
   }
 
-  // ── Init ──────────────────────────────────────────────────────────────────
-  // Auto-refresh every 30 seconds
-  setInterval(loadData, 30000);
+  renderTable(filtered);
+}
 
-  // Check auth
-  async function init() {
-    if (adminToken) {
-      try {
-        const res = await fetch(`${API_BASE}/admin/settings`, {
-          headers: { 'X-Admin-Token': adminToken }
-        });
-        if (res.ok) {
-          showApp();
-          return;
+function setFilter(f, el) {
+  filterMode = f;
+  document.querySelectorAll('.ftab').forEach(t=>t.classList.remove('active'));
+  el.classList.add('active');
+  filterTable();
+}
+
+function renderTable(rows) {
+  const tbody = document.getElementById('reg-tbody');
+  if (!rows || !rows.length) {
+    tbody.innerHTML = `<tr><td colspan="8"><div class="empty-st"><div class="ei">🔍</div><p>데이터가 없습니다</p></div></td></tr>`;
+    document.getElementById('tbl-info').textContent = '총 0명';
+    return;
+  }
+
+  const multiSession = currentSessions.length > 1;
+
+  tbody.innerHTML = rows.map(r => {
+    const isWait    = r.status === 'waitlist';
+    const attCells  = isWait ? '<span style="color:var(--g400);font-size:11px;">-</span>' : buildAttCells(r);
+    const nameDisp  = esc(r.name||'-');
+    const phoneDisp = fmtPhone(r.phone);
+    const orgDisp   = esc(r.organization||'-');
+    const refDisp   = r.referrer ? esc(r.referrer) : '<span style="color:var(--g400)">-</span>';
+    const noDisp    = isWait
+      ? `<span style="display:inline-flex;align-items:center;gap:4px;background:linear-gradient(135deg,rgba(201,168,76,.15),rgba(201,168,76,.08));border:1px solid rgba(201,168,76,.4);color:#a8862e;font-size:11px;font-weight:700;padding:2px 8px;border-radius:8px;">⏳ 대기 ${r.waitlist_number}</span>`
+      : `<span class="tno">No.${String(r.ticket_number).padStart(3,'0')}</span>`;
+    const rowStyle  = isWait ? ' style="background:rgba(201,168,76,.04);"' : '';
+    return `<tr${rowStyle}>
+      <td>${noDisp}</td>
+      <td><span class="edit-cell" data-reg-id="${r.id}" data-field="name" data-value="${esc(r.name||'')}" data-inputmode="text"><strong>${nameDisp}</strong></span></td>
+      <td><span class="edit-cell" data-reg-id="${r.id}" data-field="phone" data-value="${esc(r.phone||'')}" data-inputmode="tel">${phoneDisp}</span></td>
+      <td><span class="edit-cell" data-reg-id="${r.id}" data-field="organization" data-value="${esc(r.organization||'')}" data-inputmode="text">${orgDisp}</span></td>
+      <td><span class="edit-cell" data-reg-id="${r.id}" data-field="referrer" data-value="${esc(r.referrer||'')}" data-inputmode="text">${refDisp}</span></td>
+      <td style="font-size:11px;color:var(--g400);">${r.registered_at||''}</td>
+      <td>${attCells}</td>
+      <td><div class="tbl-acts">${buildActions(r)}</div></td>
+    </tr>`;
+  }).join('');
+
+  document.getElementById('tbl-info').textContent = `총 ${rows.length}명 (전체 ${allRegs.length}명)`;
+}
+
+function buildAttCells(r) {
+  if (!r.attendance || !r.attendance.length) return '<span class="b-abs">정보없음</span>';
+
+  if (currentSessionId !== null) {
+    const att = r.attendance.find(a=>a.session_id===currentSessionId);
+    if (!att) return '<span class="b-abs">-</span>';
+    return att.attended
+      ? `<span class="b-att">✅ 출석</span><br><span style="font-size:10px;color:var(--g400);">${att.attended_at?.slice(11,16)||''}</span>`
+      : `<span class="b-abs">미출석</span>`;
+  }
+
+  if (currentSessions.length === 1) {
+    const att = r.attendance[0];
+    return att?.attended
+      ? `<span class="b-att">✅ 출석</span><br><span style="font-size:10px;color:var(--g400);">${att.attended_at?.slice(11,16)||''}</span>`
+      : `<span class="b-abs">미출석</span>`;
+  }
+
+  // Multiple sessions - show all
+  return r.attendance.map(a=>
+    `<div style="display:flex;align-items:center;gap:4px;margin-bottom:2px;">
+      <span style="font-size:10px;color:var(--g400);min-width:50px;">${esc(a.session_name)}</span>
+      ${a.attended ? `<span class="b-att" style="font-size:9px;padding:1px 6px;">✅</span>` : `<span class="b-abs" style="font-size:9px;padding:1px 6px;">-</span>`}
+     </div>`
+  ).join('');
+}
+
+function buildActions(r) {
+  const btns = [];
+  if (currentSessionId !== null) {
+    const att = r.attendance?.find(a=>a.session_id===currentSessionId);
+    if (att?.attended) {
+      btns.push(`<button class="btn btn-outline btn-sm" onclick="toggleAtt(${r.id},${currentSessionId},false)">↩️ 취소</button>`);
+    } else {
+      btns.push(`<button class="btn btn-green btn-sm" onclick="toggleAtt(${r.id},${currentSessionId},true)">✅ 출석</button>`);
+    }
+  } else if (currentSessions.length > 0) {
+    const ses = currentSessions[0];
+    const att = r.attendance?.find(a=>a.session_id===ses.id);
+    if (att?.attended) {
+      btns.push(`<button class="btn btn-outline btn-sm" onclick="toggleAtt(${r.id},${ses.id},false)">↩️</button>`);
+    } else {
+      btns.push(`<button class="btn btn-green btn-sm" onclick="toggleAtt(${r.id},${ses.id},true)">✅</button>`);
+    }
+  }
+  btns.push(`<button class="btn btn-red btn-sm" onclick="deleteReg(${r.id},'${esc(r.name)}')">🗑️</button>`);
+  return btns.join('');
+}
+
+// ─── 전체 필드 인라인 편집 ──────────────────────────────────────────────────
+const FIELD_META = {
+  name:         { label:'이름',   placeholder:'이름',         wide:true  },
+  phone:        { label:'연락처', placeholder:'연락처',       wide:true  },
+  organization: { label:'소속',   placeholder:'소속 (없으면 빈칸)', wide:false },
+  referrer:     { label:'추천인', placeholder:'추천인 이름',  wide:false },
+};
+
+// 이벤트 위임: tbody 클릭 시 .edit-cell 감지
+document.addEventListener('click', function(e) {
+  const cell = e.target.closest('.edit-cell');
+  if (!cell) return;
+  if (cell.querySelector('.edit-inp')) return; // 이미 편집 중
+  const regId   = parseInt(cell.dataset.regId);
+  const field   = cell.dataset.field;
+  const current = cell.dataset.value || '';
+  openCellEdit(cell, regId, field, current);
+});
+
+function openCellEdit(cell, regId, field, current) {
+  const meta     = FIELD_META[field] || { label: field, placeholder: field, wide: false };
+  const prevHTML = cell.innerHTML;
+  const prevVal  = cell.dataset.value || '';
+
+  const wrap = document.createElement('span');
+  wrap.className = 'edit-wrap';
+
+  const inp = document.createElement('input');
+  inp.className   = 'edit-inp' + (meta.wide ? ' wide' : '');
+  inp.type        = field === 'phone' ? 'tel' : 'text';
+  inp.inputMode   = cell.dataset.inputmode || 'text';
+  inp.value       = current;
+  inp.placeholder = meta.placeholder;
+  inp.maxLength   = field === 'name' ? 30 : 100;
+
+  const saveBtn = document.createElement('button');
+  saveBtn.className   = 'edit-save-btn';
+  saveBtn.textContent = '저장';
+
+  const cancelBtn = document.createElement('button');
+  cancelBtn.className   = 'edit-cancel-btn';
+  cancelBtn.textContent = '✕';
+
+  wrap.appendChild(inp);
+  wrap.appendChild(saveBtn);
+  wrap.appendChild(cancelBtn);
+
+  cell.innerHTML = '';
+  cell.appendChild(wrap);
+  inp.focus();
+  inp.select();
+
+  const doSave = () => saveCellField(cell, regId, field, inp.value.trim(), prevHTML, prevVal);
+
+  saveBtn.addEventListener('click',  (e) => { e.stopPropagation(); doSave(); });
+  cancelBtn.addEventListener('click', (e) => {
+    e.stopPropagation();
+    cell.innerHTML = prevHTML;
+    cell.dataset.value = prevVal;
+  });
+  inp.addEventListener('keydown', (e) => {
+    if (e.key === 'Enter')  { e.preventDefault(); doSave(); }
+    if (e.key === 'Escape') { e.preventDefault(); cell.innerHTML = prevHTML; cell.dataset.value = prevVal; }
+  });
+  inp.addEventListener('blur', () => {
+    setTimeout(() => {
+      if (!cell.contains(document.activeElement)) {
+        if (cell.querySelector('.edit-inp')) {
+          cell.innerHTML = prevHTML;
+          cell.dataset.value = prevVal;
         }
-      } catch (e) {}
-    }
-    document.getElementById('login-screen').style.display = 'flex';
+      }
+    }, 150);
+  });
+}
+
+async function saveCellField(cell, regId, field, newVal, prevHTML, prevVal) {
+  // 이름/연락처는 빈값 불가
+  if ((field === 'name' || field === 'phone') && !newVal) {
+    showToast(`${FIELD_META[field].label}은(는) 비워둘 수 없습니다.`, 'err');
+    cell.innerHTML = prevHTML;
+    cell.dataset.value = prevVal;
+    return;
   }
-  init();
+  try {
+    const r = await fetch(`${API}/admin/registrations/${regId}`, {
+      method:  'PUT',
+      headers: { 'Content-Type':'application/json', 'X-Admin-Token': token },
+      body:    JSON.stringify({ [field]: newVal }),
+    });
+    const d = await r.json();
+    if (d.success) {
+      showToast(`${FIELD_META[field]?.label || field} 변경 완료`, 'ok');
+      // allRegs 캐시 업데이트
+      const reg = allRegs.find(x => x.id === regId);
+      if (reg) reg[field] = newVal;
+      // 셀 표시 업데이트
+      cell.dataset.value = newVal;
+      const display = newVal ? esc(newVal) : '<span style="color:var(--g400)">-</span>';
+      cell.innerHTML = field === 'name'
+        ? `<strong>${display}</strong>`
+        : field === 'phone'
+          ? fmtPhone(newVal)
+          : display;
+    } else {
+      showToast(d.message || '저장 실패', 'err');
+      cell.innerHTML = prevHTML;
+      cell.dataset.value = prevVal;
+    }
+  } catch(e) {
+    showToast('오류가 발생했습니다.', 'err');
+    cell.innerHTML = prevHTML;
+    cell.dataset.value = prevVal;
+  }
+}
+
+// ─── ATTENDANCE TOGGLE ────────────────────────────────────────────────────
+async function toggleAtt(regId, sesId, attended) {
+  try {
+    const r = await fetch(`${API}/admin/attendance`,{method:'PUT',headers:{'Content-Type':'application/json','X-Admin-Token':token},body:JSON.stringify({registrationId:regId,sessionId:sesId,attended})});
+    const d = await r.json();
+    if (d.success) { showToast(attended?'✅ 출석 처리':'출석 취소','ok'); loadData(); }
+  } catch(e) { showToast('오류','err'); }
+}
+
+async function deleteReg(id, name) {
+  if (!confirm(`"${name}" 님의 신청을 삭제하시겠습니까?`)) return;
+  try {
+    const r = await fetch(`${API}/admin/registrations/${id}`,{method:'DELETE',headers:{'X-Admin-Token':token}});
+    const d = await r.json();
+    if (d.success) { showToast('삭제되었습니다.','ok'); loadData(); }
+  } catch(e) { showToast('오류','err'); }
+}
+
+// ─── CSV ───────────────────────────────────────────────────────────────────
+function downloadCSV() {
+  if (!currentEventId) { showToast('이벤트를 먼저 선택해주세요.','err'); return; }
+  window.open(`${API}/admin/events/${currentEventId}/export-csv?token=${token}`, '_blank');
+}
+
+// ─── SCANNER ──────────────────────────────────────────────────────────────
+function openScanner() {
+  if (!currentEventId) { showToast('이벤트를 먼저 선택해주세요.','err'); return; }
+  document.getElementById('scan-ov').classList.add('active');
+  document.getElementById('manual-inp').value = '';
+  scanProcessing = false;
+  startScanner();
+}
+
+function closeScanner() {
+  stopScanner();
+  document.getElementById('scan-ov').classList.remove('active');
+  document.getElementById('scan-result-bg').classList.remove('show');
+  loadData();
+}
+
+function continueScanning() {
+  document.getElementById('scan-result-bg').classList.remove('show');
+  scanProcessing = false;
+  setTimeout(()=>{ if(document.getElementById('scan-ov').classList.contains('active')&&!scannerActive) startScanner(); }, 400);
+}
+
+function startScanner() {
+  if (scannerActive) return;
+  html5QrCode = new Html5Qrcode('reader');
+  html5QrCode.start({facingMode:'environment'},{fps:10,qrbox:{width:190,height:190},aspectRatio:1.0},onScanOk,()=>{})
+    .then(()=>{ scannerActive=true; })
+    .catch(()=>{ showToast('카메라를 열 수 없습니다. 수동 입력을 이용해주세요.','err'); });
+}
+
+function stopScanner() {
+  if (html5QrCode && scannerActive) {
+    html5QrCode.stop().then(()=>{ scannerActive=false; html5QrCode=null; }).catch(()=>{ scannerActive=false; html5QrCode=null; });
+  }
+}
+
+function onScanOk(txt) {
+  if (scanProcessing) return;
+  scanProcessing=true; stopScanner();
+  processAtt(txt.trim());
+}
+
+async function manualAttend() {
+  const code = document.getElementById('manual-inp').value.trim();
+  if (!code) { showToast('티켓 코드를 입력해주세요.','err'); return; }
+  scanProcessing=true; stopScanner();
+  await processAtt(code);
+}
+
+async function processAtt(code) {
+  const sesId = parseInt(document.getElementById('scan-ses-select').value) || null;
+  if (!sesId) { showToast('세션을 선택해주세요.','err'); scanProcessing=false; return; }
+  try {
+    const r = await fetch(`${API}/admin/attendance`,{method:'POST',headers:{'Content-Type':'application/json','X-Admin-Token':token},body:JSON.stringify({ticketCode:code,sessionId:sesId})});
+    const d = await r.json();
+    showScanResult(d);
+  } catch(e) {
+    showScanResult({success:false,message:'서버 오류',status:'error'});
+  }
+}
+
+function showScanResult(d) {
+  const bg=document.getElementById('scan-result-bg');
+  const icon=document.getElementById('sr-icon'), status=document.getElementById('sr-status');
+  const name=document.getElementById('sr-name'), org=document.getElementById('sr-org');
+  const ses=document.getElementById('sr-session'), no=document.getElementById('sr-no'), time=document.getElementById('sr-time');
+
+  if (d.success) {
+    icon.textContent='✅'; status.className='sr-status ok'; status.textContent='출석 처리 완료!';
+    name.textContent=d.data.name; org.textContent=d.data.organization||'';
+    ses.textContent=d.data.sessionName||''; ses.style.display=d.data.sessionName?'inline-block':'none';
+    no.textContent=`No.${String(d.data.ticketNumber).padStart(3,'0')}`;
+    time.textContent=`입장: ${d.data.attendedAt||''}`;
+  } else if (d.status==='duplicate') {
+    icon.textContent='⚠️'; status.className='sr-status dup'; status.textContent='이미 출석 처리됨!';
+    name.textContent=d.data?.name||'-'; org.textContent=d.data?.organization||'';
+    ses.style.display='none';
+    no.textContent=d.data?`No.${String(d.data.ticketNumber).padStart(3,'0')}`:'-';
+    time.textContent=`최초 입장: ${d.data?.attendedAt||''}`;
+  } else if (d.status==='not_found') {
+    icon.textContent='❌'; status.className='sr-status err'; status.textContent='등록되지 않은 티켓';
+    name.textContent='--'; org.textContent=''; ses.style.display='none'; no.textContent=''; time.textContent=d.message||'';
+  } else {
+    icon.textContent='❌'; status.className='sr-status err'; status.textContent='오류';
+    name.textContent=''; org.textContent=d.message||''; ses.style.display='none'; no.textContent=''; time.textContent='';
+  }
+  bg.classList.add('show');
+}
+
+// ─── UTILS ────────────────────────────────────────────────────────────────
+function esc(s){ return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
+function fmtPhone(p){if(!p)return'-';const s=p.replace(/[^0-9]/g,'');if(s.length===11)return s.slice(0,3)+'-'+s.slice(3,7)+'-'+s.slice(7);if(s.length===10)return s.slice(0,3)+'-'+s.slice(3,6)+'-'+s.slice(6);return p;}
+function fmtDate(d){if(!d)return'--';const[y,m,day]=d.split('-');const days=['일','월','화','수','목','금','토'];return `${y}.${m}.${day}(${days[new Date(d).getDay()]})` ;}
+function showToast(msg,type=''){const t=document.getElementById('toast');t.textContent=msg;t.className='toast '+(type||'');t.classList.add('show');setTimeout(()=>t.classList.remove('show'),3000);}
+
+// ─── INIT ─────────────────────────────────────────────────────────────────
+setInterval(()=>{ if(currentEventId) loadData(); }, 30000);
+
+async function init() {
+  if (token) {
+    try {
+      const r = await fetch(`${API}/admin/settings`,{headers:{'X-Admin-Token':token}});
+      if (r.ok) { await showApp(); return; }
+    } catch(e) {}
+  }
+  document.getElementById('login-screen').style.display='flex';
+}
+init();
 </script>
 </body>
 </html>
